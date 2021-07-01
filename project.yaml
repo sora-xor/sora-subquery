@@ -560,12 +560,5 @@ dataSources:
     startBlock: 680000
     mapping:
       handlers:
-        - handler: handleBlock
+        - handler: handleXYKPools
           kind: substrate/BlockHandler
-        - handler: handleEvent
-          kind: substrate/EventHandler
-          filter:
-            module: balances
-            method: Deposit
-        - handler: handleCall
-          kind: substrate/CallHandler

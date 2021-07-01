@@ -1,17 +1,16 @@
-type StarterEntity @entity {
+type PoolXYKEntity @entity {
+  id: ID!
+  pools: [Pool] @derivedFrom(field: "poolEntity")
+  totalXORInPools: String!
+}
 
-  id: ID! #id is a required field
-
-  field1: Int!
-
-  field2: String #filed2 is an optional field
-
-  field3: BigInt
-
-  field4: Date
-
-  field5: Boolean
-
-
-
+type Pool @entity {
+  id: ID!
+  baseAssetId: String!
+  targetAssetId: String!
+  apy: String!
+  baseAssetReserves: String!
+  targetAssetReserves: String!
+  multiplier: BigInt!
+  poolEntity: PoolXYKEntity! #relation to PoolXYKEntity
 }
