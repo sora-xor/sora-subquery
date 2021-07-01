@@ -58,7 +58,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     });
 
     pools.forEach(p => {
-        let apy: number = (((0.08 * 2500000) / (226 * totalXORWithDoublePools)) * (365 / 2)) * Number(p.multiplier);
+        let apy: number = ((2500000 / totalXORWithDoublePools) * (365 / 2)) * Number(p.multiplier);
         p.apy = apy.toString();
     });
 
