@@ -557,7 +557,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 680000
+    startBlock: 1
     mapping:
       handlers:
         - handler: handleXYKPools
