@@ -7,10 +7,10 @@ type PoolXYKEntity @entity {
 type Pool @entity {
   id: ID!
   baseAssetId: String!
-  targetAssetId: String!
+  targetAssetId: String! @index
   apy: String!
   baseAssetReserves: String!
   targetAssetReserves: String!
   multiplier: BigInt!
-  poolEntity: PoolXYKEntity! #relation to PoolXYKEntity
+  poolEntity: PoolXYKEntity! @index #relation to PoolXYKEntity
 }
