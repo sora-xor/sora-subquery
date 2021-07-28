@@ -1,5 +1,6 @@
 import {SubstrateBlock} from "@subql/types";
 import {Pool, PoolXYKEntity} from "../types";
+import {formatU128ToBalance} from "./utils";
 
 
 const XOR: string = '0x0200000000000000000000000000000000000000000000000000000000000000';
@@ -10,10 +11,6 @@ const ETH: string = '0x020007000000000000000000000000000000000000000000000000000
 const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
 const XYK_POOL: string = 'XYKPool';
 
-function formatU128ToBalance(u128: string, decimals: number = 18) {
-    let padded = u128.padStart(decimals + 1, "0");
-    return `${padded.slice(0, -decimals)}.${padded.slice(-decimals)}`;
-}
 
 export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     if (block.block.header.number.toNumber() % 100 != 0) {
@@ -63,10 +60,10 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     });
 
     record.totalXORInPools = totalXorInPools.toString();
-    await record.save().catch(e => logger.error("Error saving record", e));
+    await record.save();
     await Promise.all(pools.map(pool => {
         pool.save()
-    })).catch(e => logger.error("Error saving pools", e));
+    }));
 }
 
 

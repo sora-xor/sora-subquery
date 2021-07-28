@@ -3,7 +3,7 @@ description: ''
 repository: ''
 schema: ./schema.graphql
 network:
-  endpoint: wss://ws.mof.sora.org:4443
+  endpoint: wss://mof3.sora.org
   types: {
     "AccountInfo": "AccountInfoWithDualRefCount",
     "Address": "AccountId",
@@ -557,8 +557,13 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 900000
+    startBlock: 100000
     mapping:
       handlers:
         - handler: handleXYKPools
           kind: substrate/BlockHandler
+        - handler: handleSwaps
+          kind: substrate/CallHandler
+          filter:
+            module: liquidityProxy
+            method: swap

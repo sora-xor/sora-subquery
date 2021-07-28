@@ -14,3 +14,18 @@ type Pool @entity {
   multiplier: BigInt!
   poolEntity: PoolXYKEntity! @index #relation to PoolXYKEntity
 }
+
+type Swap @entity {
+  id: ID!
+  blockHash: String!
+  baseAssetId: String!
+  targetAssetId: String!
+  baseAssetAmount: String!
+  targetAssetAmount: String!
+  address: String! @index
+  networkFee: String!
+  liquidityProviderFee: String!
+  selectedMarket: [String]
+  success: Boolean!,
+  datetime: Date!
+}
