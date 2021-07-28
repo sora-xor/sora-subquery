@@ -18,6 +18,7 @@ type Pool @entity {
 type Swap @entity {
   id: ID!
   blockHash: String!
+  extrinsicHash: String!
   baseAssetId: String!
   targetAssetId: String!
   baseAssetAmount: String!
@@ -26,6 +27,19 @@ type Swap @entity {
   networkFee: String!
   liquidityProviderFee: String!
   selectedMarket: [String]
-  success: Boolean!,
+  success: Boolean!
+  datetime: Date!
+}
+
+type Transfer @entity {
+  id: ID!
+  extrinsiHash: String!
+  from: String! @index
+  to: String! @index
+  blockHash: String!
+  assetId: String! @index
+  amount: String!
+  networkFee: String!
+  success: Boolean!
   datetime: Date!
 }
