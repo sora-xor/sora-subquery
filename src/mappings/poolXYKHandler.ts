@@ -34,6 +34,8 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
                 pool.targetAssetId = targetAssetId;
                 pool.multiplier = DOUBLE_PRICE_POOL.some(p => p === targetAssetId) ? BigInt(2) : BigInt(1);
                 pool.poolEntityId = record.id;
+                pool.baseAssetReserves = "0";
+                pool.targetAssetReserves = "0";
                 pools.push(pool);
             }
         }
