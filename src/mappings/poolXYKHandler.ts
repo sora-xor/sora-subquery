@@ -16,7 +16,10 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     if (block.block.header.number.toNumber() % 100 != 0) {
         return;
     }
+    let blockDate = block.timestamp;
+
     let record = new PoolXYKEntity(block.block.header.hash.toString());
+    record.updated = blockDate;
     let totalXorInPools: number = 0;
     const pairs = await api.query.tradingPair.enabledSources.entries(0)
         .catch(e => {
@@ -36,6 +39,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
                 pool.poolEntityId = record.id;
                 pool.baseAssetReserves = "0";
                 pool.targetAssetReserves = "0";
+                pool.updated = blockDate;
                 pools.push(pool);
             }
         }

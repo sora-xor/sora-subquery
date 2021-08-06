@@ -2,6 +2,7 @@ type PoolXYKEntity @entity {
   id: ID!
   pools: [Pool] @derivedFrom(field: "poolEntity")
   totalXORInPools: String!
+§  updated: Date!
 }
 
 type Pool @entity {
@@ -13,6 +14,7 @@ type Pool @entity {
   targetAssetReserves: String!
   multiplier: BigInt!
   poolEntity: PoolXYKEntity! @index #relation to PoolXYKEntity
+  updated: Date!
 }
 
 type Swap @entity {
