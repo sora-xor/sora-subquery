@@ -165,11 +165,11 @@ declare module '@polkadot/api/types/storage' {
        **/
       accounts: AugmentedQuery<ApiType, (arg: AccountId | string | Uint8Array) => Observable<Option<MultisigAccount>>, [AccountId]>;
       calls: AugmentedQuery<ApiType, (arg: U8aFixed | string | Uint8Array) => Observable<Option<ITuple<[OpaqueCall, AccountId, BalanceOf]>>>, [U8aFixed]>;
-      dispatchedCalls: AugmentedQuery<ApiType, (arg1: U8aFixed | string | Uint8Array, arg2: Timepoint | { height?: any; index?: any } | string | Uint8Array) => Observable<ITuple<[]>>, [U8aFixed, Timepoint]>;
+      dispatchedCalls: AugmentedQueryDoubleMap<ApiType, (key1: U8aFixed | string | Uint8Array, key2: Timepoint | { height?: any; index?: any } | string | Uint8Array) => Observable<ITuple<[]>>, [U8aFixed, Timepoint]>;
       /**
        * The set of open multisig operations.
        **/
-      multisigs: AugmentedQuery<ApiType, (arg1: AccountId | string | Uint8Array, arg2: U8aFixed | string | Uint8Array) => Observable<Option<Multisig>>, [AccountId, U8aFixed]>;
+      multisigs: AugmentedQueryDoubleMap<ApiType, (key1: AccountId | string | Uint8Array, key2: U8aFixed | string | Uint8Array) => Observable<Option<Multisig>>, [AccountId, U8aFixed]>;
     };
     council: {
       /**
@@ -338,7 +338,7 @@ declare module '@polkadot/api/types/storage' {
       /**
        * Used to identify an incoming request by the corresponding load request.
        **/
-      loadToIncomingRequestHash: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<H256>, [BridgeNetworkId, H256]>;
+      loadToIncomingRequestHash: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: H256 | string | Uint8Array) => Observable<H256>, [BridgeNetworkId, H256]>;
       /**
        * Next Network ID counter.
        **/
@@ -351,11 +351,11 @@ declare module '@polkadot/api/types/storage' {
       /**
        * Peer account ID on Thischain.
        **/
-      peerAccountId: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: Address | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => Observable<AccountId>, [BridgeNetworkId, Address]>;
+      peerAccountId: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: Address | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => Observable<AccountId>, [BridgeNetworkId, Address]>;
       /**
        * Peer address on Sidechain.
        **/
-      peerAddress: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: AccountId | string | Uint8Array) => Observable<Address>, [BridgeNetworkId, AccountId]>;
+      peerAddress: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: AccountId | string | Uint8Array) => Observable<Address>, [BridgeNetworkId, AccountId]>;
       /**
        * Network peers set.
        **/
@@ -371,23 +371,23 @@ declare module '@polkadot/api/types/storage' {
       /**
        * Registered asset kind.
        **/
-      registeredAsset: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: AssetId | AnyNumber | Uint8Array) => Observable<Option<AssetKind>>, [BridgeNetworkId, AssetId]>;
+      registeredAsset: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: AssetId | AnyNumber | Uint8Array) => Observable<Option<AssetKind>>, [BridgeNetworkId, AssetId]>;
       /**
        * Registered token `AssetId` on Thischain.
        **/
-      registeredSidechainAsset: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: Address | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => Observable<Option<AssetId>>, [BridgeNetworkId, Address]>;
+      registeredSidechainAsset: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: Address | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => Observable<Option<AssetId>>, [BridgeNetworkId, Address]>;
       /**
        * Registered asset address on Sidechain.
        **/
-      registeredSidechainToken: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: AssetId | AnyNumber | Uint8Array) => Observable<Option<Address>>, [BridgeNetworkId, AssetId]>;
+      registeredSidechainToken: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: AssetId | AnyNumber | Uint8Array) => Observable<Option<Address>>, [BridgeNetworkId, AssetId]>;
       /**
        * Outgoing requests approvals.
        **/
-      requestApprovals: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<BTreeSet<SignatureParams>>, [BridgeNetworkId, H256]>;
+      requestApprovals: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: H256 | string | Uint8Array) => Observable<BTreeSet<SignatureParams>>, [BridgeNetworkId, H256]>;
       /**
        * Registered requests.
        **/
-      requests: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<Option<OffchainRequest>>, [BridgeNetworkId, H256]>;
+      requests: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: H256 | string | Uint8Array) => Observable<Option<OffchainRequest>>, [BridgeNetworkId, H256]>;
       /**
        * Registered requests queue handled by off-chain workers.
        **/
@@ -395,16 +395,16 @@ declare module '@polkadot/api/types/storage' {
       /**
        * Requests statuses.
        **/
-      requestStatuses: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<Option<RequestStatus>>, [BridgeNetworkId, H256]>;
+      requestStatuses: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: H256 | string | Uint8Array) => Observable<Option<RequestStatus>>, [BridgeNetworkId, H256]>;
       /**
        * Requests submission height map (on substrate).
        **/
-      requestSubmissionHeight: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<BlockNumber>, [BridgeNetworkId, H256]>;
+      requestSubmissionHeight: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: H256 | string | Uint8Array) => Observable<BlockNumber>, [BridgeNetworkId, H256]>;
       /**
        * Precision (decimals) of a registered sidechain asset. Should be the same as in the ERC-20
        * contract.
        **/
-      sidechainAssetPrecision: AugmentedQuery<ApiType, (arg1: BridgeNetworkId | AnyNumber | Uint8Array, arg2: AssetId | AnyNumber | Uint8Array) => Observable<BalancePrecision>, [BridgeNetworkId, AssetId]>;
+      sidechainAssetPrecision: AugmentedQueryDoubleMap<ApiType, (key1: BridgeNetworkId | AnyNumber | Uint8Array, key2: AssetId | AnyNumber | Uint8Array) => Observable<BalancePrecision>, [BridgeNetworkId, AssetId]>;
       /**
        * Sora VAL master contract address.
        **/
@@ -477,7 +477,7 @@ declare module '@polkadot/api/types/storage' {
        * For each session index, we keep a mapping of `ValidatorId<T>` to the
        * number of blocks authored by the given authority.
        **/
-      authoredBlocks: AugmentedQuery<ApiType, (arg1: SessionIndex | AnyNumber | Uint8Array, arg2: ValidatorId | string | Uint8Array) => Observable<u32>, [SessionIndex, ValidatorId]>;
+      authoredBlocks: AugmentedQueryDoubleMap<ApiType, (key1: SessionIndex | AnyNumber | Uint8Array, key2: ValidatorId | string | Uint8Array) => Observable<u32>, [SessionIndex, ValidatorId]>;
       /**
        * The block number after which it's ok to send heartbeats in current session.
        * 
@@ -495,7 +495,7 @@ declare module '@polkadot/api/types/storage' {
        * For each session index, we keep a mapping of `AuthIndex` to
        * `offchain::OpaqueNetworkState`.
        **/
-      receivedHeartbeats: AugmentedQuery<ApiType, (arg1: SessionIndex | AnyNumber | Uint8Array, arg2: AuthIndex | AnyNumber | Uint8Array) => Observable<Option<Bytes>>, [SessionIndex, AuthIndex]>;
+      receivedHeartbeats: AugmentedQueryDoubleMap<ApiType, (key1: SessionIndex | AnyNumber | Uint8Array, key2: AuthIndex | AnyNumber | Uint8Array) => Observable<Option<Bytes>>, [SessionIndex, AuthIndex]>;
     };
     irohaMigration: {
       account: AugmentedQuery<ApiType, () => Observable<AccountId>, []>;
@@ -583,13 +583,13 @@ declare module '@polkadot/api/types/storage' {
       /**
        * The set of open multisig operations.
        **/
-      multisigs: AugmentedQuery<ApiType, (arg1: AccountId | string | Uint8Array, arg2: U8aFixed | string | Uint8Array) => Observable<Option<Multisig>>, [AccountId, U8aFixed]>;
+      multisigs: AugmentedQueryDoubleMap<ApiType, (key1: AccountId | string | Uint8Array, key2: U8aFixed | string | Uint8Array) => Observable<Option<Multisig>>, [AccountId, U8aFixed]>;
     };
     offences: {
       /**
        * A vector of reports of the same kind that happened at the same time slot.
        **/
-      concurrentReportsIndex: AugmentedQuery<ApiType, (arg1: Kind | string | Uint8Array, arg2: OpaqueTimeSlot | string | Uint8Array) => Observable<Vec<ReportIdOf>>, [Kind, OpaqueTimeSlot]>;
+      concurrentReportsIndex: AugmentedQueryDoubleMap<ApiType, (key1: Kind | string | Uint8Array, key2: OpaqueTimeSlot | string | Uint8Array) => Observable<Vec<ReportIdOf>>, [Kind, OpaqueTimeSlot]>;
       /**
        * Deferred reports that have been rejected by the offence handler and need to be submitted
        * at a later time.
@@ -611,8 +611,8 @@ declare module '@polkadot/api/types/storage' {
     };
     permissions: {
       modes: AugmentedQuery<ApiType, (arg: PermissionId | AnyNumber | Uint8Array) => Observable<Mode>, [PermissionId]>;
-      owners: AugmentedQuery<ApiType, (arg1: PermissionId | AnyNumber | Uint8Array, arg2: Scope | { Limited: any } | { Unlimited: any } | string | Uint8Array) => Observable<Vec<OwnerId>>, [PermissionId, Scope]>;
-      permissions: AugmentedQuery<ApiType, (arg1: HolderId | string | Uint8Array, arg2: Scope | { Limited: any } | { Unlimited: any } | string | Uint8Array) => Observable<Vec<PermissionId>>, [HolderId, Scope]>;
+      owners: AugmentedQueryDoubleMap<ApiType, (key1: PermissionId | AnyNumber | Uint8Array, key2: Scope | { Limited: any } | { Unlimited: any } | string | Uint8Array) => Observable<Vec<OwnerId>>, [PermissionId, Scope]>;
+      permissions: AugmentedQueryDoubleMap<ApiType, (key1: HolderId | string | Uint8Array, key2: Scope | { Limited: any } | { Unlimited: any } | string | Uint8Array) => Observable<Vec<PermissionId>>, [HolderId, Scope]>;
     };
     poolXyk: {
       /**
@@ -622,7 +622,7 @@ declare module '@polkadot/api/types/storage' {
       /**
        * Properties of particular pool. [Reserves Account Id, Fees Account Id, Marker Asset Id]
        **/
-      properties: AugmentedQuery<ApiType, (arg1: AssetId | AnyNumber | Uint8Array, arg2: AssetId | AnyNumber | Uint8Array) => Observable<Option<ITuple<[AccountId, AccountId, AssetId]>>>, [AssetId, AssetId]>;
+      properties: AugmentedQueryDoubleMap<ApiType, (key1: AssetId | AnyNumber | Uint8Array, key2: AssetId | AnyNumber | Uint8Array) => Observable<Option<ITuple<[AccountId, AccountId, AssetId]>>>, [AssetId, AssetId]>;
       /**
        * Updated after last liquidity change operation.
        * [Base Asset Id (XOR) -> Target Asset Id => (Base Balance, Target Balance)].
@@ -631,7 +631,7 @@ declare module '@polkadot/api/types/storage' {
        * For example, communication with technical accounts and their storage is not needed, and this
        * pair to balance cache can be used quickly.
        **/
-      reserves: AugmentedQuery<ApiType, (arg1: AssetId | AnyNumber | Uint8Array, arg2: AssetId | AnyNumber | Uint8Array) => Observable<ITuple<[Balance, Balance]>>, [AssetId, AssetId]>;
+      reserves: AugmentedQueryDoubleMap<ApiType, (key1: AssetId | AnyNumber | Uint8Array, key2: AssetId | AnyNumber | Uint8Array) => Observable<ITuple<[Balance, Balance]>>, [AssetId, AssetId]>;
     };
     pswapDistribution: {
       /**
@@ -780,7 +780,7 @@ declare module '@polkadot/api/types/storage' {
        * Is it removed after `HISTORY_DEPTH` eras.
        * If stakers hasn't been set or has been removed then empty exposure is returned.
        **/
-      erasStakers: AugmentedQuery<ApiType, (arg1: EraIndex | AnyNumber | Uint8Array, arg2: AccountId | string | Uint8Array) => Observable<Exposure>, [EraIndex, AccountId]>;
+      erasStakers: AugmentedQueryDoubleMap<ApiType, (key1: EraIndex | AnyNumber | Uint8Array, key2: AccountId | string | Uint8Array) => Observable<Exposure>, [EraIndex, AccountId]>;
       /**
        * Clipped Exposure of validator at era.
        * 
@@ -794,7 +794,7 @@ declare module '@polkadot/api/types/storage' {
        * Is it removed after `HISTORY_DEPTH` eras.
        * If stakers hasn't been set or has been removed then empty exposure is returned.
        **/
-      erasStakersClipped: AugmentedQuery<ApiType, (arg1: EraIndex | AnyNumber | Uint8Array, arg2: AccountId | string | Uint8Array) => Observable<Exposure>, [EraIndex, AccountId]>;
+      erasStakersClipped: AugmentedQueryDoubleMap<ApiType, (key1: EraIndex | AnyNumber | Uint8Array, key2: AccountId | string | Uint8Array) => Observable<Exposure>, [EraIndex, AccountId]>;
       /**
        * The session index at which the era start for the last `HISTORY_DEPTH` eras.
        * 
@@ -814,7 +814,7 @@ declare module '@polkadot/api/types/storage' {
        * 
        * Is it removed after `HISTORY_DEPTH` eras.
        **/
-      erasValidatorPrefs: AugmentedQuery<ApiType, (arg1: EraIndex | AnyNumber | Uint8Array, arg2: AccountId | string | Uint8Array) => Observable<ValidatorPrefs>, [EraIndex, AccountId]>;
+      erasValidatorPrefs: AugmentedQueryDoubleMap<ApiType, (key1: EraIndex | AnyNumber | Uint8Array, key2: AccountId | string | Uint8Array) => Observable<ValidatorPrefs>, [EraIndex, AccountId]>;
       /**
        * The total validator era payout for the last `HISTORY_DEPTH` eras.
        * 
@@ -865,7 +865,7 @@ declare module '@polkadot/api/types/storage' {
       /**
        * All slashing events on nominators, mapped by era to the highest slash value of the era.
        **/
-      nominatorSlashInEra: AugmentedQuery<ApiType, (arg1: EraIndex | AnyNumber | Uint8Array, arg2: AccountId | string | Uint8Array) => Observable<Option<BalanceOf>>, [EraIndex, AccountId]>;
+      nominatorSlashInEra: AugmentedQueryDoubleMap<ApiType, (key1: EraIndex | AnyNumber | Uint8Array, key2: AccountId | string | Uint8Array) => Observable<Option<BalanceOf>>, [EraIndex, AccountId]>;
       /**
        * Where the reward payment should be made. Keyed by stash.
        **/
@@ -932,7 +932,7 @@ declare module '@polkadot/api/types/storage' {
        * All slashing events on validators, mapped by era to the highest slash proportion
        * and slash value of the era.
        **/
-      validatorSlashInEra: AugmentedQuery<ApiType, (arg1: EraIndex | AnyNumber | Uint8Array, arg2: AccountId | string | Uint8Array) => Observable<Option<ITuple<[Perbill, BalanceOf]>>>, [EraIndex, AccountId]>;
+      validatorSlashInEra: AugmentedQueryDoubleMap<ApiType, (key1: EraIndex | AnyNumber | Uint8Array, key2: AccountId | string | Uint8Array) => Observable<Option<ITuple<[Perbill, BalanceOf]>>>, [EraIndex, AccountId]>;
     };
     system: {
       /**
@@ -1065,19 +1065,19 @@ declare module '@polkadot/api/types/storage' {
        * NOTE: This is only used in the case that this module is used to store
        * balances.
        **/
-      accounts: AugmentedQuery<ApiType, (arg1: AccountId | string | Uint8Array, arg2: CurrencyId | AnyNumber | Uint8Array) => Observable<AccountData>, [AccountId, CurrencyId]>;
+      accounts: AugmentedQueryDoubleMap<ApiType, (key1: AccountId | string | Uint8Array, key2: CurrencyId | AnyNumber | Uint8Array) => Observable<AccountData>, [AccountId, CurrencyId]>;
       /**
        * Any liquidity locks of a token type under an account.
        * NOTE: Should only be accessed when setting, changing and freeing a lock.
        **/
-      locks: AugmentedQuery<ApiType, (arg1: AccountId | string | Uint8Array, arg2: CurrencyId | AnyNumber | Uint8Array) => Observable<Vec<BalanceLock>>, [AccountId, CurrencyId]>;
+      locks: AugmentedQueryDoubleMap<ApiType, (key1: AccountId | string | Uint8Array, key2: CurrencyId | AnyNumber | Uint8Array) => Observable<Vec<BalanceLock>>, [AccountId, CurrencyId]>;
       /**
        * The total issuance of a token type.
        **/
       totalIssuance: AugmentedQuery<ApiType, (arg: CurrencyId | AnyNumber | Uint8Array) => Observable<Balance>, [CurrencyId]>;
     };
     tradingPair: {
-      enabledSources: AugmentedQuery<ApiType, (arg1: DEXId | AnyNumber | Uint8Array, arg2: TradingPair | { base_asset_id?: any; target_asset_id?: any } | string | Uint8Array) => Observable<Option<BTreeSet<LiquiditySourceType>>>, [DEXId, TradingPair]>;
+      enabledSources: AugmentedQueryDoubleMap<ApiType, (key1: DEXId | AnyNumber | Uint8Array, key2: TradingPair | { base_asset_id?: any; target_asset_id?: any } | string | Uint8Array) => Observable<Option<BTreeSet<LiquiditySourceType>>>, [DEXId, TradingPair]>;
     };
     transactionPayment: {
       nextFeeMultiplier: AugmentedQuery<ApiType, () => Observable<Multiplier>, []>;

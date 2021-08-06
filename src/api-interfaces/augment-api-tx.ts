@@ -967,7 +967,7 @@ declare module '@polkadot/api/types/submittable' {
        * 
        * Can only be called from a bridge account.
        **/
-      abortRequest: AugmentedSubmittable<(hash: H256 | string | Uint8Array, error: DispatchError | { Other: any } | { CannotLookup: any } | { BadOrigin: any } | { Module: any } | { ConsumerRemaining: any } | { NoProviders: any } | { Token: any } | { Arithmetic: any } | string | Uint8Array, networkId: BridgeNetworkId | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [H256, DispatchError, BridgeNetworkId]>;
+      abortRequest: AugmentedSubmittable<(hash: H256 | string | Uint8Array, error: DispatchError | { Other: any } | { CannotLookup: any } | { BadOrigin: any } | { Module: any } | { ConsumerRemaining: any } | { NoProviders: any } | { Token: any } | string | Uint8Array, networkId: BridgeNetworkId | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [H256, DispatchError, BridgeNetworkId]>;
       /**
        * Add a Thischain asset to the bridge whitelist.
        * 
@@ -1697,7 +1697,7 @@ declare module '@polkadot/api/types/submittable' {
        * - DbWrites per key id: `KeyOwner`
        * # </weight>
        **/
-      setKeys: AugmentedSubmittable<(keys: Keys | string | Uint8Array, proof: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Keys, Bytes]>;
+      setKeys: AugmentedSubmittable<(keys: Keys, proof: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Keys, Bytes]>;
     };
     staking: {
       /**
@@ -2093,7 +2093,7 @@ declare module '@polkadot/api/types/submittable' {
        * - Worse solution is retraced in pre-dispatch-checks which sets its own weight.
        * # </weight>
        **/
-      submitElectionSolution: AugmentedSubmittable<(winners: Vec<ValidatorIndex> | (ValidatorIndex | AnyNumber | Uint8Array)[], compact: CompactAssignments | { votes1?: any; votes2?: any; votes3?: any; votes4?: any; votes5?: any; votes6?: any; votes7?: any; votes8?: any; votes9?: any; votes10?: any; votes11?: any; votes12?: any; votes13?: any; votes14?: any; votes15?: any; votes16?: any; votes17?: any; votes18?: any; votes19?: any; votes20?: any; votes21?: any; votes22?: any; votes23?: any; votes24?: any } | string | Uint8Array, score: ElectionScore, era: EraIndex | AnyNumber | Uint8Array, size: ElectionSize | { validators?: any; nominators?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Vec<ValidatorIndex>, CompactAssignments, ElectionScore, EraIndex, ElectionSize]>;
+      submitElectionSolution: AugmentedSubmittable<(winners: Vec<ValidatorIndex> | (ValidatorIndex | AnyNumber | Uint8Array)[], compact: CompactAssignments | { votes1?: any; votes2?: any; votes3?: any; votes4?: any; votes5?: any; votes6?: any; votes7?: any; votes8?: any; votes9?: any; votes10?: any; votes11?: any; votes12?: any; votes13?: any; votes14?: any; votes15?: any; votes16?: any } | string | Uint8Array, score: ElectionScore, era: EraIndex | AnyNumber | Uint8Array, size: ElectionSize | { validators?: any; nominators?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Vec<ValidatorIndex>, CompactAssignments, ElectionScore, EraIndex, ElectionSize]>;
       /**
        * Unsigned version of `submit_election_solution`.
        * 
@@ -2105,7 +2105,7 @@ declare module '@polkadot/api/types/submittable' {
        * See [`submit_election_solution`].
        * # </weight>
        **/
-      submitElectionSolutionUnsigned: AugmentedSubmittable<(winners: Vec<ValidatorIndex> | (ValidatorIndex | AnyNumber | Uint8Array)[], compact: CompactAssignments | { votes1?: any; votes2?: any; votes3?: any; votes4?: any; votes5?: any; votes6?: any; votes7?: any; votes8?: any; votes9?: any; votes10?: any; votes11?: any; votes12?: any; votes13?: any; votes14?: any; votes15?: any; votes16?: any; votes17?: any; votes18?: any; votes19?: any; votes20?: any; votes21?: any; votes22?: any; votes23?: any; votes24?: any } | string | Uint8Array, score: ElectionScore, era: EraIndex | AnyNumber | Uint8Array, size: ElectionSize | { validators?: any; nominators?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Vec<ValidatorIndex>, CompactAssignments, ElectionScore, EraIndex, ElectionSize]>;
+      submitElectionSolutionUnsigned: AugmentedSubmittable<(winners: Vec<ValidatorIndex> | (ValidatorIndex | AnyNumber | Uint8Array)[], compact: CompactAssignments | { votes1?: any; votes2?: any; votes3?: any; votes4?: any; votes5?: any; votes6?: any; votes7?: any; votes8?: any; votes9?: any; votes10?: any; votes11?: any; votes12?: any; votes13?: any; votes14?: any; votes15?: any; votes16?: any } | string | Uint8Array, score: ElectionScore, era: EraIndex | AnyNumber | Uint8Array, size: ElectionSize | { validators?: any; nominators?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Vec<ValidatorIndex>, CompactAssignments, ElectionScore, EraIndex, ElectionSize]>;
       /**
        * Schedule a portion of the stash to be unlocked ready for transfer out after the bond
        * period ends. If this leaves an amount actively bonded less than
