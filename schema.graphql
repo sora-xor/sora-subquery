@@ -2,7 +2,7 @@ type PoolXYKEntity @entity {
   id: ID!
   pools: [Pool] @derivedFrom(field: "poolEntity")
   totalXORInPools: String!
-§  updated: Date!
+  updated: Date!
 }
 
 type Pool @entity {
