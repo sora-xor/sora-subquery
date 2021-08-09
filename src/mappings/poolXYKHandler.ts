@@ -1,4 +1,6 @@
 import {SubstrateBlock} from "@subql/types";
+import type {  Option } from '@polkadot/types';
+import { LPSwapOutcomeInfo } from "sora/api-interfaces";
 import {Pool, PoolXYKEntity} from "../types";
 import {formatU128ToBalance} from "./utils";
 
@@ -44,7 +46,13 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
             }
         }
     });
-
+    logger.info(`api rps is ${api.rpc}`);
+    let result: Option<LPSwapOutcomeInfo> = await api.rpc.liquidityProxy.quote("0", "asdf", DAI, PSWAP, "WithDesiredInput", [], "Disabled", block.block.header.hash);
+    if (result.isSome) {
+        logger.info(result.value);
+    } else {
+        logger.info("No result");
+    }
     let reserves = await api.query.poolXyk.reserves.entries(XOR)
         .catch(e => logger.error("Error getting reserves", e))
     let totalXORWithDoublePools: number = 0;

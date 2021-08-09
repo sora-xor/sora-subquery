@@ -7,3 +7,4 @@ export {ethBridge} from './ethBridge/definitions';
 export {liquidityProxy} from './liquidityProxy/definitions';
 export {pswapDistribution} from './pswapDistribution/definitionts';
 export {rewards} from './rewards/definitions';
+export {farming} from './farming/definitions';

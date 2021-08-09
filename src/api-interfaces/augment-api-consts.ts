@@ -2,7 +2,8 @@
 /* eslint-disable */
 
 import type { Vec, u16, u32, u64, u8 } from '@polkadot/types';
-import type { AccountId, Balance, BalanceOf, BlockNumber, LockIdentifier, Moment, Perbill, RuntimeDbWeight } from '@polkadot/types/interfaces/runtime';
+import type { Codec, ITuple } from '@polkadot/types/types';
+import type { AccountId, Balance, BalanceOf, BlockNumber, H160, LockIdentifier, Moment, Perbill, RuntimeDbWeight } from '@polkadot/types/interfaces/runtime';
 import type { SessionIndex } from '@polkadot/types/interfaces/session';
 import type { EraIndex } from '@polkadot/types/interfaces/staking';
 import type { RuntimeVersion } from '@polkadot/types/interfaces/state';
@@ -14,6 +15,7 @@ import type { ApiTypes } from '@polkadot/api/types';
 declare module '@polkadot/api/types/consts' {
   export interface AugmentedConsts<ApiType> {
     babe: {
+      [key: string]: Codec;
       /**
        * The number of **slots** that an epoch takes. We couple sessions to
        * epochs, i.e. we start a new session once the new epoch begins.
@@ -32,15 +34,18 @@ declare module '@polkadot/api/types/consts' {
       expectedBlockTime: Moment & AugmentedConst<ApiType>;
     };
     balances: {
+      [key: string]: Codec;
       /**
        * The minimum amount required to keep an account open.
        **/
       existentialDeposit: Balance & AugmentedConst<ApiType>;
     };
     currencies: {
+      [key: string]: Codec;
       getNativeCurrencyId: CurrencyIdOf & AugmentedConst<ApiType>;
     };
     democracy: {
+      [key: string]: Codec;
       /**
        * Period in blocks where an external proposal may not be re-submitted after being vetoed.
        **/
@@ -79,6 +84,7 @@ declare module '@polkadot/api/types/consts' {
       votingPeriod: BlockNumber & AugmentedConst<ApiType>;
     };
     electionsPhragmen: {
+      [key: string]: Codec;
       candidacyBond: BalanceOf & AugmentedConst<ApiType>;
       desiredMembers: u32 & AugmentedConst<ApiType>;
       desiredRunnersUp: u32 & AugmentedConst<ApiType>;
@@ -88,10 +94,13 @@ declare module '@polkadot/api/types/consts' {
       votingBondFactor: BalanceOf & AugmentedConst<ApiType>;
     };
     ethBridge: {
+      [key: string]: Codec;
+      removePeerAccountIds: Vec<ITuple<[AccountId, H160]>> & AugmentedConst<ApiType>;
       removePendingOutgoingRequestsAfter: BlockNumber & AugmentedConst<ApiType>;
-      removeTemporaryPeerAccountId: AccountId & AugmentedConst<ApiType>;
+      trackPendingIncomingRequestsAfter: ITuple<[BlockNumber, u64]> & AugmentedConst<ApiType>;
     };
     identity: {
+      [key: string]: Codec;
       /**
        * The amount held on deposit for a registered identity.
        **/
@@ -122,6 +131,7 @@ declare module '@polkadot/api/types/consts' {
       subAccountDeposit: BalanceOf & AugmentedConst<ApiType>;
     };
     multisig: {
+      [key: string]: Codec;
       /**
        * The base amount of currency needed to reserve for creating a multisig execution or to store
        * a dispatch call for later.
@@ -137,6 +147,7 @@ declare module '@polkadot/api/types/consts' {
       maxSignatories: u16 & AugmentedConst<ApiType>;
     };
     staking: {
+      [key: string]: Codec;
       /**
        * Number of eras that staked funds must remain bonded for.
        **/
@@ -182,6 +193,7 @@ declare module '@polkadot/api/types/consts' {
       slashDeferDuration: EraIndex & AugmentedConst<ApiType>;
     };
     system: {
+      [key: string]: Codec;
       /**
        * Maximum number of block number to block hash mappings to keep (oldest pruned first).
        **/
@@ -212,6 +224,7 @@ declare module '@polkadot/api/types/consts' {
       version: RuntimeVersion & AugmentedConst<ApiType>;
     };
     timestamp: {
+      [key: string]: Codec;
       /**
        * The minimum period between blocks. Beware that this is different to the *expected* period
        * that the block production apparatus provides. Your chosen consensus system will generally
@@ -221,6 +234,7 @@ declare module '@polkadot/api/types/consts' {
       minimumPeriod: Moment & AugmentedConst<ApiType>;
     };
     transactionPayment: {
+      [key: string]: Codec;
       /**
        * The fee to be paid for making a transaction; the per-byte portion.
        **/
@@ -233,5 +247,6 @@ declare module '@polkadot/api/types/consts' {
   }
 
   export interface QueryableConsts<ApiType extends ApiTypes> extends AugmentedConsts<ApiType> {
+    [key: string]: QueryableModuleConsts;
   }
 }

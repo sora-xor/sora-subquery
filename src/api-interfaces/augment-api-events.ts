@@ -19,12 +19,13 @@ import type { ElectionCompute, EraIndex } from '@polkadot/types/interfaces/staki
 import type { DispatchError, DispatchInfo, DispatchResult } from '@polkadot/types/interfaces/system';
 import type { Timepoint } from '@polkadot/types/interfaces/utility';
 import type { MultiCurrencyBalance } from 'sora/api-interfaces/balance';
-import type { AmountOf, CurrencyId, CurrencyIdOf, DEXId, DispatchResultWithPostInfo, Fixed, LiquiditySourceType, TechAccountId, TechAssetId, TradingPair } from 'sora/api-interfaces/sora';
+import type { AmountOf, CurrencyId, CurrencyIdOf, DEXId, DispatchResultWithPostInfo, Fixed, LiquiditySourceType, RewardReason, TechAccountId, TechAssetId, TradingPair } from 'sora/api-interfaces/sora';
 import type { ApiTypes } from '@polkadot/api/types';
 
 declare module '@polkadot/api/types/events' {
   export interface AugmentedEvents<ApiType> {
     assets: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * New asset has been registered. [Asset Id, Asset Owner Account]
        **/
@@ -47,6 +48,7 @@ declare module '@polkadot/api/types/events' {
       Transfer: AugmentedEvent<ApiType, [AccountId, AccountId, AssetId, TAssetBalance]>;
     };
     balances: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * A balance was set by root. \[who, free, reserved\]
        **/
@@ -84,6 +86,7 @@ declare module '@polkadot/api/types/events' {
       Unreserved: AugmentedEvent<ApiType, [AccountId, Balance]>;
     };
     bridgeMultisig: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * A new multisig created. [multisig]
        **/
@@ -106,6 +109,7 @@ declare module '@polkadot/api/types/events' {
       NewMultisig: AugmentedEvent<ApiType, [AccountId, AccountId, U8aFixed]>;
     };
     council: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * A motion was approved by the required threshold.
        * \[proposal_hash\]
@@ -145,6 +149,7 @@ declare module '@polkadot/api/types/events' {
       Voted: AugmentedEvent<ApiType, [AccountId, Hash, bool, MemberCount, MemberCount]>;
     };
     currencies: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Update balance success. [currency_id, who, amount]
        **/
@@ -163,6 +168,7 @@ declare module '@polkadot/api/types/events' {
       Withdrawn: AugmentedEvent<ApiType, [CurrencyIdOf, AccountId, BalanceOf]>;
     };
     democracy: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * A proposal \[hash\] has been blacklisted permanently.
        **/
@@ -241,6 +247,7 @@ declare module '@polkadot/api/types/events' {
       Vetoed: AugmentedEvent<ApiType, [AccountId, Hash, BlockNumber]>;
     };
     dexapi: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Exchange of tokens has been performed
        * [Sender Account, Receiver Account, DEX Id, LiquiditySourceType, Input Asset Id, Output Asset Id, Input Amount, Output Amount, Fee Amount]
@@ -248,6 +255,7 @@ declare module '@polkadot/api/types/events' {
       DirectExchange: AugmentedEvent<ApiType, [AccountId, AccountId, DEXId, LiquiditySourceType, AssetId, AssetId, Balance, Balance, Balance]>;
     };
     electionsPhragmen: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * A \[candidate\] was slashed by \[amount\] due to failing to obtain a seat as member or
        * runner-up.
@@ -286,6 +294,7 @@ declare module '@polkadot/api/types/events' {
       SeatHolderSlashed: AugmentedEvent<ApiType, [AccountId, Balance]>;
     };
     ethBridge: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * The request's approvals have been collected. [Encoded Outgoing Request, Signatures]
        **/
@@ -315,7 +324,12 @@ declare module '@polkadot/api/types/events' {
        **/
       RequestRegistered: AugmentedEvent<ApiType, [H256]>;
     };
+    faucet: {
+      [key: string]: AugmentedEvent<ApiType>;
+      Transferred: AugmentedEvent<ApiType, [AccountId, Balance]>;
+    };
     grandpa: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * New authority set has been applied. \[authority_set\]
        **/
@@ -330,6 +344,7 @@ declare module '@polkadot/api/types/events' {
       Resumed: AugmentedEvent<ApiType, []>;
     };
     identity: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * A name was cleared, and the given balance returned. \[who, deposit\]
        **/
@@ -374,6 +389,7 @@ declare module '@polkadot/api/types/events' {
       SubIdentityRevoked: AugmentedEvent<ApiType, [AccountId, AccountId, Balance]>;
     };
     imOnline: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * At the end of the session, no offence was committed.
        **/
@@ -388,12 +404,14 @@ declare module '@polkadot/api/types/events' {
       SomeOffline: AugmentedEvent<ApiType, [Vec<IdentificationTuple>]>;
     };
     irohaMigration: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Migrated. [source, target]
        **/
       Migrated: AugmentedEvent<ApiType, [Text, AccountId]>;
     };
     liquidityProxy: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Exchange of tokens has been performed
        * [Caller Account, DEX Id, Input Asset Id, Output Asset Id, Input Amount, Output Amount, Fee Amount]
@@ -401,6 +419,7 @@ declare module '@polkadot/api/types/events' {
       Exchange: AugmentedEvent<ApiType, [AccountId, DEXId, AssetId, AssetId, Balance, Balance, Balance]>;
     };
     multicollateralBondingCurvePool: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Multiplier for reward has been updated on particular asset. [Asset Id, New Multiplier]
        **/
@@ -415,6 +434,7 @@ declare module '@polkadot/api/types/events' {
       ReferenceAssetChanged: AugmentedEvent<ApiType, [AssetId]>;
     };
     multisig: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * A multisig operation has been approved by someone.
        * \[approving, timepoint, multisig, call_hash\]
@@ -434,6 +454,7 @@ declare module '@polkadot/api/types/events' {
       NewMultisig: AugmentedEvent<ApiType, [AccountId, AccountId, CallHash]>;
     };
     offences: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * There is an offence reported of the given `kind` happened at the `session_index` and
        * (kind-specific) time slot. This event is not deposited for duplicate slashes. last
@@ -443,6 +464,7 @@ declare module '@polkadot/api/types/events' {
       Offence: AugmentedEvent<ApiType, [Kind, OpaqueTimeSlot, bool]>;
     };
     permissions: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Permission was assigned to the account in the scope. [permission, who]
        **/
@@ -461,9 +483,14 @@ declare module '@polkadot/api/types/events' {
       PermissionTransfered: AugmentedEvent<ApiType, [u32, AccountId]>;
     };
     poolXyk: {
+      [key: string]: AugmentedEvent<ApiType>;
       PoolIsInitialized: AugmentedEvent<ApiType, [AccountId]>;
     };
+    priceTools: {
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     pswapDistribution: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Burn rate updated.
        * [Current Burn Rate]
@@ -508,12 +535,18 @@ declare module '@polkadot/api/types/events' {
       NothingToExchange: AugmentedEvent<ApiType, [DEXId, AccountId]>;
     };
     rewards: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * The account has claimed their rewards. [account]
        **/
       Claimed: AugmentedEvent<ApiType, [AccountId]>;
+      /**
+       * Storage migration to version 1.2.0 completed
+       **/
+      MigrationCompleted: AugmentedEvent<ApiType, []>;
     };
     scheduler: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Canceled some task. \[when, index\]
        **/
@@ -528,6 +561,7 @@ declare module '@polkadot/api/types/events' {
       Scheduled: AugmentedEvent<ApiType, [BlockNumber, u32]>;
     };
     session: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * New session has happened. Note that the argument is the \[session_index\], not the block
        * number as the type might suggest.
@@ -535,6 +569,7 @@ declare module '@polkadot/api/types/events' {
       NewSession: AugmentedEvent<ApiType, [SessionIndex]>;
     };
     staking: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * An account has bonded this amount. \[stash, amount\]
        * 
@@ -584,7 +619,23 @@ declare module '@polkadot/api/types/events' {
        **/
       Withdrawn: AugmentedEvent<ApiType, [AccountId, Balance]>;
     };
+    sudo: {
+      [key: string]: AugmentedEvent<ApiType>;
+      /**
+       * The \[sudoer\] just switched identity; the old key is supplied.
+       **/
+      KeyChanged: AugmentedEvent<ApiType, [AccountId]>;
+      /**
+       * A sudo just took place. \[result\]
+       **/
+      Sudid: AugmentedEvent<ApiType, [DispatchResult]>;
+      /**
+       * A sudo just took place. \[result\]
+       **/
+      SudoAsDone: AugmentedEvent<ApiType, [DispatchResult]>;
+    };
     system: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * `:code` was updated.
        **/
@@ -607,6 +658,7 @@ declare module '@polkadot/api/types/events' {
       NewAccount: AugmentedEvent<ApiType, [AccountId]>;
     };
     technical: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Some pure technical assets were burned. [asset, owner, burned_amount, total_exist].
        * For full kind of accounts like in Minted.
@@ -635,6 +687,7 @@ declare module '@polkadot/api/types/events' {
       SwapSuccess: AugmentedEvent<ApiType, [AccountId]>;
     };
     technicalCommittee: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * A motion was approved by the required threshold.
        * \[proposal_hash\]
@@ -674,6 +727,7 @@ declare module '@polkadot/api/types/events' {
       Voted: AugmentedEvent<ApiType, [AccountId, Hash, bool, MemberCount, MemberCount]>;
     };
     technicalMembership: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Phantom member, never used.
        **/
@@ -700,6 +754,7 @@ declare module '@polkadot/api/types/events' {
       MembersSwapped: AugmentedEvent<ApiType, []>;
     };
     tokens: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * An account was removed whose balance was non-zero but below
        * ExistentialDeposit, resulting in an outright loss. \[account,
@@ -712,12 +767,14 @@ declare module '@polkadot/api/types/events' {
       Transferred: AugmentedEvent<ApiType, [CurrencyId, AccountId, AccountId, Balance]>;
     };
     tradingPair: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Trading pair has been redistered on a DEX. [DEX Id, Trading Pair]
        **/
       TradingPairStored: AugmentedEvent<ApiType, [DEXId, TradingPair]>;
     };
     utility: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Batch of dispatches completed fully with no error.
        **/
@@ -729,19 +786,49 @@ declare module '@polkadot/api/types/events' {
       BatchInterrupted: AugmentedEvent<ApiType, [u32, DispatchError]>;
     };
     vestedRewards: {
+      [key: string]: AugmentedEvent<ApiType>;
+      /**
+       * Attempted to claim reward, but actual claimed amount is less than expected. [reason for reward]
+       **/
+      ActualDoesntMatchAvailable: AugmentedEvent<ApiType, [RewardReason]>;
+      /**
+       * Account was chosen as eligible for market maker rewards, however calculated reward turned into 0. [account]
+       **/
+      AddingZeroMarketMakerReward: AugmentedEvent<ApiType, [AccountId]>;
+      /**
+       * Saving reward for account has failed in a distribution series. [account]
+       **/
+      FailedToSaveCalculatedReward: AugmentedEvent<ApiType, [AccountId]>;
+      /**
+       * Couldn't find any account with enough transactions to count market maker rewards.
+       **/
+      NoEligibleMarketMakers: AugmentedEvent<ApiType, []>;
       /**
        * Rewards vested, limits were raised. [vested amount]
        **/
       RewardsVested: AugmentedEvent<ApiType, [Balance]>;
     };
     xorFee: {
+      [key: string]: AugmentedEvent<ApiType>;
       /**
        * Fee has been withdrawn from user. [Account Id to withdraw from, Fee Amount]
        **/
       FeeWithdrawn: AugmentedEvent<ApiType, [AccountId, Balance]>;
     };
+    xstPool: {
+      [key: string]: AugmentedEvent<ApiType>;
+      /**
+       * Pool is initialized for pair. [DEX Id, Synthetic Asset Id]
+       **/
+      PoolInitialized: AugmentedEvent<ApiType, [DEXId, AssetId]>;
+      /**
+       * Reference Asset has been changed for pool. [New Reference Asset Id]
+       **/
+      ReferenceAssetChanged: AugmentedEvent<ApiType, [AssetId]>;
+    };
   }
 
   export interface DecoratedEvents<ApiType extends ApiTypes> extends AugmentedEvents<ApiType> {
+    [key: string]: ModuleEvents<ApiType>;
   }
 }

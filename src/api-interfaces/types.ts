@@ -10,3 +10,4 @@ export * from './ethBridge/types';
 export * from './liquidityProxy/types';
 export * from './pswapDistribution/types';
 export * from './rewards/types';
+export * from './farming/types';

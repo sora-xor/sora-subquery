@@ -34,31 +34,31 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
       /**
        * Get free balance of particular asset for account.
        **/
-      freeBalance: AugmentedRpc<(accountId: AccountId | string | Uint8Array, assetId: AssetId | AnyNumber | Uint8Array) => Observable<Option<BalanceInfo>>>;
+      freeBalance: AugmentedRpc<(accountId: AccountId | string | Uint8Array, assetId: AssetId | AnyNumber | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Option<BalanceInfo>>>;
       /**
        * Get Info for particular asset on chain.
        **/
-      getAssetInfo: AugmentedRpc<(assetId: AssetId | AnyNumber | Uint8Array) => Observable<Option<AssetInfo>>>;
+      getAssetInfo: AugmentedRpc<(assetId: AssetId | AnyNumber | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Option<AssetInfo>>>;
       /**
        * List Ids of all assets registered on chain.
        **/
-      listAssetIds: AugmentedRpc<() => Observable<Vec<AssetId>>>;
+      listAssetIds: AugmentedRpc<(at?: BlockHash | string | Uint8Array) => Observable<Vec<AssetId>>>;
       /**
        * List Infos of all assets registered on chain.
        **/
-      listAssetInfos: AugmentedRpc<() => Observable<Vec<AssetInfo>>>;
+      listAssetInfos: AugmentedRpc<(at?: BlockHash | string | Uint8Array) => Observable<Vec<AssetInfo>>>;
       /**
        * Get total balance (free + reserved) of particular asset for account.
        **/
-      totalBalance: AugmentedRpc<(accountId: AccountId | string | Uint8Array, assetId: AssetId | AnyNumber | Uint8Array) => Observable<Option<BalanceInfo>>>;
+      totalBalance: AugmentedRpc<(accountId: AccountId | string | Uint8Array, assetId: AssetId | AnyNumber | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Option<BalanceInfo>>>;
       /**
        * Get total supply of particular asset on chain.
        **/
-      totalSupply: AugmentedRpc<(assetId: AssetId | AnyNumber | Uint8Array) => Observable<Option<BalanceInfo>>>;
+      totalSupply: AugmentedRpc<(assetId: AssetId | AnyNumber | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Option<BalanceInfo>>>;
       /**
        * Get usable (free and non-frozen, except for network fees) balance of particular asset for account.
        **/
-      usableBalance: AugmentedRpc<(accountId: AccountId | string | Uint8Array, assetId: AssetId | AnyNumber | Uint8Array) => Observable<Option<BalanceInfo>>>;
+      usableBalance: AugmentedRpc<(accountId: AccountId | string | Uint8Array, assetId: AssetId | AnyNumber | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Option<BalanceInfo>>>;
     };
     author: {
       /**
@@ -176,25 +176,25 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
       /**
        * Query capability to exchange particular tokens on DEX.
        **/
-      canExchange: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, liquiditySourceType: LiquiditySourceType | 'XYKPool' | 'BondingCurvePool' | 'MulticollateralBondingCurvePool' | 'MockPool' | 'MockPool2' | 'MockPool3' | 'MockPool4' | number | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array) => Observable<bool>>;
+      canExchange: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, liquiditySourceType: LiquiditySourceType | 'XYKPool' | 'BondingCurvePool' | 'MulticollateralBondingCurvePool' | 'MockPool' | 'MockPool2' | 'MockPool3' | 'MockPool4' | number | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<bool>>;
       /**
        * List liquidity source types enabled on chain.
        **/
-      listSupportedSources: AugmentedRpc<() => Observable<Vec<LiquiditySourceType>>>;
+      listSupportedSources: AugmentedRpc<(at?: BlockHash | string | Uint8Array) => Observable<Vec<LiquiditySourceType>>>;
       /**
        * Get price for a given input or output token amount.
        **/
-      quote: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, liquiditySourceType: LiquiditySourceType | 'XYKPool' | 'BondingCurvePool' | 'MulticollateralBondingCurvePool' | 'MockPool' | 'MockPool2' | 'MockPool3' | 'MockPool4' | number | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array, amount: Text | string, swapVariant: SwapVariant | 'WithDesiredInput' | 'WithDesiredOutput' | number | Uint8Array) => Observable<Option<SwapOutcomeInfo>>>;
+      quote: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, liquiditySourceType: LiquiditySourceType | 'XYKPool' | 'BondingCurvePool' | 'MulticollateralBondingCurvePool' | 'MockPool' | 'MockPool2' | 'MockPool3' | 'MockPool4' | number | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array, amount: Text | string, swapVariant: SwapVariant | 'WithDesiredInput' | 'WithDesiredOutput' | number | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Option<SwapOutcomeInfo>>>;
     };
     dexManager: {
       /**
        * Enumerate available ids of DEXes
        **/
-      listDEXIds: AugmentedRpc<() => Observable<Vec<DEXId>>>;
+      listDEXIds: AugmentedRpc<(at?: BlockHash | string | Uint8Array) => Observable<Vec<DEXId>>>;
       /**
        * Test type of Balance
        **/
-      testBalance: AugmentedRpc<() => Observable<Fixed>>;
+      testBalance: AugmentedRpc<(at?: BlockHash | string | Uint8Array) => Observable<Fixed>>;
     };
     engine: {
       /**
@@ -376,23 +376,23 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
       /**
        * Get account requests hashes.
        **/
-      getAccountRequests: AugmentedRpc<(accountId: AccountId | string | Uint8Array, statusFilter: Option<RequestStatus> | null | object | string | Uint8Array) => Observable<Result<Vec<ITuple<[BridgeNetworkId, H256]>>, DispatchError>>>;
+      getAccountRequests: AugmentedRpc<(accountId: AccountId | string | Uint8Array, statusFilter: Option<RequestStatus> | null | object | string | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Result<Vec<ITuple<[BridgeNetworkId, H256]>>, DispatchError>>>;
       /**
        * Get approvals of the given requests.
        **/
-      getApprovals: AugmentedRpc<(requestHashes: Vec<H256> | (H256 | string | Uint8Array)[], networkId: Option<BridgeNetworkId> | null | object | string | Uint8Array) => Observable<Result<Vec<Vec<SignatureParams>>, DispatchError>>>;
+      getApprovals: AugmentedRpc<(requestHashes: Vec<H256> | (H256 | string | Uint8Array)[], networkId: Option<BridgeNetworkId> | null | object | string | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Result<Vec<Vec<SignatureParams>>, DispatchError>>>;
       /**
        * Get approved encoded requests and their approvals.
        **/
-      getApprovedRequests: AugmentedRpc<(requestHashes: Vec<H256> | (H256 | string | Uint8Array)[], networkId: Option<BridgeNetworkId> | null | object | string | Uint8Array) => Observable<Result<Vec<ITuple<[OutgoingRequestEncoded, Vec<SignatureParams>]>>, DispatchError>>>;
+      getApprovedRequests: AugmentedRpc<(requestHashes: Vec<H256> | (H256 | string | Uint8Array)[], networkId: Option<BridgeNetworkId> | null | object | string | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Result<Vec<ITuple<[OutgoingRequestEncoded, Vec<SignatureParams>]>>, DispatchError>>>;
       /**
        * Get registered assets and tokens.
        **/
-      getRegisteredAssets: AugmentedRpc<(networkId: Option<BridgeNetworkId> | null | object | string | Uint8Array) => Observable<Result<Vec<ITuple<[AssetKind, ITuple<[AssetId, BalancePrecision]>, Option<ITuple<[H160, BalancePrecision]>>]>>, DispatchError>>>;
+      getRegisteredAssets: AugmentedRpc<(networkId: Option<BridgeNetworkId> | null | object | string | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Result<Vec<ITuple<[AssetKind, ITuple<[AssetId, BalancePrecision]>, Option<ITuple<[H160, BalancePrecision]>>]>>, DispatchError>>>;
       /**
        * Get registered requests and their statuses.
        **/
-      getRequests: AugmentedRpc<(requestHashes: Vec<H256> | (H256 | string | Uint8Array)[], networkId: Option<BridgeNetworkId> | null | object | string | Uint8Array, redirectFinishedLoadRequests: Option<bool> | null | object | string | Uint8Array) => Observable<Result<Vec<ITuple<[OffchainRequest, RequestStatus]>>, DispatchError>>>;
+      getRequests: AugmentedRpc<(requestHashes: Vec<H256> | (H256 | string | Uint8Array)[], networkId: Option<BridgeNetworkId> | null | object | string | Uint8Array, redirectFinishedLoadRequests: Option<bool> | null | object | string | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Result<Vec<ITuple<[OffchainRequest, RequestStatus]>>, DispatchError>>>;
     };
     grandpa: {
       /**
@@ -412,15 +412,15 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
       /**
        * Check if given two arbitrary tokens can be exchanged via any liquidity sources
        **/
-      isPathAvailable: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array) => Observable<bool>>;
+      isPathAvailable: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<bool>>;
       /**
        * Given two arbitrary tokens, list liquidity sources that can be used along the path.
        **/
-      listEnabledSourcesForPath: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array) => Observable<Vec<LiquiditySourceType>>>;
+      listEnabledSourcesForPath: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Vec<LiquiditySourceType>>>;
       /**
        * Get price with indicated Asset amount and direction, filtered by selected_types
        **/
-      quote: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array, amount: Text | string, swapVariant: SwapVariant | 'WithDesiredInput' | 'WithDesiredOutput' | number | Uint8Array, selectedSourceTypes: Vec<LiquiditySourceType> | (LiquiditySourceType | 'XYKPool' | 'BondingCurvePool' | 'MulticollateralBondingCurvePool' | 'MockPool' | 'MockPool2' | 'MockPool3' | 'MockPool4' | number | Uint8Array)[], filterMode: FilterMode | 'Disabled' | 'ForbidSelected' | 'AllowSelected' | number | Uint8Array) => Observable<Option<LPSwapOutcomeInfo>>>;
+      quote: AugmentedRpc<(dexId: DEXId | AnyNumber | Uint8Array, inputAssetId: AssetId | AnyNumber | Uint8Array, outputAssetId: AssetId | AnyNumber | Uint8Array, amount: Text | string, swapVariant: SwapVariant | 'WithDesiredInput' | 'WithDesiredOutput' | number | Uint8Array, selectedSourceTypes: Vec<LiquiditySourceType> | (LiquiditySourceType | 'XYKPool' | 'BondingCurvePool' | 'MulticollateralBondingCurvePool' | 'MockPool' | 'MockPool2' | 'MockPool3' | 'MockPool4' | number | Uint8Array)[], filterMode: FilterMode | 'Disabled' | 'ForbidSelected' | 'AllowSelected' | number | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Option<LPSwapOutcomeInfo>>>;
     };
     mmr: {
       /**
@@ -466,13 +466,13 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
       /**
        * Get amount of PSWAP claimable by user (liquidity provision reward).
        **/
-      claimableAmount: AugmentedRpc<(accountId: AccountId | string | Uint8Array) => Observable<BalanceInfo>>;
+      claimableAmount: AugmentedRpc<(accountId: AccountId | string | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<BalanceInfo>>;
     };
     rewards: {
       /**
        * Get claimable rewards
        **/
-      claimables: AugmentedRpc<(eth_address: EthereumAddress | string | Uint8Array) => Observable<Vec<BalanceInfo>>>;
+      claimables: AugmentedRpc<(eth_address: EthereumAddress | string | Uint8Array, at?: BlockHash | string | Uint8Array) => Observable<Vec<BalanceInfo>>>;
     };
     rpc: {
       /**

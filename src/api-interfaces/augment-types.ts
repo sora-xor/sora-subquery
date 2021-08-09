@@ -57,8 +57,9 @@ import type { AccountId32Junction, AccountIndex64Junction, AccountKey20Junction,
 import type { AssetInfo, AssetNameStr, AssetRecord, AssetSymbolStr, BalanceInfo } from 'sora/api-interfaces/assets';
 import type { MultiCurrencyBalance } from 'sora/api-interfaces/balance';
 import type { AssetKind, BridgeNetworkId, BridgeStatus, BridgeTimepoint, ChangePeersContract, CurrencyIdEncoded, EthBridgeStorageVersion, EthPeersSync, FixedBytes, IncomingAddToken, IncomingCancelOutgoingRequest, IncomingChangePeers, IncomingChangePeersCompat, IncomingMarkAsDoneRequest, IncomingMetaRequestKind, IncomingMigrate, IncomingPrepareForMigration, IncomingRequest, IncomingRequestKind, IncomingTransactionRequestKind, IncomingTransfer, LoadIncomingMetaRequest, LoadIncomingRequest, LoadIncomingTransactionRequest, MultiChainHeight, OffchainRequest, OutgoingAddAsset, OutgoingAddAssetEncoded, OutgoingAddPeer, OutgoingAddPeerCompat, OutgoingAddPeerEncoded, OutgoingAddToken, OutgoingAddTokenEncoded, OutgoingMigrate, OutgoingMigrateEncoded, OutgoingPrepareForMigration, OutgoingPrepareForMigrationEncoded, OutgoingRemovePeer, OutgoingRemovePeerCompat, OutgoingRemovePeerEncoded, OutgoingRequest, OutgoingRequestEncoded, OutgoingTransfer, OutgoingTransferEncoded, RequestStatus, SignatureParams } from 'sora/api-interfaces/ethBridge';
+import type { PoolFarmer } from 'sora/api-interfaces/farming';
 import type { LPRewardsInfo, LPSwapOutcomeInfo } from 'sora/api-interfaces/liquidityProxy';
-import type { Amount, AmountOf, AssetId32, AssetIdOf, AssetName, AssetSymbol, BalancePrecision, BasisPoints, ChargeFeeInfo, CurrencyId, CurrencyIdOf, DEXId, DEXIdOf, DEXInfo, DispatchErrorWithPostInfoTPostDispatchInfo, DispatchResultWithPostInfo, DistributionAccounts, Duration, Farm, FarmId, Farmer, FilterMode, Fixed, HolderId, LiquiditySourceType, MarketMakerInfo, Mode, MultiCurrencyBalanceOf, MultisigAccount, OracleKey, OwnerId, PendingMultisigAccount, Permission, PermissionId, PostDispatchInfo, Public, QuoteAmount, QuoteWithDesiredInput, QuoteWithDesiredOutput, RewardInfo, RewardReason, Scope, SmoothPriceState, StorageVersion, SwapAction, SwapAmount, SwapOutcome, SwapOutcomeInfo, SwapVariant, SwapWithDesiredInput, SwapWithDesiredOutput, TechAccountId, TechAccountIdPrimitive, TechAmount, TechAssetId, TechBalance, TechPurpose, TradingPair, ValidationFunction } from 'sora/api-interfaces/sora';
+import type { Amount, AmountOf, AssetId32, AssetIdOf, AssetName, AssetSymbol, BalancePrecision, BasisPoints, ChargeFeeInfo, CurrencyId, CurrencyIdOf, DEXId, DEXIdOf, DEXInfo, DispatchErrorWithPostInfoTPostDispatchInfo, DispatchResultWithPostInfo, DistributionAccounts, Duration, Farm, FarmId, Farmer, FilterMode, Fixed, HolderId, LiquiditySourceType, MarketMakerInfo, Mode, MultiCurrencyBalanceOf, MultisigAccount, OracleKey, OwnerId, PendingMultisigAccount, Permission, PermissionId, PostDispatchInfo, PriceInfo, Public, QuoteAmount, QuoteWithDesiredInput, QuoteWithDesiredOutput, RewardInfo, RewardReason, Scope, SmoothPriceState, StorageVersion, SwapAction, SwapAmount, SwapOutcome, SwapOutcomeInfo, SwapVariant, SwapWithDesiredInput, SwapWithDesiredOutput, TechAccountId, TechAccountIdPrimitive, TechAmount, TechAssetId, TechBalance, TechPurpose, TradingPair, ValidationFunction } from 'sora/api-interfaces/sora';
 
 declare module '@polkadot/types/types/registry' {
   export interface InterfaceTypes {
@@ -774,6 +775,7 @@ declare module '@polkadot/types/types/registry' {
     'Option<PhragmenScore>': Option<PhragmenScore>;
     'Option<PluralityJunction>': Option<PluralityJunction>;
     'Option<Points>': Option<Points>;
+    'Option<PoolFarmer>': Option<PoolFarmer>;
     'Option<PostDispatchInfo>': Option<PostDispatchInfo>;
     'Option<Precommits>': Option<Precommits>;
     'Option<PrefabWasmModule>': Option<PrefabWasmModule>;
@@ -782,6 +784,7 @@ declare module '@polkadot/types/types/registry' {
     'Option<PreimageStatusAvailable>': Option<PreimageStatusAvailable>;
     'Option<PreRuntime>': Option<PreRuntime>;
     'Option<Prevotes>': Option<Prevotes>;
+    'Option<PriceInfo>': Option<PriceInfo>;
     'Option<Priority>': Option<Priority>;
     'Option<PriorLock>': Option<PriorLock>;
     'Option<PropIndex>': Option<PropIndex>;
@@ -1708,6 +1711,7 @@ declare module '@polkadot/types/types/registry' {
     'Vec<PhragmenScore>': Vec<PhragmenScore>;
     'Vec<PluralityJunction>': Vec<PluralityJunction>;
     'Vec<Points>': Vec<Points>;
+    'Vec<PoolFarmer>': Vec<PoolFarmer>;
     'Vec<PostDispatchInfo>': Vec<PostDispatchInfo>;
     'Vec<Precommits>': Vec<Precommits>;
     'Vec<PrefabWasmModule>': Vec<PrefabWasmModule>;
@@ -1716,6 +1720,7 @@ declare module '@polkadot/types/types/registry' {
     'Vec<PreimageStatusAvailable>': Vec<PreimageStatusAvailable>;
     'Vec<PreRuntime>': Vec<PreRuntime>;
     'Vec<Prevotes>': Vec<Prevotes>;
+    'Vec<PriceInfo>': Vec<PriceInfo>;
     'Vec<Priority>': Vec<Priority>;
     'Vec<PriorLock>': Vec<PriorLock>;
     'Vec<PropIndex>': Vec<PropIndex>;
@@ -2642,6 +2647,7 @@ declare module '@polkadot/types/types/registry' {
     PhragmenScore: PhragmenScore;
     PluralityJunction: PluralityJunction;
     Points: Points;
+    PoolFarmer: PoolFarmer;
     PostDispatchInfo: PostDispatchInfo;
     Precommits: Precommits;
     PrefabWasmModule: PrefabWasmModule;
@@ -2650,6 +2656,7 @@ declare module '@polkadot/types/types/registry' {
     PreimageStatusAvailable: PreimageStatusAvailable;
     PreRuntime: PreRuntime;
     Prevotes: Prevotes;
+    PriceInfo: PriceInfo;
     Priority: Priority;
     PriorLock: PriorLock;
     PropIndex: PropIndex;

@@ -1,7 +1,7 @@
 // Auto-generated via `yarn polkadot-types-from-defs`, do not edit
 /* eslint-disable */
 
-import type { BTreeMap, Bytes, Compact, Enum, Null, Option, Result, Struct, U8aFixed, i128, u16, u32, u64, u8 } from '@polkadot/types';
+import type { BTreeMap, Bytes, Compact, Enum, Null, Option, Result, Struct, U8aFixed, Vec, bool, i128, u16, u32, u64, u8 } from '@polkadot/types';
 import type { ITuple } from '@polkadot/types/types';
 import type { AccountId, AssetId, Balance, FixedU128, H512, Pays, Weight } from '@polkadot/types/interfaces/runtime';
 import type { DispatchError } from '@polkadot/types/interfaces/system';
@@ -151,6 +151,15 @@ export interface PostDispatchInfo extends Struct {
   readonly pays_fee: Pays;
 }
 
+/** @name PriceInfo */
+export interface PriceInfo extends Struct {
+  readonly price_failures: u32;
+  readonly spot_prices: Vec<Balance>;
+  readonly average_price: Balance;
+  readonly needs_update: bool;
+  readonly last_spot_price: Balance;
+}
+
 /** @name Public */
 export interface Public extends U8aFixed {}
 
@@ -183,6 +192,8 @@ export interface RewardInfo extends Struct {
 export interface RewardReason extends Enum {
   readonly isUnspecified: boolean;
   readonly isBuyOnBondingCurve: boolean;
+  readonly isLiquidityProvisionFarming: boolean;
+  readonly isMarketMakerVolume: boolean;
 }
 
 /** @name Scope */
