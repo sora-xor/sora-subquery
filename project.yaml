@@ -3,7 +3,7 @@ description: ''
 repository: ''
 schema: ./schema.graphql
 network:
-  endpoint: wss://mof3.sora.org
+  endpoint: wss://ws.framenode-3.s3.dev.sora2.soramitsu.co.jp
   types: {
     "AccountInfo": "AccountInfoWithDualRefCount",
     "Address": "AccountId",
@@ -557,18 +557,33 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 1000000
+    startBlock: 18827
     mapping:
       handlers:
+        
         - handler: handleXYKPools
           kind: substrate/BlockHandler
-        - handler: handleSwaps
-          kind: substrate/CallHandler
-          filter:
-            module: liquidityProxy
-            method: swap
+
+        # - handler: handleSwaps
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: liquidityProxy
+        #     method: swap
+        
         - handler: handlerTransfers
           kind: substrate/EventHandler
           filter:
             module: assets
             method: Transfer
+        
+        # - handler: handlerSwaps
+        #   kind: substrate/EventHandler
+        
+        # - handler: handlerLiquidityOperation
+        #   kind: substrate/EventHandler
+        
+        # - handler: handlerIrohaMigration
+        #   kind: substrate/EventHandler
+        
+        - handler: handleHistoryElement
+          kind: substrate/CallHandler

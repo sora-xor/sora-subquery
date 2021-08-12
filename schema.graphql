@@ -18,31 +18,46 @@ type Pool @entity {
   updated: Date!
 }
 
-type Swap @entity {
+type HistoryElement @entity {
   id: ID!
-  blockHash: String!
-  extrinsicHash: String!
+  blockHeight: BigInt!
+  address: String!
+  networkFee: String!
+  success: Boolean!
+  timestamp: String!
+  swap: Swap
+  transfer: Transfer
+  irohaMigration: irohaMigration
+  liquidityOperation: LiquidityOperation
+
+  }
+
+type Swap @jsonField {
   baseAssetId: String!
   targetAssetId: String!
   baseAssetAmount: String!
   targetAssetAmount: String!
-  address: String! @index
-  networkFee: String!
   liquidityProviderFee: String!
-  selectedMarket: [String]
-  success: Boolean!
-  datetime: Date!
+  selectedMarket: String!
 }
 
-type Transfer @entity {
-  id: ID!
-  extrinsiHash: String!
-  from: String! @index
-  to: String! @index
-  blockHash: String!
-  assetId: String! @index
+type Transfer @jsonField {
+  transactionid: String!
+  from: String! 
+  to: String! 
+  assetId: String! 
   amount: String!
-  networkFee: String!
-  success: Boolean!
-  datetime: Date!
+}
+
+type LiquidityOperation @jsonField {
+  type: String!
+  AssetAId: String!
+  AssetBId: String!
+  AssetAAmount: String!
+  AssetBAmmount: String!
+}
+
+type irohaMigration @jsonField {
+  assetid: String!
+  ammount: String!
 }
