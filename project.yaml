@@ -557,33 +557,42 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 18827
+    startBlock: 	32490
     mapping:
       handlers:
         
-        - handler: handleXYKPools
-          kind: substrate/BlockHandler
+        # - handler: handleXYKPools
+        #   kind: substrate/BlockHandler
 
-        # - handler: handleSwaps
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: liquidityProxy
-        #     method: swap
-        
         - handler: handlerTransfers
           kind: substrate/EventHandler
           filter:
             module: assets
             method: Transfer
         
-        # - handler: handlerSwaps
-        #   kind: substrate/EventHandler
-        
-        # - handler: handlerLiquidityOperation
-        #   kind: substrate/EventHandler
-        
-        # - handler: handlerIrohaMigration
-        #   kind: substrate/EventHandler
-        
-        - handler: handleHistoryElement
+        - handler: handleSwaps
           kind: substrate/CallHandler
+          filter:
+            module: liquidityProxy
+            method: swap
+        
+        - handler: handleLiquidityDeposit
+          kind: substrate/CallHandler
+          filter:
+            module: poolXyk
+            method: depositLiquidity
+
+        - handler: handleLiquidityRemoval
+          kind: substrate/CallHandler
+          filter:
+            module: poolXyk
+            method: withdrawLiquidity
+        
+        - handler: handlerIrohaMigration
+          kind: substrate/CallHandler
+          filter:
+            module: irohaMigration
+            method: migrate
+        
+        # - handler: handleHistoryElement
+        #   kind: substrate/CallHandler

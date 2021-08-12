@@ -42,7 +42,6 @@ type Swap @jsonField {
 }
 
 type Transfer @jsonField {
-  transactionid: String!
   from: String! 
   to: String! 
   assetId: String! 
@@ -59,5 +58,5 @@ type LiquidityOperation @jsonField {
 
 type irohaMigration @jsonField {
   assetid: String!
-  ammount: String!
+  amount: String!
 }

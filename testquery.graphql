@@ -1,0 +1,38 @@
+query {
+  historyElements(
+    orderBy: CREATED_AT_DESC 
+    first: 5 # Elements to display
+    offset: 0 # Page number
+    filter: {
+      or: [
+        {
+          address: {
+            # Address to receive the history for
+            equalTo: "cnX9PKtDAsdxFCukxttb75JCvD6hqvDZippERm3PwNPuPieey"
+          }
+        }
+        {
+          transfer: {
+            contains: {
+              # Address to receive the history for
+              to: "cnX9PKtDAsdxFCukxttb75JCvD6hqvDZippERm3PwNPuPieey"
+            }
+          }
+        }
+      ]
+    }
+  ) {
+    nodes {
+      id
+      blockHeight
+      address
+      networkFee
+      success
+      timestamp
+      swap
+      transfer
+      irohaMigration
+      liquidityOperation
+    }
+  }
+}
