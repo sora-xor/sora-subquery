@@ -30,7 +30,7 @@ export const getExtrinsicId = (extrinsic: SubstrateExtrinsic): string => {
     return `${extrinsic.block.block.hash.toString()}-${extrinsic.idx.toString()}`;
 }
 
-export const ReceiveSwapAmounts = (swapAmount: SwapAmount): string[] => {
+export const receiveSwapAmounts = (swapAmount: SwapAmount): string[] => {
     switch (swapAmount.isWithDesiredOutput) {
         case true: {
             return [formatU128ToBalance(swapAmount.asWithDesiredOutput.max_amount_in.toString()),

@@ -1,16 +1,18 @@
 import {SubstrateExtrinsic} from '@subql/types';
 import {HistoryElement} from "../types";
 import type {Vec} from "@polkadot/types";
-import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicId, getExtrinsicNetworkFee, ReceiveSwapAmounts} from "./utils";
+import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicNetworkFee, receiveSwapAmounts} from "./utils";
 import {LiquiditySourceType, SwapAmount} from "sora/api-interfaces";
 
 export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> {
     
-    logger.warn("Caught swap extrinsic")
+    logger.debug("Caught swap extrinsic")
     
     const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
 
     record.blockHeight = extrinsic.block.block.header.number.toBigInt()
+    record.module = "liquidityProxy"
+    record.method = "swap"
     record.address = extrinsic.extrinsic.signer.toString()
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
     record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
@@ -37,8 +39,8 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
         record.swap = {
             baseAssetId: baseAssetId.toString(),
             targetAssetId: targetAssetId.toString(),
-            baseAssetAmount: ReceiveSwapAmounts[0],
-            targetAssetAmount: ReceiveSwapAmounts[1],
+            baseAssetAmount: receiveSwapAmounts[0],
+            targetAssetAmount: receiveSwapAmounts[1],
             liquidityProviderFee: "0",
             selectedMarket: (extrinsic.extrinsic.args[4] as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString()
         }
@@ -46,7 +48,7 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
     
     await record.save();
 
-    logger.warn(`===== Saved swap with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    logger.debug(`===== Saved swap with ${extrinsic.extrinsic.hash.toString()} txid =====`);
     
 }
 

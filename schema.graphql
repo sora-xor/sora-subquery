@@ -21,7 +21,9 @@ type Pool @entity {
 type HistoryElement @entity {
   id: ID!
   blockHeight: BigInt!
-  address: String!
+  module: String!
+  method: String!
+  address: String! @index
   networkFee: String!
   success: Boolean!
   timestamp: String!
@@ -42,21 +44,21 @@ type Swap @jsonField {
 }
 
 type Transfer @jsonField {
-  from: String! 
-  to: String! 
+  from: String! @index
+  to: String! @index
   assetId: String! 
   amount: String!
 }
 
 type LiquidityOperation @jsonField {
   type: String!
-  AssetAId: String!
-  AssetBId: String!
-  AssetAAmount: String!
-  AssetBAmmount: String!
+  baseAssetId: String!
+  targetAssetId: String!
+  baseAssetAmount: String!
+  targetAssetAmount: String!
 }
 
 type irohaMigration @jsonField {
-  assetid: String!
+  assetId: String!
   amount: String!
 }

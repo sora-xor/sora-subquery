@@ -1,14 +1,16 @@
 import {SubstrateExtrinsic, SubstrateEvent} from '@subql/types';
 import {HistoryElement} from "../types";
-import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicId, getExtrinsicNetworkFee, ReceiveSwapAmounts} from "./utils";
+import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicNetworkFee} from "./utils";
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
     
-    logger.warn("Caught liquidity removal extrinsic")
+    logger.debug("Caught liquidity removal extrinsic")
     
     const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
 
     record.blockHeight = extrinsic.block.block.header.number.toBigInt()
+    record.module = "poolXyk"
+    record.method = "withdrawLiquidity"
     record.address = extrinsic.extrinsic.signer.toString()
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
     record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
@@ -24,10 +26,10 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
             
         record.liquidityOperation = {
             type: "Removal",
-            AssetAId: inputAsset.toString(),
-            AssetBId: outputAsset.toString(),
-            AssetAAmount: inputTransferedAmount.toString(),
-            AssetBAmmount: outputTransferedAmount.toString()
+            baseAssetId: inputAsset.toString(),
+            targetAssetId: outputAsset.toString(),
+            baseAssetAmount: inputTransferedAmount.toString(),
+            targetAssetAmount: outputTransferedAmount.toString()
 
         }
     } 
@@ -40,16 +42,16 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
         
         record.liquidityOperation = {
             type: "Removal",
-            AssetAId: assetAId.toString(),
-            AssetBId: assetBId.toString(),
-            AssetAAmount: assetAMin.toString(),
-            AssetBAmmount: assetBMin.toString()
+            baseAssetId: assetAId.toString(),
+            targetAssetId: assetBId.toString(),
+            baseAssetAmount: assetAMin.toString(),
+            targetAssetAmount: assetBMin.toString()
         }
     }
     
     await record.save();
 
-    logger.warn(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    logger.debug(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
     
 }
 

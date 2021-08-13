@@ -1,14 +1,16 @@
 import {SubstrateExtrinsic, SubstrateEvent} from '@subql/types';
 import {HistoryElement} from "../types";
-import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicId, getExtrinsicNetworkFee, ReceiveSwapAmounts} from "./utils";
+import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicNetworkFee} from "./utils";
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
     
-    logger.warn("Caught liquidity adding extrinsic")
+    logger.debug("Caught liquidity adding extrinsic")
     
     const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
 
     record.blockHeight = extrinsic.block.block.header.number.toBigInt()
+    record.module = "poolXyk"
+    record.method = "depositLiquidity"
     record.address = extrinsic.extrinsic.signer.toString()
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
     record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
@@ -24,10 +26,10 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
             
         record.liquidityOperation = {
             type: "Deposit",
-            AssetAId: inputAsset.toString(),
-            AssetBId: outputAsset.toString(),
-            AssetAAmount: inputTransferedAmount.toString(),
-            AssetBAmmount: outputTransferedAmount.toString()
+            baseAssetId: inputAsset.toString(),
+            targetAssetId: outputAsset.toString(),
+            baseAssetAmount: inputTransferedAmount.toString(),
+            targetAssetAmount: outputTransferedAmount.toString()
 
         }
     } 
@@ -38,16 +40,16 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
         record.liquidityOperation = {
             type: "Deposit",
-            AssetAId: assetAId.toString(),
-            AssetBId: assetBId.toString(),
-            AssetAAmount: assetADesired.toString(),
-            AssetBAmmount: assetBDesired.toString()
+            baseAssetId: assetAId.toString(),
+            targetAssetId: assetBId.toString(),
+            baseAssetAmount: assetADesired.toString(),
+            targetAssetAmount: assetBDesired.toString()
         }
     }
     
     await record.save();
 
-    logger.warn(`===== Saved liquidity deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    logger.debug(`===== Saved liquidity deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
     
 }
 

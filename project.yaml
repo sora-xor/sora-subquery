@@ -561,8 +561,8 @@ dataSources:
     mapping:
       handlers:
         
-        # - handler: handleXYKPools
-        #   kind: substrate/BlockHandler
+        - handler: handleXYKPools
+          kind: substrate/BlockHandler
 
         - handler: handlerTransfers
           kind: substrate/EventHandler
@@ -593,6 +593,3 @@ dataSources:
           filter:
             module: irohaMigration
             method: migrate
-        
-        # - handler: handleHistoryElement
-        #   kind: substrate/CallHandler

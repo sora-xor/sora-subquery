@@ -1,14 +1,16 @@
-import {SubstrateExtrinsic, SubstrateEvent} from '@subql/types';
+import {SubstrateExtrinsic} from '@subql/types';
 import {HistoryElement} from "../types";
-import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicId, getExtrinsicNetworkFee, ReceiveSwapAmounts} from "./utils";
+import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicNetworkFee} from "./utils";
 
 export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Promise<void> {
     
-    logger.warn("Caught iroha migration extrinsic")
+    logger.debug("Caught iroha migration extrinsic")
     
     const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
 
     record.blockHeight = extrinsic.block.block.header.number.toBigInt()
+    record.module = "irohaMigration"
+    record.method = "migrate"
     record.address = extrinsic.extrinsic.signer.toString()
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
     record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
@@ -20,14 +22,14 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
         const {event: {data: [asset, , , amount]}} = assetTransferEvent;
             
         record.irohaMigration = {
-            assetid: asset.toString(),
+            assetId: asset.toString(),
             amount: amount.toString()
         }
     } 
     
     await record.save();
 
-    logger.warn(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    logger.debug(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
     
 }
 
