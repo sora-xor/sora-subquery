@@ -1,20 +1,14 @@
 import {SubstrateExtrinsic, SubstrateEvent} from '@subql/types';
-import {HistoryElement} from "../types";
-import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicNetworkFee} from "./utils";
+import {formatU128ToBalance, saveCommonHistoryElemInfo} from "./utils";
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
     
     logger.debug("Caught liquidity removal extrinsic")
     
-    const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
+    const record = saveCommonHistoryElemInfo(extrinsic)
 
-    record.blockHeight = extrinsic.block.block.header.number.toBigInt()
     record.module = "poolXyk"
     record.method = "withdrawLiquidity"
-    record.address = extrinsic.extrinsic.signer.toString()
-    record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
-    record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
-    record.timestamp = extrinsic.block.timestamp.toString()
 
     if (record.success) {
         
@@ -28,8 +22,8 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
             type: "Removal",
             baseAssetId: inputAsset.toString(),
             targetAssetId: outputAsset.toString(),
-            baseAssetAmount: inputTransferedAmount.toString(),
-            targetAssetAmount: outputTransferedAmount.toString()
+            baseAssetAmount: formatU128ToBalance(inputTransferedAmount.toString()),
+            targetAssetAmount: formatU128ToBalance(outputTransferedAmount.toString())
 
         }
     } 
@@ -44,8 +38,8 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
             type: "Removal",
             baseAssetId: assetAId.toString(),
             targetAssetId: assetBId.toString(),
-            baseAssetAmount: assetAMin.toString(),
-            targetAssetAmount: assetBMin.toString()
+            baseAssetAmount: formatU128ToBalance(assetAMin.toString()),
+            targetAssetAmount: formatU128ToBalance(assetBMin.toString())
         }
     }
     

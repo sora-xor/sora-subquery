@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { SwapAmount } from "sora/api-interfaces";
+import { HistoryElement } from "../types";
 
 export const formatU128ToBalance = (u128: string, decimals: number = 18): string => {
     let padded = u128.padStart(decimals + 1, "0");
@@ -40,4 +41,16 @@ export const receiveSwapAmounts = (swapAmount: SwapAmount): string[] => {
             formatU128ToBalance(swapAmount.asWithDesiredInput.min_amount_out.toString())]
         }
     } 
+}
+
+export const saveCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): HistoryElement => {
+    const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
+
+    record.blockHeight = extrinsic.block.block.header.number.toBigInt()
+    record.address = extrinsic.extrinsic.signer.toString()
+    record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
+    record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
+    record.timestamp = extrinsic.block.timestamp
+    
+    return record
 }

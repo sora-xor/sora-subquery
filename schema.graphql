@@ -26,7 +26,7 @@ type HistoryElement @entity {
   address: String! @index
   networkFee: String!
   success: Boolean!
-  timestamp: String!
+  timestamp: Date!
   swap: Swap
   transfer: Transfer
   irohaMigration: irohaMigration

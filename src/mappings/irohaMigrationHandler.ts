@@ -1,20 +1,14 @@
 import {SubstrateExtrinsic} from '@subql/types';
-import {HistoryElement} from "../types";
-import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicNetworkFee} from "./utils";
+import {formatU128ToBalance, saveCommonHistoryElemInfo} from "./utils";
 
 export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Promise<void> {
     
     logger.debug("Caught iroha migration extrinsic")
     
-    const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
+    const record = saveCommonHistoryElemInfo(extrinsic)
 
-    record.blockHeight = extrinsic.block.block.header.number.toBigInt()
     record.module = "irohaMigration"
     record.method = "migrate"
-    record.address = extrinsic.extrinsic.signer.toString()
-    record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
-    record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
-    record.timestamp = extrinsic.block.timestamp.toString()
 
     if (record.success) {
         
@@ -23,7 +17,7 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
             
         record.irohaMigration = {
             assetId: asset.toString(),
-            amount: amount.toString()
+            amount: formatU128ToBalance(amount.toString())
         }
     } 
     
