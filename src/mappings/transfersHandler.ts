@@ -7,12 +7,9 @@ export async function handlerTransfers(event: SubstrateEvent): Promise<void> {
     
     const {event: {data: [from, to, assetId, amount]}} = event;
     
-    let transferExtrinsic = event.extrinsic;
+    let extrinsic = event.extrinsic;
 
-    const record = assignCommonHistoryElemInfo(transferExtrinsic)
-
-    record.module = "assets"
-    record.method = "transfer"
+    const record = assignCommonHistoryElemInfo(extrinsic, extrinsic.extrinsic.method.section, extrinsic.extrinsic.method.method)
     
     record.transfer = {
         from: from.toString(),
@@ -23,6 +20,6 @@ export async function handlerTransfers(event: SubstrateEvent): Promise<void> {
 
     await record.save();
 
-    logger.debug(`===== Saved transfer with ${transferExtrinsic.extrinsic.hash.toString()} txid =====`);
+    logger.debug(`===== Saved transfer with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
 }

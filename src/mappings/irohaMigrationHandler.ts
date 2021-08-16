@@ -5,10 +5,7 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
 
     logger.debug("Caught iroha migration extrinsic")
 
-    const record = assignCommonHistoryElemInfo(extrinsic)
-
-    record.module = "irohaMigration"
-    record.method = "migrate"
+    const record = assignCommonHistoryElemInfo(extrinsic, extrinsic.extrinsic.method.section, extrinsic.extrinsic.method.method)
 
     if (record.success) {
 

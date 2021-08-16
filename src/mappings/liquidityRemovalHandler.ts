@@ -5,10 +5,7 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
     
     logger.debug("Caught liquidity removal extrinsic")
     
-    const record = assignCommonHistoryElemInfo(extrinsic)
-
-    record.module = "poolXyk"
-    record.method = "withdrawLiquidity"
+    const record = assignCommonHistoryElemInfo(extrinsic, extrinsic.extrinsic.method.section, extrinsic.extrinsic.method.method)
 
     if (record.success) {
         

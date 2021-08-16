@@ -43,7 +43,7 @@ export const receiveSwapAmounts = (swapAmount: SwapAmount): string[] => {
     } 
 }
 
-export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): HistoryElement => {
+export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic, module: string, method: string): HistoryElement => {
     const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
 
     record.blockHeight = extrinsic.block.block.header.number.toBigInt()
@@ -51,6 +51,8 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
     record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
     record.timestamp = extrinsic.block.timestamp
+    record.module = module
+    record.method = method
     
     return record
 }
