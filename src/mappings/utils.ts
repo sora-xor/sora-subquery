@@ -43,7 +43,7 @@ export const receiveSwapAmounts = (swapAmount: SwapAmount): string[] => {
     } 
 }
 
-export const saveCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): HistoryElement => {
+export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): HistoryElement => {
     const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
 
     record.blockHeight = extrinsic.block.block.header.number.toBigInt()

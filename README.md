@@ -122,6 +122,8 @@ query {
     nodes {
       id
       blockHeight
+      module
+      method
       address
       networkFee
       success

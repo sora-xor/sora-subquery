@@ -1,13 +1,13 @@
 import {SubstrateExtrinsic} from '@subql/types';
 import type {Vec} from "@polkadot/types";
-import {formatU128ToBalance, receiveSwapAmounts, saveCommonHistoryElemInfo} from "./utils";
+import {formatU128ToBalance, receiveSwapAmounts, assignCommonHistoryElemInfo} from "./utils";
 import {LiquiditySourceType} from "sora/api-interfaces";
 
 export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> {
     
     logger.debug("Caught swap extrinsic")
     
-    const record = saveCommonHistoryElemInfo(extrinsic)
+    const record = assignCommonHistoryElemInfo(extrinsic)
 
     record.module = "liquidityProxy"
     record.method = "swap"

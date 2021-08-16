@@ -1,11 +1,11 @@
 import {SubstrateExtrinsic, SubstrateEvent} from '@subql/types';
-import {formatU128ToBalance, saveCommonHistoryElemInfo} from "./utils";
+import {formatU128ToBalance, assignCommonHistoryElemInfo} from "./utils";
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
     
     logger.debug("Caught liquidity removal extrinsic")
     
-    const record = saveCommonHistoryElemInfo(extrinsic)
+    const record = assignCommonHistoryElemInfo(extrinsic)
 
     record.module = "poolXyk"
     record.method = "withdrawLiquidity"
