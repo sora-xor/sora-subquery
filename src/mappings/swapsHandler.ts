@@ -7,7 +7,7 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
     
     logger.debug("Caught swap extrinsic")
     
-    const record = assignCommonHistoryElemInfo(extrinsic, extrinsic.extrinsic.method.section, extrinsic.extrinsic.method.method)
+    const record = assignCommonHistoryElemInfo(extrinsic)
     
     if (record.success) {
         let swapEvent = extrinsic.events.find(e => e.event.method === 'Exchange' && e.event.section === 'liquidityProxy');

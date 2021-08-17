@@ -9,7 +9,7 @@ export async function handlerTransfers(event: SubstrateEvent): Promise<void> {
     
     let extrinsic = event.extrinsic;
 
-    const record = assignCommonHistoryElemInfo(extrinsic, extrinsic.extrinsic.method.section, extrinsic.extrinsic.method.method)
+    const record = assignCommonHistoryElemInfo(extrinsic)
     
     record.transfer = {
         from: from.toString(),

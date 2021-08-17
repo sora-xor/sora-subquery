@@ -5,7 +5,7 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
     
     logger.debug("Caught liquidity adding extrinsic")
     
-    const record = assignCommonHistoryElemInfo(extrinsic, extrinsic.extrinsic.method.section, extrinsic.extrinsic.method.method)
+    const record = assignCommonHistoryElemInfo(extrinsic)
 
     if (record.success) {
         
