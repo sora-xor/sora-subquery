@@ -31,7 +31,7 @@ type HistoryElement @entity {
   transfer: Transfer
   irohaMigration: irohaMigration
   liquidityOperation: LiquidityOperation
-
+  batchTransaction: [batchTransaction]
   }
 
 type Swap @jsonField {
@@ -62,3 +62,13 @@ type irohaMigration @jsonField {
   assetId: String!
   amount: String!
 }
+
+type batchTransaction @jsonField {
+  callId: String!
+  method: String!
+  module: String!
+  hash: String!
+}
+
+
+

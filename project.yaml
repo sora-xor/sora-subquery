@@ -557,7 +557,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 	32490
+    startBlock: 	84112
     mapping:
       handlers:
         
@@ -593,3 +593,9 @@ dataSources:
           filter:
             module: irohaMigration
             method: migrate
+
+        - handler: batchTransactionsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: utility
+            method: batchAll
