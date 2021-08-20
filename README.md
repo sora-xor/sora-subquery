@@ -1,19 +1,27 @@
-# SubQuery - Starter Package
+<h1 align="center">SORA - Subquery</h1>
 
+## Introduction
 
-The Starter Package is an example that you can use as a starting point for developing your SubQuery project.
-A SubQuery package defines which data The SubQuery will index from the Substrate blockchain, and how it will store it. 
+[SORA](https://sora.org/) and [subquery.network](https://subquery.network/) integration project, implementing the convenient acquisition of the following network entities:
 
-## Preparation
+- XYK Pools
+- Transfers
+- Swaps
+- Liquidity pools operations
+  - Deposits
+  - Removals
+- Iroha migrations
 
-#### Environment
+## Query
+
+### Environment
 
 - [Typescript](https://www.typescriptlang.org/) are required to compile project and define types.  
 
 - Both SubQuery CLI and generated Project have dependencies and require [Node](https://nodejs.org/en/).
      
 
-#### Install the SubQuery CLI
+### Install the SubQuery CLI
 
 Install SubQuery CLI globally on your terminal by using Yarn or NPM:
 
@@ -33,8 +41,7 @@ Inside the directory in which you want to create the SubQuery project, simply re
 ```
 subql init --starter project-name
 ```
-Then you should see a folder with your project name has been created inside the directory, you can use this as the start point of your project. And the files should be identical as in the [Directory Structure](https://doc.subquery.network/directory_structure.html).
-
+Then you should see a folder with your project name has been created inside the directory, you can use this as the start point of your project.
 Last, under the project directory, run following command to install all the dependency.
 ```
 yarn install
@@ -72,7 +79,7 @@ yarn build
 
 ## Indexing and Query
 
-#### Run required systems in docker
+### Run required systems in docker
 
 
 Under the project directory run following command:
@@ -80,7 +87,7 @@ Under the project directory run following command:
 ```
 docker-compose pull && docker-compose up
 ```
-#### Query the project
+### Query the project
 
 Open your browser and head to `http://localhost:3000`.
 
@@ -89,14 +96,42 @@ Finally, you should see a GraphQL playground is showing in the explorer and the 
 For the `subql-starter` project, you can try to query with the following code to get a taste of how it works.
 
 ````graphql
-{
-  query{
-    starterEntities(first:10){
-      nodes{
-        field1,
-        field2,
-        field3
-      }
+query {
+  historyElements(
+    orderBy: CREATED_AT_DESC 
+    first: 5
+    offset: 0
+    filter: {
+      or: [
+        {
+          address: {
+            equalTo: " {{ Address to receive the history for }} "
+          }
+        }
+        {
+          transfer: {
+            contains: {
+              # Address to receive the history for
+              to: " {{ Address to receive the history for }} "
+            }
+          }
+        }
+      ]
+    }
+  ) {
+    nodes {
+      id
+      blockHeight
+      module
+      method
+      address
+      networkFee
+      success
+      timestamp
+      swap
+      transfer
+      irohaMigration
+      liquidityOperation
     }
   }
 }

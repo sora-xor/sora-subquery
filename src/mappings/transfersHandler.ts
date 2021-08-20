@@ -1,26 +1,25 @@
 import {SubstrateEvent} from "@subql/types";
-import {Transfer} from "../types";
-import {checkIfExtrinsicExecuteSuccess, formatU128ToBalance, getExtrinsicId, getExtrinsicNetworkFee} from "./utils";
-import {LiquiditySourceType, SwapAmount} from "sora/api-interfaces";
-import type {Vec} from "@polkadot/types";
-
+import {formatU128ToBalance, assignCommonHistoryElemInfo} from "./utils";
 
 export async function handlerTransfers(event: SubstrateEvent): Promise<void> {
+    
+    logger.debug("Caught transfer event")
+    
     const {event: {data: [from, to, assetId, amount]}} = event;
-    let transferExtrinsic = event.extrinsic;
-    let success = checkIfExtrinsicExecuteSuccess(transferExtrinsic);
-    let fee = getExtrinsicNetworkFee(transferExtrinsic);
+    
+    let extrinsic = event.extrinsic;
 
-    let transfer = new Transfer(getExtrinsicId(transferExtrinsic));
-    transfer.extrinsiHash = transferExtrinsic.extrinsic.hash.toString();
-    transfer.from = from.toString();
-    transfer.to = to.toString();
-    transfer.amount = formatU128ToBalance(amount.toString());
-    transfer.assetId = assetId.toString();
-    transfer.networkFee = fee;
-    transfer.success = success;
-    transfer.blockHash = event.block.block.hash.toString();
-    transfer.datetime = transferExtrinsic.block.timestamp;
+    const record = assignCommonHistoryElemInfo(extrinsic)
+    
+    record.transfer = {
+        from: from.toString(),
+        to: to.toString(),
+        amount: formatU128ToBalance(amount.toString()),
+        assetId: assetId.toString()
+    }
 
-    await transfer.save();
+    await record.save();
+
+    logger.debug(`===== Saved transfer with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+
 }
