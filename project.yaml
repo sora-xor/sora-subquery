@@ -481,7 +481,9 @@ network:
     "RewardReason": {
       "_enum": [
           "Unspecified",
-          "BuyOnBondingCurve"
+          "BuyOnBondingCurve",
+          "LiquidityProvisionFarming",
+          "MarketMakerVolume"
       ]
     },
     "Scope": {
@@ -560,7 +562,7 @@ dataSources:
     startBlock: 	167836
     mapping:
       handlers:
-        
+
         - handler: handleXYKPools
           kind: substrate/BlockHandler
 
@@ -569,13 +571,13 @@ dataSources:
           filter:
             module: assets
             method: Transfer
-        
+
         - handler: handleSwaps
           kind: substrate/CallHandler
           filter:
             module: liquidityProxy
             method: swap
-        
+
         - handler: handleLiquidityDeposit
           kind: substrate/CallHandler
           filter:
@@ -587,7 +589,7 @@ dataSources:
           filter:
             module: poolXyk
             method: withdrawLiquidity
-        
+
         - handler: handlerIrohaMigration
           kind: substrate/CallHandler
           filter:
