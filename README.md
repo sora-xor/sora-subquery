@@ -98,28 +98,30 @@ For the `subql-starter` project, you can try to query with the following code to
 ````graphql
 query {
   historyElements(
+#      see pagination guidelines https://graphql.org/learn/pagination/#pagination-and-edges
     orderBy: TIMESTAMP_DESC 
-    first: 5
-    offset: 0
+    first: " << insert int to receive first n entries after the cursor >> "
+    after: " << cursor of the record from which the first n entries are to be obtained >> "
     filter: {
       or: [
         {
           address: {
-            equalTo: " {{ Address to receive the history for }} "
+            equalTo: " << address to receive the history for >> "
           }
         }
         {
           transfer: {
             contains: {
-              # Address to receive the history for
-              to: " {{ Address to receive the history for }} "
+              to: " << address to receive the history for >> "
             }
           }
         }
       ]
     }
   ) {
-    nodes {
+    totalCount
+    edges {
+    node {
       id
       blockHeight
       module
@@ -132,6 +134,13 @@ query {
       transfer
       irohaMigration
       liquidityOperation
+    }
+      cursor }
+    
+    pageInfo {
+      startCursor
+      endCursor
+      hasNextPage
     }
   }
 }

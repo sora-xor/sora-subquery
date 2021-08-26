@@ -52,7 +52,7 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     record.address = extrinsic.extrinsic.signer.toString()
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
     record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
-    record.timestamp = extrinsic.block.timestamp
+    record.timestamp = ((extrinsic.block.timestamp).getTime() / 1000).toString()
     
     return record
 }
