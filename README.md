@@ -98,7 +98,7 @@ For the `subql-starter` project, you can try to query with the following code to
 ````graphql
 query {
   historyElements(
-    orderBy: CREATED_AT_DESC 
+    orderBy: TIMESTAMP_DESC 
     first: 5
     offset: 0
     filter: {
