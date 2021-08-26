@@ -99,7 +99,7 @@ For the `subql-starter` project, you can try to query with the following code to
 query {
   historyElements(
 #      see pagination guidelines https://graphql.org/learn/pagination/#pagination-and-edges
-    orderBy: CREATED_AT_DESC 
+    orderBy: TIMESTAMP_DESC 
     first: " << insert int to receive first n entries after the cursor >> "
     after: " << cursor of the record from which the first n entries are to be obtained >> "
     filter: {
