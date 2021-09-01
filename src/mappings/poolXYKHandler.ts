@@ -66,15 +66,17 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         }
     });
     let pswapPool = pools.find(p => p.targetAssetId === PSWAP);
-    let pswapPriceInXor: number = Number(pswapPool.baseAssetReserves) / Number(pswapPool.targetAssetReserves);
-    let pswapPriceInDAI = pswapPriceInXor * Number(xorPriceInDAI);
-    pools.forEach(p => {
-        let priceInXor: number = Number(p.baseAssetReserves) / Number(p.targetAssetReserves);
-        let daiPrice = priceInXor * Number(xorPriceInDAI);
-        let apy: number = (((pswapPriceInDAI * 2500000) / (Number(xorPriceInDAI) * totalXORWithDoublePools)) * (365 / 2)) * Number(p.multiplier);
-        p.priceUSD = daiPrice.toString();
-        p.apy = apy.toString();
-    });
+    if (pswapPool) {
+        let pswapPriceInXor: number = Number(pswapPool.baseAssetReserves) / Number(pswapPool.targetAssetReserves);
+        let pswapPriceInDAI = pswapPriceInXor * Number(xorPriceInDAI);
+        pools.forEach(p => {
+            let priceInXor: number = Number(p.baseAssetReserves) / Number(p.targetAssetReserves);
+            let daiPrice = priceInXor * Number(xorPriceInDAI);
+            let apy: number = (((pswapPriceInDAI * 2500000) / (Number(xorPriceInDAI) * totalXORWithDoublePools)) * (365 / 2)) * Number(p.multiplier);
+            p.priceUSD = daiPrice.toString();
+            p.apy = apy.toString();
+        });
+    }
 
     record.totalXORInPools = totalXorInPools.toString();
     await record.save();
