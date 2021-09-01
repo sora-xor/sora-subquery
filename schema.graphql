@@ -9,7 +9,7 @@ type Pool @entity {
   id: ID!
   baseAssetId: String!
   targetAssetId: String! @index
-  apy: String!
+  apy: String
   priceUSD: String
   baseAssetReserves: String!
   targetAssetReserves: String!
@@ -46,7 +46,7 @@ type Swap @jsonField {
 type Transfer @jsonField {
   from: String! @index
   to: String! @index
-  assetId: String! 
+  assetId: String!
   amount: String!
 }
 
