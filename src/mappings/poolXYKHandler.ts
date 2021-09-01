@@ -54,7 +54,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         let xorReservesStr = formatU128ToBalance(value[0].toString(), 18);
         let targetAssetReserves = formatU128ToBalance(value[1].toString(), 18);
         let pool = pools.find(p => p.targetAssetId === targetAsset.toHuman());
-        if (pool !== undefined) {
+        if (pool) {
             pool.baseAssetReserves = xorReservesStr;
             pool.targetAssetReserves = targetAssetReserves;
             if (targetAsset.toHuman() === DAI) {
