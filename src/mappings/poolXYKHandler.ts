@@ -54,14 +54,16 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         let xorReservesStr = formatU128ToBalance(value[0].toString(), 18);
         let targetAssetReserves = formatU128ToBalance(value[1].toString(), 18);
         let pool = pools.find(p => p.targetAssetId === targetAsset.toHuman());
-        pool.baseAssetReserves = xorReservesStr;
-        pool.targetAssetReserves = targetAssetReserves;
-        if (targetAsset.toHuman() === DAI) {
-            xorPriceInDAI = value[1].toBigInt() / value[0].toBigInt();
+        if (pool !== undefined) {
+            pool.baseAssetReserves = xorReservesStr;
+            pool.targetAssetReserves = targetAssetReserves;
+            if (targetAsset.toHuman() === DAI) {
+                xorPriceInDAI = value[1].toBigInt() / value[0].toBigInt();
+            }
+            let xorReserves = Number(xorReservesStr);
+            totalXorInPools += xorReserves;
+            totalXORWithDoublePools += xorReserves * Number(pool.multiplier);
         }
-        let xorReserves = Number(xorReservesStr);
-        totalXorInPools += xorReserves;
-        totalXORWithDoublePools += xorReserves * Number(pool.multiplier);
     });
     let pswapPool = pools.find(p => p.targetAssetId === PSWAP);
     let pswapPriceInXor: number = Number(pswapPool.baseAssetReserves) / Number(pswapPool.targetAssetReserves);
