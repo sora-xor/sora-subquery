@@ -8,3 +8,4 @@ export {liquidityProxy} from './liquidityProxy/definitions';
 export {pswapDistribution} from './pswapDistribution/definitionts';
 export {rewards} from './rewards/definitions';
 export {farming} from './farming/definitions';
+export {irohaMigration} from './irohaMigration/definitions';

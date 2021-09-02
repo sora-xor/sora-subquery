@@ -11,3 +11,4 @@ export * from './liquidityProxy/types';
 export * from './pswapDistribution/types';
 export * from './rewards/types';
 export * from './farming/types';
+export * from './irohaMigration/types';

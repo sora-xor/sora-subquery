@@ -15,7 +15,6 @@ import type { ApiTypes } from '@polkadot/api/types';
 declare module '@polkadot/api/types/consts' {
   export interface AugmentedConsts<ApiType> {
     babe: {
-      [key: string]: Codec;
       /**
        * The number of **slots** that an epoch takes. We couple sessions to
        * epochs, i.e. we start a new session once the new epoch begins.
@@ -32,20 +31,29 @@ declare module '@polkadot/api/types/consts' {
        * the probability of a slot being empty).
        **/
       expectedBlockTime: Moment & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     balances: {
-      [key: string]: Codec;
       /**
        * The minimum amount required to keep an account open.
        **/
       existentialDeposit: Balance & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     currencies: {
-      [key: string]: Codec;
       getNativeCurrencyId: CurrencyIdOf & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     democracy: {
-      [key: string]: Codec;
       /**
        * Period in blocks where an external proposal may not be re-submitted after being vetoed.
        **/
@@ -82,9 +90,12 @@ declare module '@polkadot/api/types/consts' {
        * How often (in blocks) to check for new votes.
        **/
       votingPeriod: BlockNumber & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     electionsPhragmen: {
-      [key: string]: Codec;
       candidacyBond: BalanceOf & AugmentedConst<ApiType>;
       desiredMembers: u32 & AugmentedConst<ApiType>;
       desiredRunnersUp: u32 & AugmentedConst<ApiType>;
@@ -92,15 +103,21 @@ declare module '@polkadot/api/types/consts' {
       termDuration: BlockNumber & AugmentedConst<ApiType>;
       votingBondBase: BalanceOf & AugmentedConst<ApiType>;
       votingBondFactor: BalanceOf & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     ethBridge: {
-      [key: string]: Codec;
       removePeerAccountIds: Vec<ITuple<[AccountId, H160]>> & AugmentedConst<ApiType>;
       removePendingOutgoingRequestsAfter: BlockNumber & AugmentedConst<ApiType>;
       trackPendingIncomingRequestsAfter: ITuple<[BlockNumber, u64]> & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     identity: {
-      [key: string]: Codec;
       /**
        * The amount held on deposit for a registered identity.
        **/
@@ -129,9 +146,12 @@ declare module '@polkadot/api/types/consts' {
        * another trie item whose value is the size of an account ID plus 32 bytes.
        **/
       subAccountDeposit: BalanceOf & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     multisig: {
-      [key: string]: Codec;
       /**
        * The base amount of currency needed to reserve for creating a multisig execution or to store
        * a dispatch call for later.
@@ -145,9 +165,12 @@ declare module '@polkadot/api/types/consts' {
        * The maximum amount of signatories allowed for a given multisig.
        **/
       maxSignatories: u16 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     staking: {
-      [key: string]: Codec;
       /**
        * Number of eras that staked funds must remain bonded for.
        **/
@@ -191,9 +214,12 @@ declare module '@polkadot/api/types/consts' {
        * intervention.
        **/
       slashDeferDuration: EraIndex & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     system: {
-      [key: string]: Codec;
       /**
        * Maximum number of block number to block hash mappings to keep (oldest pruned first).
        **/
@@ -222,9 +248,12 @@ declare module '@polkadot/api/types/consts' {
        * Get the chain's current version.
        **/
       version: RuntimeVersion & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     timestamp: {
-      [key: string]: Codec;
       /**
        * The minimum period between blocks. Beware that this is different to the *expected* period
        * that the block production apparatus provides. Your chosen consensus system will generally
@@ -232,9 +261,12 @@ declare module '@polkadot/api/types/consts' {
        * period on default settings.
        **/
       minimumPeriod: Moment & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
     transactionPayment: {
-      [key: string]: Codec;
       /**
        * The fee to be paid for making a transaction; the per-byte portion.
        **/
@@ -243,6 +275,10 @@ declare module '@polkadot/api/types/consts' {
        * The polynomial that is applied in order to derive fee from weight.
        **/
       weightToFee: Vec<WeightToFeeCoefficient> & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
     };
   }
 

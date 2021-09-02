@@ -24,7 +24,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     let totalXorInPools: number = 0;
     const pairs = await api.query.tradingPair.enabledSources.entries(0)
         .catch(e => {
-            logger.error("Error reading tradingPair.sources for block " + block.block.header.hash.toString());
+            logger.error("Error reading tradingPair.sources for block " + block.block.header.hash.toString(), e);
             throw (e)
         });
     let pools: Array<Pool> = [];

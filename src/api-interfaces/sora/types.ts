@@ -136,9 +136,6 @@ export interface OracleKey extends AssetId {}
 /** @name OwnerId */
 export interface OwnerId extends AccountId {}
 
-/** @name PendingMultisigAccount */
-export interface PendingMultisigAccount extends Null {}
-
 /** @name Permission */
 export interface Permission extends Null {}
 
@@ -149,6 +146,18 @@ export interface PermissionId extends u32 {}
 export interface PostDispatchInfo extends Struct {
   readonly actual_weight: Option<Weight>;
   readonly pays_fee: Pays;
+}
+
+/** @name PredefinedAssetId */
+export interface PredefinedAssetId extends Enum {
+  readonly isXor: boolean;
+  readonly isDot: boolean;
+  readonly isKsm: boolean;
+  readonly isUsdt: boolean;
+  readonly isVal: boolean;
+  readonly isPswap: boolean;
+  readonly isDai: boolean;
+  readonly isEth: boolean;
 }
 
 /** @name PriceInfo */
@@ -262,14 +271,16 @@ export interface TechAccountId extends Enum {
   readonly asWrappedRepr: AccountId;
 }
 
-/** @name TechAccountIdPrimitive */
-export interface TechAccountIdPrimitive extends Null {}
-
 /** @name TechAmount */
 export interface TechAmount extends Amount {}
 
 /** @name TechAssetId */
-export interface TechAssetId extends Null {}
+export interface TechAssetId extends Enum {
+  readonly isWrapped: boolean;
+  readonly asWrapped: PredefinedAssetId;
+  readonly isEscaped: boolean;
+  readonly asEscaped: AssetId;
+}
 
 /** @name TechBalance */
 export interface TechBalance extends Balance {}
@@ -277,10 +288,18 @@ export interface TechBalance extends Balance {}
 /** @name TechPurpose */
 export interface TechPurpose extends Enum {
   readonly isFeeCollector: boolean;
+  readonly isFeeCollectorForPair: boolean;
+  readonly asFeeCollectorForPair: TechTradingPair;
   readonly isLiquidityKeeper: boolean;
-  readonly asLiquidityKeeper: TradingPair;
+  readonly asLiquidityKeeper: TechTradingPair;
   readonly isIdentifier: boolean;
   readonly asIdentifier: Bytes;
+}
+
+/** @name TechTradingPair */
+export interface TechTradingPair extends Struct {
+  readonly base_asset_id: TechAssetId;
+  readonly target_asset_id: TechAssetId;
 }
 
 /** @name TradingPair */
