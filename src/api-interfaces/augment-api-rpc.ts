@@ -142,6 +142,10 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
        **/
       getKeys: AugmentedRpc<(childKey: PrefixedStorageKey | string | Uint8Array, prefix: StorageKey | string | Uint8Array | any, at?: Hash | string | Uint8Array) => Observable<Vec<StorageKey>>>;
       /**
+       * Returns the keys with prefix from a child storage with pagination support
+       **/
+      getKeysPaged: AugmentedRpc<(childKey: PrefixedStorageKey | string | Uint8Array, prefix: StorageKey | string | Uint8Array | any, count: u32 | AnyNumber | Uint8Array, startKey?: StorageKey | string | Uint8Array | any, at?: Hash | string | Uint8Array) => Observable<Vec<StorageKey>>>;
+      /**
        * Returns a child storage entry at a specific block state
        **/
       getStorage: AugmentedRpc<(childKey: PrefixedStorageKey | string | Uint8Array, key: StorageKey | string | Uint8Array | any, at?: Hash | string | Uint8Array) => Observable<Option<StorageData>>>;
@@ -212,7 +216,7 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
        **/
       accounts: AugmentedRpc<() => Observable<Vec<H160>>>;
       /**
-       * Returns balance of the given account.
+       * Returns the blockNumber
        **/
       blockNumber: AugmentedRpc<() => Observable<U256>>;
       /**
@@ -408,6 +412,12 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
        **/
       subscribeJustifications: AugmentedRpc<() => Observable<JustificationNotification>>;
     };
+    irohaMigration: {
+      /**
+       * Check if the account needs migration
+       **/
+      needsMigration: AugmentedRpc<(iroha_address: Text | string, at?: BlockHash | string | Uint8Array) => Observable<bool>>;
+    };
     liquidityProxy: {
       /**
        * Check if given two arbitrary tokens can be exchanged via any liquidity sources
@@ -489,6 +499,10 @@ declare module '@polkadot/rpc-core/types.jsonrpc' {
        * Retrieves the keys with prefix of a specific child storage
        **/
       getChildKeys: AugmentedRpc<(childStorageKey: StorageKey | string | Uint8Array | any, childDefinition: StorageKey | string | Uint8Array | any, childType: u32 | AnyNumber | Uint8Array, key: StorageKey | string | Uint8Array | any, at?: BlockHash | string | Uint8Array) => Observable<Vec<StorageKey>>>;
+      /**
+       * Returns proof of storage for child key entries at a specific block state.
+       **/
+      getChildReadProof: AugmentedRpc<(childStorageKey: PrefixedStorageKey | string | Uint8Array, keys: Vec<StorageKey> | (StorageKey | string | Uint8Array | any)[], at?: BlockHash | string | Uint8Array) => Observable<ReadProof>>;
       /**
        * Retrieves the child storage for a key
        **/

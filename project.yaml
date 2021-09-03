@@ -48,6 +48,7 @@ network:
       "height": "MultiChainHeight",
       "index": "u32"
     },
+    "Timepoint": "BridgeTimepoint",
     "ChangePeersContract": {
       "_enum": [
           "XOR",
