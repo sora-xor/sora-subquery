@@ -5,7 +5,6 @@ import type { Bytes, Enum, Struct, Text, U256, U8aFixed, Vec, bool, u32, u64, u8
 import type { ITuple } from '@polkadot/types/types';
 import type { EthereumAddress } from '@polkadot/types/interfaces/claims';
 import type { AccountId, AssetId, Balance, BlockNumber, H160, H256, Index } from '@polkadot/types/interfaces/runtime';
-import type { Timepoint } from '@polkadot/types/interfaces/utility';
 import type { AssetName, AssetSymbol, BalancePrecision } from 'sora/api-interfaces/sora';
 
 /** @name AssetKind */
@@ -70,7 +69,7 @@ export interface IncomingAddToken extends Struct {
   readonly author: AccountId;
   readonly tx_hash: H256;
   readonly at_height: u64;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly network_id: BridgeNetworkId;
 }
 
@@ -83,7 +82,7 @@ export interface IncomingCancelOutgoingRequest extends Struct {
   readonly author: AccountId;
   readonly tx_hash: H256;
   readonly at_height: u64;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly network_id: BridgeNetworkId;
 }
 
@@ -95,7 +94,7 @@ export interface IncomingChangePeers extends Struct {
   readonly author: AccountId;
   readonly tx_hash: H256;
   readonly at_height: u64;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly network_id: BridgeNetworkId;
 }
 
@@ -108,7 +107,7 @@ export interface IncomingChangePeersCompat extends Struct {
   readonly author: AccountId;
   readonly tx_hash: H256;
   readonly at_height: u64;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly network_id: BridgeNetworkId;
 }
 
@@ -118,7 +117,7 @@ export interface IncomingMarkAsDoneRequest extends Struct {
   readonly initial_request_hash: H256;
   readonly author: AccountId;
   readonly at_height: u64;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly network_id: BridgeNetworkId;
 }
 
@@ -134,7 +133,7 @@ export interface IncomingMigrate extends Struct {
   readonly author: AccountId;
   readonly tx_hash: H256;
   readonly at_height: u64;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly network_id: BridgeNetworkId;
 }
 
@@ -143,7 +142,7 @@ export interface IncomingPrepareForMigration extends Struct {
   readonly author: AccountId;
   readonly tx_hash: H256;
   readonly at_height: u64;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly network_id: BridgeNetworkId;
 }
 
@@ -196,7 +195,7 @@ export interface IncomingTransfer extends Struct {
   readonly author: AccountId;
   readonly tx_hash: H256;
   readonly at_height: u64;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly network_id: BridgeNetworkId;
 }
 
@@ -204,7 +203,7 @@ export interface IncomingTransfer extends Struct {
 export interface LoadIncomingMetaRequest extends Struct {
   readonly author: AccountId;
   readonly hash: H256;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly kind: IncomingMetaRequestKind;
   readonly network_id: BridgeNetworkId;
 }
@@ -221,7 +220,7 @@ export interface LoadIncomingRequest extends Enum {
 export interface LoadIncomingTransactionRequest extends Struct {
   readonly author: AccountId;
   readonly hash: H256;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
   readonly kind: IncomingTransactionRequestKind;
   readonly network_id: BridgeNetworkId;
 }
@@ -251,7 +250,7 @@ export interface OutgoingAddAsset extends Struct {
   readonly supply: Balance;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingAddAssetEncoded */
@@ -273,7 +272,7 @@ export interface OutgoingAddPeer extends Struct {
   readonly peer_account_id: AccountId;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingAddPeerCompat */
@@ -283,7 +282,7 @@ export interface OutgoingAddPeerCompat extends Struct {
   readonly peer_account_id: AccountId;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingAddPeerEncoded */
@@ -303,7 +302,7 @@ export interface OutgoingAddToken extends Struct {
   readonly decimals: u8;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingAddTokenEncoded */
@@ -324,7 +323,7 @@ export interface OutgoingMigrate extends Struct {
   readonly erc20_native_tokens: Vec<EthereumAddress>;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingMigrateEncoded */
@@ -342,7 +341,7 @@ export interface OutgoingPrepareForMigration extends Struct {
   readonly author: AccountId;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingPrepareForMigrationEncoded */
@@ -360,7 +359,7 @@ export interface OutgoingRemovePeer extends Struct {
   readonly peer_address: EthereumAddress;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingRemovePeerCompat */
@@ -370,7 +369,7 @@ export interface OutgoingRemovePeerCompat extends Struct {
   readonly peer_address: EthereumAddress;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingRemovePeerEncoded */
@@ -425,7 +424,7 @@ export interface OutgoingTransfer extends Struct {
   readonly amount: Balance;
   readonly nonce: Index;
   readonly network_id: BridgeNetworkId;
-  readonly timepoint: Timepoint;
+  readonly timepoint: BridgeTimepoint;
 }
 
 /** @name OutgoingTransferEncoded */
