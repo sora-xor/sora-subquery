@@ -40,19 +40,20 @@ export const receiveSwapAmounts = (swapAmount: SwapAmount): string[] => {
         case false: {return [formatU128ToBalance(swapAmount.asWithDesiredInput.desired_amount_in.toString()),
             formatU128ToBalance(swapAmount.asWithDesiredInput.min_amount_out.toString())]
         }
-    } 
+    }
 }
 
 export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): HistoryElement => {
     const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
 
     record.blockHeight = extrinsic.block.block.header.number.toBigInt()
+    record.blockHash = extrinsic.block.block.header.hash.toString()
     record.module = extrinsic.extrinsic.method.section
     record.method = extrinsic.extrinsic.method.method
     record.address = extrinsic.extrinsic.signer.toString()
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
     record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
     record.timestamp = ((extrinsic.block.timestamp).getTime() / 1000).toString()
-    
+
     return record
 }
