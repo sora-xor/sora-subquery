@@ -21,7 +21,7 @@ type Pool @entity {
 type HistoryElement @entity {
   id: ID!
   blockHeight: BigInt!
-  blockHash: String!
+  blockHash: String! @index
   module: String!
   method: String!
   address: String! @index
