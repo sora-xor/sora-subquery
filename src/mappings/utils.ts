@@ -1,5 +1,4 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { SwapAmount } from "sora/api-interfaces";
 import { HistoryElement } from "../types";
 
 export const formatU128ToBalance = (u128: string, decimals: number = 18): string => {
@@ -31,7 +30,7 @@ export const getExtrinsicId = (extrinsic: SubstrateExtrinsic): string => {
     return `${extrinsic.block.block.hash.toString()}-${extrinsic.idx.toString()}`;
 }
 
-export const receiveSwapAmounts = (swapAmount: SwapAmount): string[] => {
+export const receiveSwapAmounts = (swapAmount): string[] => {
     switch (swapAmount.isWithDesiredOutput) {
         case true: {
             return [formatU128ToBalance(swapAmount.asWithDesiredOutput.max_amount_in.toString()),
