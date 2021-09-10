@@ -1,7 +1,7 @@
 import {SubstrateBlock} from "@subql/types";
 import {Pool, PoolXYKEntity} from "../types";
 import {formatU128ToBalance} from "./utils";
-
+import BigNumber from "bignumber.js";
 
 const XOR: string = '0x0200000000000000000000000000000000000000000000000000000000000000';
 const VAL: string = '0x0200040000000000000000000000000000000000000000000000000000000000';
@@ -14,14 +14,11 @@ const ONE_HOUR_IN_BLOCKS = 600;
 
 
 export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
-    if (block.block.header.number.toNumber() % ONE_HOUR_IN_BLOCKS != 0) {
-        return;
-    }
-    let blockDate = block.timestamp;
+    let blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
 
     let record = new PoolXYKEntity(block.block.header.hash.toString());
     record.updated = blockDate;
-    let totalXorInPools: number = 0;
+    let totalXorInPools: BigNumber = new BigNumber(0);
     const pairs = await api.query.tradingPair.enabledSources.entries(0)
         .catch(e => {
             logger.error("Error reading tradingPair.sources for block " + block.block.header.hash.toString(), e);
@@ -48,37 +45,57 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     //todo rework to liquidity proxy quote
     let reserves = await api.query.poolXyk.reserves.entries(XOR)
         .catch(e => logger.error("Error getting reserves", e))
-    let totalXORWithDoublePools: number = 0;
-    let xorPriceInDAI: number = 0;
+    let totalXORWithDoublePools: BigNumber = new BigNumber(0);
+    let xorPriceInDAI: BigNumber = new BigNumber(0);
     reserves.forEach(([{args: [baseAsset, targetAsset]}, value]) => {
-        let xorReservesStr = formatU128ToBalance(value[0].toString(), 18);
-        let targetAssetReserves = formatU128ToBalance(value[1].toString(), 18);
+        let xorReserves: BigNumber = new BigNumber(value[0].toBigInt());
+        let targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
         let pool = pools.find(p => p.targetAssetId === targetAsset.toHuman());
         if (pool) {
-            pool.baseAssetReserves = xorReservesStr;
-            pool.targetAssetReserves = targetAssetReserves;
+            pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), 18);
+            pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), 18);
             if (targetAsset.toHuman() === DAI) {
-                xorPriceInDAI = value[1].toBigInt() / value[0].toBigInt();
+                xorPriceInDAI = targetAssetReserves.div(xorReserves);
             }
-            let xorReserves = Number(xorReservesStr);
-            totalXorInPools += xorReserves;
-            totalXORWithDoublePools += xorReserves * Number(pool.multiplier);
+            totalXorInPools = totalXorInPools.plus(xorReserves);
+            totalXORWithDoublePools = totalXORWithDoublePools
+                .plus(xorReserves.multipliedBy(Number(pool.multiplier)));
         }
     });
     let pswapPool = pools.find(p => p.targetAssetId === PSWAP);
     if (pswapPool) {
-        let pswapPriceInXor: number = Number(pswapPool.baseAssetReserves) / Number(pswapPool.targetAssetReserves);
-        let pswapPriceInDAI = pswapPriceInXor * Number(xorPriceInDAI);
+        let pswapPriceInXor: BigNumber = new BigNumber(pswapPool.baseAssetReserves)
+            .div(new BigNumber(pswapPool.targetAssetReserves));
+        let pswapPriceInDAI: BigNumber = pswapPriceInXor.multipliedBy(xorPriceInDAI);
         pools.forEach(p => {
-            let priceInXor: number = Number(p.baseAssetReserves) / Number(p.targetAssetReserves);
-            let daiPrice = priceInXor * Number(xorPriceInDAI);
-            let apy: number = (((pswapPriceInDAI * 2500000) / (Number(xorPriceInDAI) * totalXORWithDoublePools)) * (365 / 2)) * Number(p.multiplier);
-            p.priceUSD = daiPrice.toString();
-            p.apy = apy.toString();
+            let priceInXor: BigNumber = new BigNumber(p.baseAssetReserves)
+                .dividedBy(new BigNumber(p.targetAssetReserves));
+            let daiPrice: BigNumber = priceInXor.multipliedBy(xorPriceInDAI);
+            let apy: BigNumber = ((
+                (pswapPriceInDAI.multipliedBy(new BigNumber(2500000)))
+                    .dividedBy(xorPriceInDAI.multipliedBy(totalXORWithDoublePools.dividedBy(Math.pow(10, 18)))))
+                .multipliedBy(new BigNumber(365 / 2)))
+                .multipliedBy(Number(p.multiplier));
+            p.priceUSD = daiPrice.toFixed(18).toString();
+            p.apy = apy.toFixed(18).toString();
         });
     }
 
-    record.totalXORInPools = totalXorInPools.toString();
+    record.totalXORInPools = formatU128ToBalance(totalXorInPools.toFixed(0).toString(), 18);
+
+    //Add fake XOR Pool in order to add fiat price for it
+    let xorPool: Pool = new Pool(record.id.toString() + "_" + XOR + "_" + XOR);
+    xorPool.baseAssetId = XOR;
+    xorPool.targetAssetId = XOR;
+    xorPool.multiplier = BigInt(1);
+    xorPool.baseAssetReserves = "0";
+    xorPool.targetAssetReserves = "0";
+    xorPool.priceUSD = xorPriceInDAI.toFixed(18).toString();
+    xorPool.apy = "0";
+    xorPool.updated = blockDate;
+    xorPool.poolEntityId = record.id;
+    pools.push(xorPool);
+
     await record.save();
     await Promise.all(pools.map(pool => {
         pool.save()
