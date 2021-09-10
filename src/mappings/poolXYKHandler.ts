@@ -14,6 +14,9 @@ const ONE_HOUR_IN_BLOCKS = 600;
 
 
 export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
+    if (block.block.header.number.toNumber() % ONE_HOUR_IN_BLOCKS != 0) {
+        return;
+    }
     let blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
 
     let record = new PoolXYKEntity(block.block.header.hash.toString());
