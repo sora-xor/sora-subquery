@@ -9,7 +9,7 @@ type Pool @entity {
   id: ID!
   baseAssetId: String!
   targetAssetId: String! @index
-  apy: String
+  strategicBonusApy: String
   priceUSD: String
   baseAssetReserves: String!
   targetAssetReserves: String!

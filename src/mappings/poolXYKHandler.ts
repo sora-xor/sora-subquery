@@ -74,13 +74,13 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
             let priceInXor: BigNumber = new BigNumber(p.baseAssetReserves)
                 .dividedBy(new BigNumber(p.targetAssetReserves));
             let daiPrice: BigNumber = priceInXor.multipliedBy(xorPriceInDAI);
-            let apy: BigNumber = ((
+            let strategicBonusApy: BigNumber = ((
                 (pswapPriceInDAI.multipliedBy(new BigNumber(2500000)))
                     .dividedBy(xorPriceInDAI.multipliedBy(totalXORWithDoublePools.dividedBy(Math.pow(10, 18)))))
                 .multipliedBy(new BigNumber(365 / 2)))
                 .multipliedBy(Number(p.multiplier));
             p.priceUSD = daiPrice.toFixed(18).toString();
-            p.apy = apy.toFixed(18).toString();
+            p.strategicBonusApy = strategicBonusApy.toFixed(18).toString();
         });
     }
 
@@ -94,7 +94,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     xorPool.baseAssetReserves = "0";
     xorPool.targetAssetReserves = "0";
     xorPool.priceUSD = xorPriceInDAI.toFixed(18).toString();
-    xorPool.apy = "0";
+    xorPool.strategicBonusApy = "0";
     xorPool.updated = blockDate;
     xorPool.poolEntityId = record.id;
     pools.push(xorPool);
