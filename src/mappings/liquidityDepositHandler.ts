@@ -9,12 +9,10 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
     if (record.success) {
 
-        let feeWithdrawalevent = extrinsic.events.find(e => e.event.method === 'FeeWithdrawn')
-
-        let feeWithdrawaleventIndex = (feeWithdrawalevent as SubstrateEvent).idx
+        let feeWithdrawaleventIndex = extrinsic.events.findIndex(e => e.event.method === 'FeeWithdrawn')
 
         let inputCurrencyTransferEvent = extrinsic.events.slice(0, feeWithdrawaleventIndex).find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
-
+        
         if (inputCurrencyTransferEvent) {
 
             const { event: { data: [inputAsset, , , inputTransferedAmount] } } = inputCurrencyTransferEvent;
