@@ -404,10 +404,12 @@
   resolved "https://registry.yarnpkg.com/@oclif/screen/-/screen-1.0.4.tgz#b740f68609dfae8aa71c3a6cab15d816407ba493"
   integrity sha512-60CHpq+eqnTxLZQ4PGHYNwUX572hgpMHGPtTWMjdTMsAvlm69lZV/4ly6O3sAYkomo4NggGcomrDpBe34rxUqw==
 
-"@open-web3/orml-type-definitions@^0.8.2-9":
-  version "0.8.2-11"
-  resolved "https://registry.yarnpkg.com/@open-web3/orml-type-definitions/-/orml-type-definitions-0.8.2-11.tgz#56358d371b63f83761234a7b1283ac9008e6dddd"
-  integrity sha512-cUv5+mprnaGNt0tu3FhK1nFRBK7SGjPhA1O0nxWWeRmuuH5fjkr0glbHE9kcKuCBfsh7nt6NGwxwl9emQtUDSA==
+"@open-web3/orml-type-definitions@^0.9.4-35":
+  version "0.9.4-35"
+  resolved "https://registry.yarnpkg.com/@open-web3/orml-type-definitions/-/orml-type-definitions-0.9.4-35.tgz#49a6637871ee4fc352d2ed59a63c32b205559536"
+  integrity sha512-Pycx7Wd3OJIcQaDemGlVAHVXNra5mx//8zWC23js5uBO0brmxdjxnfOZ25HkyfsV4IJXRBKJ7FhnFcOxefBPwQ==
+  dependencies:
+    lodash.merge "^4.6.2"
 
 "@polkadot/api-derive@4.17.1":
   version "4.17.1"
@@ -826,12 +828,12 @@
     "@types/websocket" "^1.0.4"
     websocket "^1.0.34"
 
-"@sora-substrate/type-definitions@^1.4.2":
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.6.2.tgz#c13c16b48b7010f70a380503801448505ac0e5ea"
-  integrity sha512-29L/VmIhzAC62eLdw7tAtgzaO0h0KQlSZK5iDy8lFF3gbyvrAbbNJNoLmP77GacITtevCG/ph2UfBFjwaNkNXQ==
+"@sora-substrate/type-definitions@^1.6.9":
+  version "1.6.9"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.6.9.tgz#9438b27db69ad40072dc8af6a8fec7d89235b4ca"
+  integrity sha512-ZU6CWFHxjp7sIiINkRH2rDHnoZJrc1p+TMRAHVNe5dGB4H5iIHKZ/bViHaMmv1vUwVurVvh04Am9gTU8P61EVg==
   dependencies:
-    "@open-web3/orml-type-definitions" "^0.8.2-9"
+    "@open-web3/orml-type-definitions" "^0.9.4-35"
 
 "@subql/cli@^0.11.2":
   version "0.11.2"
@@ -2217,6 +2219,11 @@ lodash._reinterpolate@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/lodash._reinterpolate/-/lodash._reinterpolate-3.0.0.tgz#0ccf2d89166af03b3663c796538b75ac6e114d9d"
   integrity sha1-DM8tiRZq8Ds2Y8eWU4t1rG4RTZ0=
+
+lodash.merge@^4.6.2:
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
+  integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
 lodash.template@^4.4.0:
   version "4.5.0"
