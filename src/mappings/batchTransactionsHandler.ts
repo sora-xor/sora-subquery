@@ -31,6 +31,8 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
 
     logger.debug("Caught batch transaction extrinsic")
 
+    // TODO Depending on the result of the execution, divide the logic of the stored data (just like in other handlers)
+    
     const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
     const entities = [] as Object[];
 

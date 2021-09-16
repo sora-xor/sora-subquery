@@ -22,7 +22,7 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
-    if (record.success) {
+    if (record.execution.sucess) {
 
         let assetATransferEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
         const { event: { data: [inputAsset, , , inputTransferedAmount] } } = assetATransferEvent;

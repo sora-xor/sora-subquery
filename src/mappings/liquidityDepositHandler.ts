@@ -7,7 +7,7 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
-    if (record.success) {
+    if (record.execution.sucess) {
 
         let feeWithdrawaleventIndex = extrinsic.events.findIndex(e => e.event.method === 'FeeWithdrawn')
 

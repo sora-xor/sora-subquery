@@ -26,13 +26,14 @@ type HistoryElement @entity {
   method: String!
   address: String! @index
   networkFee: String!
-  success: Boolean!
+  execution: ExecutionResult!
   timestamp: String!
   swap: Swap
   transfer: Transfer
   irohaMigration: irohaMigration
   liquidityOperation: LiquidityOperation
   batchTransaction: [batchTransaction]
+  error: Error
   }
 
 type Swap @jsonField {
@@ -71,5 +72,13 @@ type batchTransaction @jsonField {
   hash: String!
 }
 
+type ExecutionResult @jsonField {
+  sucess: Boolean!
+  error: Error
+}
 
+type Error @jsonField {
+  moduleErrorId: Int
+  nonModuleErrorMessage: String
+}
 
