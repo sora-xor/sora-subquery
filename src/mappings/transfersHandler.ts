@@ -1,21 +1,35 @@
-import {SubstrateEvent} from "@subql/types";
-import {formatU128ToBalance, assignCommonHistoryElemInfo} from "./utils";
+import { SubstrateExtrinsic, SubstrateEvent } from "@subql/types";
+import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
 
-export async function handlerTransfers(event: SubstrateEvent): Promise<void> {
-    
-    logger.debug("Caught transfer event")
-    
-    const {event: {data: [from, to, assetId, amount]}} = event;
-    
-    let extrinsic = event.extrinsic;
+export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
+
+    logger.debug("Caught transfer extrinsic")
 
     const record = assignCommonHistoryElemInfo(extrinsic)
-    
-    record.transfer = {
-        from: from.toString(),
-        to: to.toString(),
-        amount: formatU128ToBalance(amount.toString()),
-        assetId: assetId.toString()
+
+    if (record.success) {
+        
+        let transferEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'assets');
+        const { event: { data: [, to, assetId, amount] } } = transferEvent;
+
+        record.transfer = {
+            from: extrinsic.extrinsic.signer.toString(),
+            to: to.toString(),
+            amount: formatU128ToBalance(amount.toString()),
+            assetId: assetId.toString()
+        }
+    }
+
+    else {
+
+        const { extrinsic: { args: [assetId, to, amount] } } = extrinsic;
+
+        record.transfer = {
+            from: extrinsic.extrinsic.signer.toString(),
+            to: to.toString(),
+            amount: formatU128ToBalance(amount.toString()),
+            assetId: assetId.toString()
+        }
     }
 
     await record.save();
