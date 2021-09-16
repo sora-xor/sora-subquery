@@ -46,7 +46,7 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     if (failedEvent) {
 
         record.execution = {
-            sucess: false
+            success: false
         }
 
         const { event: { data: [error] } } = failedEvent
@@ -72,7 +72,7 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
 
     else {
         record.execution = {
-            sucess: true
+            success: true
         }
     }
 

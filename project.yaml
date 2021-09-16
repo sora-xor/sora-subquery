@@ -572,7 +572,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 0
+    startBlock: 	46130
     mapping:
       handlers:
 
@@ -614,3 +614,9 @@ dataSources:
           filter:
             module: utility
             method: batchAll
+
+        - handler: assetRegistrationHandler
+          kind: substrate/CallHandler
+          filter:
+            module: assets
+            method: register

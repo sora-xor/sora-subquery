@@ -34,6 +34,7 @@ type HistoryElement @entity {
   liquidityOperation: LiquidityOperation
   batchTransaction: [batchTransaction]
   error: Error
+  assetRegistration: AssetRegistration
   }
 
 type Swap @jsonField {
@@ -73,7 +74,7 @@ type batchTransaction @jsonField {
 }
 
 type ExecutionResult @jsonField {
-  sucess: Boolean!
+  success: Boolean!
   error: Error
 }
 
@@ -82,3 +83,6 @@ type Error @jsonField {
   nonModuleErrorMessage: String
 }
 
+type AssetRegistration @jsonField {
+  assetId: String
+}

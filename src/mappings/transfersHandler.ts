@@ -7,9 +7,9 @@ export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<v
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
-    if (record.execution.sucess) {
-        
-        let transferEvent = extrinsic.events.find(e => e.event.method === 'FeeWithdrawn' && e.event.section === 'assets');
+    if (record.execution.success) {
+
+        let transferEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'assets');
         const { event: { data: [, to, assetId, amount] } } = transferEvent;
 
         record.transfer = {
@@ -30,7 +30,6 @@ export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<v
             amount: formatU128ToBalance(amount.toString()),
             assetId: assetId.toString()
         }
-        
     }
 
     await record.save();

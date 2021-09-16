@@ -7,12 +7,12 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
-    if (record.execution.sucess) {
+    if (record.execution.success) {
 
         let feeWithdrawaleventIndex = extrinsic.events.findIndex(e => e.event.method === 'FeeWithdrawn')
 
         let inputCurrencyTransferEvent = extrinsic.events.slice(0, feeWithdrawaleventIndex).find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
-        
+
         if (inputCurrencyTransferEvent) {
 
             const { event: { data: [inputAsset, , , inputTransferedAmount] } } = inputCurrencyTransferEvent;
@@ -55,4 +55,3 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
     logger.debug(`===== Saved liquidity deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
 }
-
