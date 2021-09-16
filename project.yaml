@@ -580,10 +580,10 @@ dataSources:
           kind: substrate/BlockHandler
 
         - handler: handlerTransfers
-          kind: substrate/EventHandler
+          kind: substrate/CallHandler
           filter:
             module: assets
-            method: Transfer
+            method: transfer
 
         - handler: handleSwaps
           kind: substrate/CallHandler
