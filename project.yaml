@@ -285,7 +285,7 @@ network:
     },
     "MultiCurrencyBalance": "Balance",
     "MultiCurrencyBalanceOf": "MultiCurrencyBalance",
-    "MultisigAccount": "Null",
+    "MultisigAccount": "AccountId",
     "OffchainRequest": {
         "_enum": {
             "Outgoing": "(OutgoingRequest, H256)",
