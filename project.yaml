@@ -3,7 +3,7 @@ description: ''
 repository: ''
 schema: ./schema.graphql
 network:
-  endpoint: wss://ws.stage.sora2.soramitsu.co.jp/
+  endpoint: wss://mof3.sora.org
   types: {
     "AccountInfo": "AccountInfoWithDualRefCount",
     "Address": "AccountId",
