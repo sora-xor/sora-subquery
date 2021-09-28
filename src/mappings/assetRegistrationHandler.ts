@@ -19,10 +19,10 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
     else {
 
-        const { extrinsic: { args: [symbol, to, amount, test] } } = extrinsic;
+        const { extrinsic: { args: [symbol, to, amount, ] } } = extrinsic;
 
         record.assetRegistration = {
-            data: symbol.toJSON().toString()
+            assetId: symbol.toString()
         }
 
     }
