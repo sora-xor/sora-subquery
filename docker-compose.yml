@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   postgres:
@@ -11,8 +11,7 @@ services:
       POSTGRES_PASSWORD: postgres
 
   subquery-node:
-    image: local/subquery:dev
-    build: .
+    image: onfinality/subql-node:latest
     depends_on:
       - postgres
     restart: always
@@ -22,6 +21,8 @@ services:
       DB_DATABASE: postgres
       DB_HOST: postgres
       DB_PORT: 5432
+    volumes:
+      - ./:/app
     command:
       - -f=/app
       - --local
