@@ -26,6 +26,7 @@ type HistoryElement @entity {
   method: String!
   address: String! @index
   networkFee: String!
+  success: Boolean! # for backwards compatibility
   execution: ExecutionResult!
   timestamp: String!
   swap: Swap
