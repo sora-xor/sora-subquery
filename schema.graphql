@@ -86,4 +86,5 @@ type Error @jsonField {
 
 type AssetRegistration @jsonField {
   assetId: String
+  data: String
 }
