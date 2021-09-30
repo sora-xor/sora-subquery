@@ -39,8 +39,45 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     record.method = extrinsic.extrinsic.method.method
     record.address = extrinsic.extrinsic.signer.toString()
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
-    record.success = checkIfExtrinsicExecuteSuccess(extrinsic)
     record.timestamp = ((extrinsic.block.timestamp).getTime() / 1000).toFixed(0).toString()
 
+    let failedEvent = extrinsic.events.find(e => e.event.method === 'ExtrinsicFailed');
+
+    if (failedEvent) {
+
+        record.success = false
+        record.execution = {
+            success: false
+        }
+
+        const { event: { data: [error] } } = failedEvent
+
+        const parsed_error = JSON.parse(error.toString())
+
+        if ((error as any).isModule) {
+
+            record.execution.error = {
+                moduleErrorId: parsed_error.module.error
+            }
+
+        } else {
+
+            // Other, CannotLookup, BadOrigin, no extra info
+            record.execution.error = {
+                nonModuleErrorMessage: error.toString()
+            }
+
+        }
+
+    }
+
+    else {
+        record.success = true
+        record.execution = {
+            success: true
+        }
+    }
+
     return record
+
 }
