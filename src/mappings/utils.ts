@@ -57,7 +57,8 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
         if ((error as any).isModule) {
 
             record.execution.error = {
-                moduleErrorId: parsed_error.module.error
+                moduleErrorId: parsed_error.module.error,
+                moduleErrorIndex: parsed_error.module.index
             }
 
         } else {
