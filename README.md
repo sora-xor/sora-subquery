@@ -16,10 +16,10 @@
 
 ### Environment
 
-- [Typescript](https://www.typescriptlang.org/) are required to compile project and define types.  
+- [Typescript](https://www.typescriptlang.org/) are required to compile project and define types.
 
 - Both SubQuery CLI and generated Project have dependencies and require [Node](https://nodejs.org/en/).
-     
+
 
 ### Install the SubQuery CLI
 
@@ -56,8 +56,8 @@ In the starter package, we have provided a simple example of project configurati
 - The GraphQL Schema in `schema.graphql`
 - The Mapping functions in `src/mappings/` directory
 
-For more information on how to write the SubQuery, 
-check out our doc section on [Define the SubQuery](https://doc.subquery.network/define_a_subquery.html) 
+For more information on how to write the SubQuery,
+check out our doc section on [Define the SubQuery](https://doc.subquery.network/define_a_subquery.html)
 
 #### Code generation
 
@@ -99,7 +99,7 @@ For the `subql-starter` project, you can try to query with the following code to
 query {
   historyElements(
 #      see pagination guidelines https://graphql.org/learn/pagination/#pagination-and-edges
-    orderBy: TIMESTAMP_DESC 
+    orderBy: TIMESTAMP_DESC
     first: " << insert int to receive first n entries after the cursor >> "
     after: " << cursor of the record from which the first n entries are to be obtained >> "
     filter: {
@@ -129,14 +129,16 @@ query {
       address
       networkFee
       success
+      execution
       timestamp
       swap
       transfer
       irohaMigration
       liquidityOperation
+      assetRegistration
     }
       cursor }
-    
+
     pageInfo {
       startCursor
       endCursor
