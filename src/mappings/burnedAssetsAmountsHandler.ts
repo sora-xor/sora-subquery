@@ -1,5 +1,5 @@
 import { SubstrateEvent } from "@subql/types";
-import { BurnedAssetsAmounts } from "../types/models";
+import { BurnedAssetsAmount } from "../types";
 
 const XOR: string = '0x0200000000000000000000000000000000000000000000000000000000000000';
 const VAL: string = '0x0200040000000000000000000000000000000000000000000000000000000000';
@@ -20,7 +20,7 @@ const updateBurnedValue = (
 
 export async function handleBurnedAssetsAmounts(event: SubstrateEvent): Promise<void> {
     const { event: { data: [ id, block, accountId, currencyId, balance ] } } = event;
-    const record = new BurnedAssetsAmounts(event.extrinsic.block.block.header.hash.toString());
+    const record = new BurnedAssetsAmount(event.extrinsic.block.block.header.hash.toString());
 
     record.id = id.toString();
     // TODO: it's better to save by blockId
@@ -29,7 +29,7 @@ export async function handleBurnedAssetsAmounts(event: SubstrateEvent): Promise<
     record.currencyId = currencyId.toString();
     record.balance = balance.toString();
     // TODO: Get burnedInfo from prev record and sum it with current value
-    const prevBurnedValues = await BurnedAssetsAmounts.get(prevEventId)
+    const prevBurnedValues = await BurnedAssetsAmount.get(prevEventId)
     record.burnedAmountXor = updateBurnedValue(record.currencyId, XOR, prevBurnedValues?.burnedAmountXor ?? '0', record.balance)
     record.burnedAmountVal = updateBurnedValue(record.currencyId, VAL, prevBurnedValues?.burnedAmountVal ?? '0', record.balance)
     record.burnedAmountPswap = updateBurnedValue(record.currencyId, PSWAP, prevBurnedValues?.burnedAmountPswap ?? '0', record.balance)

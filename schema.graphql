@@ -71,7 +71,7 @@ type batchTransaction @jsonField {
   hash: String!
 }
 
-type BurnedAssetsAmounts @entity {
+type BurnedAssetsAmount @entity {
   id: ID!
   block: String!
   accountId: String
