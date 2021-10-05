@@ -74,17 +74,6 @@ type batchTransaction @jsonField {
   hash: String!
 }
 
-type BurnedAssetsAmount @entity {
-  id: ID!
-  block: String!
-  accountId: String
-  currencyId: String!
-  balance: String!
-  burnedAmountXor: String!
-  burnedAmountVal: String!
-  burnedAmountPswap: String!
-}
-
 type ExecutionResult @jsonField {
   success: Boolean!
   error: Error
@@ -99,4 +88,15 @@ type Error @jsonField {
 type AssetRegistration @jsonField {
   assetId: String
   data: String
+}
+
+type BurnedAssetsAmount @entity {
+  id: ID!
+  block: String!
+  accountId: String
+  currencyId: String!
+  balance: String!
+  burnedAmountXor: String!
+  burnedAmountVal: String!
+  burnedAmountPswap: String!
 }

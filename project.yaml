@@ -623,12 +623,12 @@ dataSources:
           filter:
             module: utility
             method: batchAll
-        
+
         - handler: handleBurnedAssetsAmount
           kind: substrate/EventHandler
-          # filter:
-          #   module: currencies
-          #   method: Withdrawn
+          filter:
+            module: currencies
+            method: Withdrawn
 
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
