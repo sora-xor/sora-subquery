@@ -1,4 +1,4 @@
-import { SubstrateExtrinsic, SubstrateEvent } from "@subql/types";
+import { SubstrateExtrinsic } from "@subql/types";
 import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
 
 export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -7,8 +7,8 @@ export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<v
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
-    if (record.success) {
-        
+    if (record.execution.success) {
+
         let transferEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'assets');
         const { event: { data: [, to, assetId, amount] } } = transferEvent;
 

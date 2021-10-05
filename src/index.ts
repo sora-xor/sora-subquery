@@ -6,4 +6,8 @@ export * from './mappings/liquidityDepositHandler'
 export * from './mappings/liquidityRemovalHandler'
 export * from './mappings/irohaMigrationHandler'
 export * from './mappings/batchTransactionsHandler'
+<<<<<<< HEAD
 export * from './mappings/burnedAssetsAmountsHandler'
+=======
+export * from './mappings/assetRegistrationHandler'
+>>>>>>> develop

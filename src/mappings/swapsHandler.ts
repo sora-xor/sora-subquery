@@ -23,7 +23,7 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
-    if (record.success) {
+    if (record.execution.success) {
         let swapEvent = extrinsic.events.find(e => e.event.method === 'Exchange' && e.event.section === 'liquidityProxy');
         const { event: { data: [, , baseAssetId, targetAssetId, baseAssetAmount, targetAssetAmount, liquidityProviderFee] } } = swapEvent;
 
@@ -57,4 +57,3 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
     logger.debug(`===== Saved swap with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
 }
-

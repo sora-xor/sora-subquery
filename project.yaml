@@ -48,7 +48,10 @@ network:
       "height": "MultiChainHeight",
       "index": "u32"
     },
-    "Timepoint": "BridgeTimepoint",
+    "Timepoint": {
+      "height": "BlockNumber",
+      "index": "Index"
+    },
     "ChangePeersContract": {
       "_enum": [
           "XOR",
@@ -286,7 +289,10 @@ network:
     },
     "MultiCurrencyBalance": "Balance",
     "MultiCurrencyBalanceOf": "MultiCurrencyBalance",
-    "MultisigAccount": "Null",
+    "MultisigAccount": {
+      "signatories": "Vec<AccountId>",
+      "threshold": "u8"
+    },
     "OffchainRequest": {
       "_enum": {
         "Outgoing": "(OutgoingRequest, H256)",
@@ -445,7 +451,10 @@ network:
       "raw": "Vec<u8>"
     },
     "OwnerId": "AccountId",
-    "PendingMultisigAccount": "Null",
+    "PendingMultisigAccount": {
+    "approving_accounts": "Vec<AccountId>",
+    "migrate_at": "Option<BlockNumber>"
+  },
     "Permission": "Null",
     "PermissionId": "u32",
     "PoolFarmer": {
@@ -620,3 +629,9 @@ dataSources:
           # filter:
           #   module: currencies
           #   method: Withdrawn
+
+        - handler: assetRegistrationHandler
+          kind: substrate/CallHandler
+          filter:
+            module: assets
+            method: register
