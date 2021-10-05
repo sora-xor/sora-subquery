@@ -624,7 +624,7 @@ dataSources:
             module: utility
             method: batchAll
         
-        - handler: handleBurnedAssetsAmounts
+        - handler: handleBurnedAssetsAmount
           kind: substrate/EventHandler
           # filter:
           #   module: currencies

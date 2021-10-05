@@ -18,7 +18,7 @@ const updateBurnedValue = (
     // return recordCurrencyId === currencyId ? prevBurnedValue + (balance as Balance).toBigInt() : prevBurnedValue;
 }
 
-export async function handleBurnedAssetsAmounts(event: SubstrateEvent): Promise<void> {
+export async function handleBurnedAssetsAmount(event: SubstrateEvent): Promise<void> {
     const { event: { data: [ id, block, accountId, currencyId, balance ] } } = event;
     const record = new BurnedAssetsAmount(event.extrinsic.block.block.header.hash.toString());
 
