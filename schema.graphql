@@ -89,7 +89,7 @@ type AssetRegistration @jsonField {
   assetId: String
   data: String
 }
-type BurnedAssetsAmounts @entity {
+type BurnedAssetsAmount @entity {
   id: ID!
   block: String!
   accountId: String
