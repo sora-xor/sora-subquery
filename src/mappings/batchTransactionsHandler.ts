@@ -40,8 +40,6 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         calls.map((call, idx) => extractCalls(call, idx, record.blockHeight.toString(), entities))
     );
 
-
-
     record.batchTransaction = entities as BatchTransaction[]
 
     await record.save()
