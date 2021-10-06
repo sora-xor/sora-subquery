@@ -92,11 +92,11 @@ type AssetRegistration @jsonField {
 
 type BurnedAssetsAmount @entity {
   id: ID!
-  block: String!
-  accountId: String
+  blockHeight: BigInt! @index
+  blockHash: String!
   currencyId: String!
-  balance: String!
-  burnedAmountXor: String!
-  burnedAmountVal: String!
-  burnedAmountPswap: String!
+  balance: BigInt!
+  burnedAmountXor: BigInt!
+  burnedAmountVal: BigInt!
+  burnedAmountPswap: BigInt!
 }
