@@ -44,6 +44,6 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
 
     await record.save()
 
-    logger.debug("Saved batch extrinsics")
+    logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
 
 }
