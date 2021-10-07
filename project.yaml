@@ -48,10 +48,7 @@ network:
       "height": "MultiChainHeight",
       "index": "u32"
     },
-    "Timepoint": {
-      "height": "BlockNumber",
-      "index": "Index"
-    },
+    "Timepoint": "BridgeTimepoint", #todo use a separate timepoint for MST accounts
     "ChangePeersContract": {
       "_enum": [
           "XOR",
@@ -581,7 +578,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 0
+    startBlock: 70500
     mapping:
       handlers:
 
