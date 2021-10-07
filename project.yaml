@@ -630,6 +630,12 @@ dataSources:
             module: currencies
             method: Withdrawn
 
+        - handler: handleRemintedAssetsAmount
+          kind: substrate/EventHandler
+          filter:
+            module: currencies
+            method: Deposited
+
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
           filter:

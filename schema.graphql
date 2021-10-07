@@ -96,7 +96,12 @@ type BurnedAssetsAmount @entity {
   blockHash: String!
   currencyId: String!
   balance: BigInt!
-  burnedAmountXor: BigInt!
-  burnedAmountVal: BigInt!
-  burnedAmountPswap: BigInt!
+}
+
+type RemintedAssetsAmount @entity {
+  id: ID!
+  blockHeight: BigInt! @index
+  blockHash: String!
+  currencyId: String!
+  balance: BigInt!
 }
