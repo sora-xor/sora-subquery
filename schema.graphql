@@ -105,3 +105,12 @@ type RemintedAssetsAmount @entity {
   currencyId: String!
   balance: BigInt!
 }
+
+type ClaimableReward @entity {
+  id: ID!
+  blockHeight: BigInt! @index
+  blockHash: String!
+  from: String!
+  currencyId: String!
+  balance: BigInt!
+}

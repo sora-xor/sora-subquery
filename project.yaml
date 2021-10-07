@@ -636,6 +636,12 @@ dataSources:
             module: currencies
             method: Deposited
 
+        - handler: handleClaimableReward
+          kind: substrate/EventHandler
+          filter:
+            module: currencies
+            method: Transferred
+
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
           filter:
