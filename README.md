@@ -130,11 +130,13 @@ query {
       networkFee
       success
       execution
+      error
       timestamp
       swap
       transfer
       irohaMigration
       liquidityOperation
+      batchTransaction
       assetRegistration
     }
       cursor }
