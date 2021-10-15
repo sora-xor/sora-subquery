@@ -132,7 +132,7 @@ query {
       execution
       error
       timestamp
-			data
+      data
     }
       cursor }
 
