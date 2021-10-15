@@ -110,7 +110,7 @@ query {
           }
         }
         {
-          transfer: {
+          data: {
             contains: {
               to: " << address to receive the history for >> "
             }
@@ -132,12 +132,7 @@ query {
       execution
       error
       timestamp
-      swap
-      transfer
-      irohaMigration
-      liquidityOperation
-      batchTransaction
-      assetRegistration
+			data
     }
       cursor }
 

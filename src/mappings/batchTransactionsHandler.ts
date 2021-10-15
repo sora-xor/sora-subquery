@@ -1,5 +1,4 @@
 import { SubstrateExtrinsic } from '@subql/types';
-import { BatchTransaction } from "../types";
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
 import { assignCommonHistoryElemInfo } from "./utils";

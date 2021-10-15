@@ -29,7 +29,6 @@ type HistoryElement @entity {
   success: Boolean! # for backwards compatibility
   execution: ExecutionResult!
   timestamp: String!
-  batchTransaction: [batchTransaction]
   error: Error
   data: HistoryElementDetails
   }
