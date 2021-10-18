@@ -1,6 +1,6 @@
 specVersion: 0.0.1
 description: ''
-repository: ''
+repository: 'https://github.com/sora-xor/sora-subquery'
 schema: ./schema.graphql
 network:
   endpoint: wss://mof3.sora.org
@@ -620,6 +620,24 @@ dataSources:
           filter:
             module: utility
             method: batchAll
+
+        - handler: handleBurnedAssetsAmount
+          kind: substrate/EventHandler
+          filter:
+            module: currencies
+            method: Withdrawn
+
+        - handler: handleRemintedAssetsAmount
+          kind: substrate/EventHandler
+          filter:
+            module: currencies
+            method: Deposited
+
+        - handler: handleClaimableReward
+          kind: substrate/EventHandler
+          filter:
+            module: currencies
+            method: Transferred
 
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler

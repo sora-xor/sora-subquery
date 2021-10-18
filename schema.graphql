@@ -36,7 +36,7 @@ type HistoryElement @entity {
   batchTransaction: [batchTransaction]
   error: Error
   assetRegistration: AssetRegistration
-  }
+}
 
 type Swap @jsonField {
   baseAssetId: String!
@@ -88,4 +88,29 @@ type Error @jsonField {
 type AssetRegistration @jsonField {
   assetId: String
   data: String
+}
+
+type BurnedAssetsAmount @entity {
+  id: ID!
+  blockHeight: BigInt! @index
+  blockHash: String!
+  currencyId: String!
+  balance: BigInt!
+}
+
+type RemintedAssetsAmount @entity {
+  id: ID!
+  blockHeight: BigInt! @index
+  blockHash: String!
+  currencyId: String!
+  balance: BigInt!
+}
+
+type ClaimableReward @entity {
+  id: ID!
+  blockHeight: BigInt! @index
+  blockHash: String!
+  from: String!
+  currencyId: String!
+  balance: BigInt!
 }
