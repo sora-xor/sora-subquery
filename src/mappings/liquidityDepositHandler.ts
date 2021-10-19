@@ -7,6 +7,8 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
+    let details = new Object();
+
     if (record.execution.success) {
 
         let feeWithdrawaleventIndex = extrinsic.events.findIndex(e => e.event.method === 'FeeWithdrawn')
@@ -20,7 +22,7 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
             let outputCurrencyTransferEvent = extrinsic.events.find(e => (e as SubstrateEvent).idx === (inputCurrencyTransferEvent as SubstrateEvent).idx + 1)
             const { event: { data: [outputAsset, , , outputTransferedAmount] } } = outputCurrencyTransferEvent;
 
-            record.liquidityOperation = {
+            details = {
                 type: "Deposit",
                 baseAssetId: inputAsset.toString(),
                 targetAssetId: outputAsset.toString(),
@@ -40,7 +42,7 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
         const { extrinsic: { args: [, assetAId, assetBId, assetADesired, assetBDesired] } } = extrinsic;
 
-        record.liquidityOperation = {
+        details = {
             type: "Deposit",
             baseAssetId: assetAId.toString(),
             targetAssetId: assetBId.toString(),
@@ -49,6 +51,8 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
         }
 
     }
+
+    record.data = details
 
     await record.save();
 

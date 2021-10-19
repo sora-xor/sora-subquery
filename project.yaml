@@ -626,3 +626,9 @@ dataSources:
           filter:
             module: assets
             method: register
+
+        - handler: soraEthTransferHandler
+          kind: substrate/CallHandler
+          filter:
+            module: ethBridge
+            method: transferToSidechain
