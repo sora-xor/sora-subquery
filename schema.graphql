@@ -29,50 +29,10 @@ type HistoryElement @entity {
   success: Boolean! # for backwards compatibility
   execution: ExecutionResult!
   timestamp: String!
-  swap: Swap
-  transfer: Transfer
-  irohaMigration: irohaMigration
-  liquidityOperation: LiquidityOperation
-  batchTransaction: [batchTransaction]
   error: Error
-  assetRegistration: AssetRegistration
+  data: HistoryElementDetails
   }
 
-type Swap @jsonField {
-  baseAssetId: String!
-  targetAssetId: String!
-  baseAssetAmount: String!
-  targetAssetAmount: String!
-  liquidityProviderFee: String!
-  selectedMarket: String!
-}
-
-type Transfer @jsonField {
-  from: String! @index
-  to: String! @index
-  assetId: String!
-  amount: String!
-}
-
-type LiquidityOperation @jsonField {
-  type: String!
-  baseAssetId: String!
-  targetAssetId: String!
-  baseAssetAmount: String!
-  targetAssetAmount: String!
-}
-
-type irohaMigration @jsonField {
-  assetId: String!
-  amount: String!
-}
-
-type batchTransaction @jsonField {
-  callId: String!
-  method: String!
-  module: String!
-  hash: String!
-}
 
 type ExecutionResult @jsonField {
   success: Boolean!
@@ -85,7 +45,6 @@ type Error @jsonField {
   nonModuleErrorMessage: String
 }
 
-type AssetRegistration @jsonField {
-  assetId: String
-  data: String
+type HistoryElementDetails @jsonField {
+  data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
 }

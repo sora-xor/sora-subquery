@@ -7,29 +7,33 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
+    let details = new Object();
+
     if (record.execution.success) {
 
         let assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Deposited' && e.event.section === 'currencies')
         if (assetTransferEvent) {
             const { event: { data: [asset, , amount] } } = assetTransferEvent;
-            record.irohaMigration = {
+            details = {
                 assetId: asset.toString(),
                 amount: formatU128ToBalance(amount.toString())
             }
 
-            await record.save();
         } else {
             assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
             if (assetTransferEvent) {
                 const { event: { data: [asset, , , amount] } } = assetTransferEvent;
-                record.irohaMigration = {
+                details = {
                     assetId: asset.toString(),
                     amount: formatU128ToBalance(amount.toString())
                 }
 
-                await record.save();
             }
         }
+
+        record.data = details
+
+        await record.save();
 
         logger.debug(`===== Saved iroha migration with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

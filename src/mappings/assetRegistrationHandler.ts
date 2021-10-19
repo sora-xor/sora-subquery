@@ -7,12 +7,14 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
+    let details = new Object();
+
     if (record.execution.success) {
 
         let assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
         const { event: { data: [assetId] } } = assetRegistrationEvent;
 
-        record.assetRegistration = {
+        details = {
             assetId: assetId.toString()
         }
     }
@@ -21,11 +23,13 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
         const { extrinsic: { args: [symbol, to, amount, ] } } = extrinsic;
 
-        record.assetRegistration = {
+        details = {
             assetId: symbol.toString()
         }
 
     }
+
+    record.data = details
 
     await record.save();
 
