@@ -662,3 +662,21 @@ dataSources:
           filter:
             module: ethBridge
             method: IncomingRequestFinalizationFailed
+
+        - handler: rewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: pswapDistribuution
+            method: claimIncentives
+
+        - handler: rewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: rewards
+            method: claim
+
+        - handler: rewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: vestedRewards
+            method: claimRewards
