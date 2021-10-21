@@ -12,11 +12,11 @@ const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
 const XYK_POOL: string = 'XYKPool';
 const ONE_HOUR_IN_BLOCKS = 600;
 
-
 export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     if (block.block.header.number.toNumber() % ONE_HOUR_IN_BLOCKS != 0) {
         return;
     }
+
     let blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
 
     let record = new PoolXYKEntity(block.block.header.hash.toString());
@@ -45,6 +45,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
             }
         }
     });
+
     //todo rework to liquidity proxy quote
     let reserves = await api.query.poolXyk.reserves.entries(XOR)
         .catch(e => logger.error("Error getting reserves", e))
@@ -65,6 +66,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
                 .plus(xorReserves.multipliedBy(Number(pool.multiplier)));
         }
     });
+
     let pswapPool = pools.find(p => p.targetAssetId === PSWAP);
     if (pswapPool) {
         let pswapPriceInXor: BigNumber = new BigNumber(pswapPool.baseAssetReserves)
@@ -104,5 +106,3 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         pool.save()
     }));
 }
-
-
