@@ -23,19 +23,19 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
             amount: formatU128ToBalance(amount.toString())
         }
 
-        record.data = entity
-
     }
 
     else {
 
-        // record.details.data = {
-        //     assetId: assetId.toString(),
-        //     to: to.toString(),
-        //     amount: formatU128ToBalance(amount.toString())
-        // }
+        entity = {
+            assetId: assetId.toString(),
+            to: to.toString(),
+            amount: formatU128ToBalance(amount.toString())
+        }
 
     }
+
+    record.data = entity
 
     await record.save();
 
