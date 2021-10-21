@@ -23,11 +23,13 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
+    let details = new Object();
+
     if (record.execution.success) {
         let swapEvent = extrinsic.events.find(e => e.event.method === 'Exchange' && e.event.section === 'liquidityProxy');
         const { event: { data: [, , baseAssetId, targetAssetId, baseAssetAmount, targetAssetAmount, liquidityProviderFee] } } = swapEvent;
 
-        record.swap = {
+        details = {
             baseAssetId: baseAssetId.toString(),
             targetAssetId: targetAssetId.toString(),
             baseAssetAmount: formatU128ToBalance(baseAssetAmount.toString()),
@@ -42,7 +44,7 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
 
         let swapAmount = (swapInfo as SwapAmount);
 
-        record.swap = {
+        details = {
             baseAssetId: baseAssetId.toString(),
             targetAssetId: targetAssetId.toString(),
             baseAssetAmount: receiveExtrinsicSwapAmounts(swapAmount)[0],
@@ -51,6 +53,8 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
             selectedMarket: (extrinsic.extrinsic.args[4] as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString()
         }
     }
+
+    record.data = details
 
     await record.save();
 
