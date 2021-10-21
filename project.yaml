@@ -650,3 +650,15 @@ dataSources:
           filter:
             module: ethBridge
             method: transferToSidechain
+
+        - handler: ethSoraTransferHandler
+          kind: substrate/EventHandler
+          filter:
+            module: ethBridge
+            method: IncomingRequestFinalized
+
+        - handler: ethSoraTransferHandler
+          kind: substrate/EventHandler
+          filter:
+            module: ethBridge
+            method: IncomingRequestFinalizationFailed
