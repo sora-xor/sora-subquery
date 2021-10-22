@@ -9,9 +9,9 @@ const claimableRewardAccounts = [lpFeesAccount, tbcRewardsAccount, marketMakerRe
 
 export async function handleClaimableReward(event: SubstrateEvent): Promise<void> {
     const { event: { data: [ currencyId, from, , balance ] } } = event;
-    
+
     if (claimableRewardAccounts.includes(from.toString())) {
-        logger.info(`event claimable reward ${event.event.data}`);
+        logger.debug(`event claimable reward ${event.event.data}`);
 
         let claimableReward: ClaimableReward = new ClaimableReward(event.event.hash.toString());
         claimableReward.from = from.toString();
@@ -20,7 +20,7 @@ export async function handleClaimableReward(event: SubstrateEvent): Promise<void
         claimableReward.blockHash = event.block.block.header.hash.toString();
         claimableReward.currencyId = currencyId.toString();
         claimableReward.balance = BigInt(balance.toString());
-        
+
         await claimableReward.save();
     }
 }
