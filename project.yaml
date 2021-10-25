@@ -650,3 +650,33 @@ dataSources:
           filter:
             module: ethBridge
             method: transferToSidechain
+
+        - handler: ethSoraTransferHandler
+          kind: substrate/EventHandler
+          filter:
+            module: ethBridge
+            method: IncomingRequestFinalized
+
+        - handler: ethSoraTransferHandler
+          kind: substrate/EventHandler
+          filter:
+            module: ethBridge
+            method: IncomingRequestFinalizationFailed
+
+        - handler: rewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: pswapDistribuution
+            method: claimIncentives
+
+        - handler: rewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: rewards
+            method: claim
+
+        - handler: rewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: vestedRewards
+            method: claimRewards

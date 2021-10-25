@@ -7,7 +7,7 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
-    const { extrinsic: { args: [assetId, to, amount, ] } } = extrinsic;
+    const { extrinsic: { args: [assetId, sidechainAddress, amount, ] } } = extrinsic;
 
     let entity = new Object();
 
@@ -19,7 +19,7 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
         entity = {
             requestHash: requestHash.toString(),
             assetId: assetId.toString(),
-            to: to.toString(),
+            sidechainAddress: sidechainAddress.toString(),
             amount: formatU128ToBalance(amount.toString())
         }
 
@@ -29,7 +29,7 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
 
         entity = {
             assetId: assetId.toString(),
-            to: to.toString(),
+            sidechainAddress: sidechainAddress.toString(),
             amount: formatU128ToBalance(amount.toString())
         }
 

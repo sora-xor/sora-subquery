@@ -128,7 +128,6 @@ query {
       method
       address
       networkFee
-      success
       execution
       error
       timestamp
