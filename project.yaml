@@ -687,8 +687,8 @@ dataSources:
         - handler: rewardsHandler
           kind: substrate/CallHandler
           filter:
-            module: pswapDistribuution
-            method: claimIncentives
+            module: pswapDistribution
+            method: claimIncentive
 
         - handler: rewardsHandler
           kind: substrate/CallHandler
