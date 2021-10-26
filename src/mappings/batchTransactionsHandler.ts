@@ -1,5 +1,4 @@
 import { SubstrateExtrinsic } from '@subql/types';
-import { BatchTransaction } from "../types";
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
 import { assignCommonHistoryElemInfo } from "./utils";
@@ -40,7 +39,8 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         calls.map((call, idx) => extractCalls(call, idx, record.blockHeight.toString(), entities))
     );
 
-    record.batchTransaction = entities as BatchTransaction[]
+
+    record.data = entities as Object
 
     await record.save()
 

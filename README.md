@@ -110,7 +110,7 @@ query {
           }
         }
         {
-          transfer: {
+          data: {
             contains: {
               to: " << address to receive the history for >> "
             }
@@ -128,14 +128,10 @@ query {
       method
       address
       networkFee
-      success
       execution
+      error
       timestamp
-      swap
-      transfer
-      irohaMigration
-      liquidityOperation
-      assetRegistration
+      data
     }
       cursor }
 

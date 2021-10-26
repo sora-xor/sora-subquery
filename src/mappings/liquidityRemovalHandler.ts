@@ -2,18 +2,23 @@ import { SubstrateExtrinsic, SubstrateEvent } from '@subql/types';
 import { HistoryElement } from 'sora/types';
 import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
 
-const saveExtrinsicParameters = (extrinsic: SubstrateExtrinsic, record: HistoryElement): void => {
+
+
+const saveDetails = (extrinsic: SubstrateExtrinsic, details: Object): Object => {
     const { extrinsic: { args: [, assetAId, assetBId, , assetAMin, assetBMin] } } = extrinsic;
 
     // TODO change the amount from min to real?
 
-    record.liquidityOperation = {
+    details = {
         type: "Removal",
         baseAssetId: assetAId.toString(),
         targetAssetId: assetBId.toString(),
         baseAssetAmount: formatU128ToBalance(assetAMin.toString()),
         targetAssetAmount: formatU128ToBalance(assetBMin.toString())
     }
+
+    return details
+
 }
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -21,6 +26,8 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
     logger.debug("Caught liquidity removal extrinsic")
 
     const record = assignCommonHistoryElemInfo(extrinsic)
+
+    let details = new Object();
 
     if (record.execution.success) {
 
@@ -32,7 +39,7 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
         if (AssetBTransferEvent.event.method === 'Transferred' && AssetBTransferEvent.event.section === 'currencies') {
 
-            record.liquidityOperation = {
+            details = {
                 type: "Removal",
                 baseAssetId: inputAsset.toString(),
                 targetAssetId: outputAsset.toString(),
@@ -40,16 +47,20 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
                 targetAssetAmount: formatU128ToBalance(outputTransferedAmount.toString())
 
             }
+
+            record.data = details
         }
 
         else {
-            saveExtrinsicParameters(extrinsic, record)
+            details = saveDetails(extrinsic, details)
         }
     }
 
     else {
-        saveExtrinsicParameters(extrinsic, record)
+        details = saveDetails(extrinsic, details)
     }
+
+    record.data = details
 
     await record.save();
 
