@@ -39,7 +39,7 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     record.method = extrinsic.extrinsic.method.method
     record.address = extrinsic.extrinsic.signer.toString()
     record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
-    record.timestamp = BigInt(((extrinsic.block.timestamp).getTime() / 1000).toFixed(0))
+    record.timestamp = parseInt(((extrinsic.block.timestamp).getTime() / 1000).toFixed(0))
 
     let failedEvent = extrinsic.events.find(e => e.event.method === 'ExtrinsicFailed');
 
