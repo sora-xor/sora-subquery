@@ -22,12 +22,13 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
 
     const extrinsic = incomingRequestFinalizationEvent.extrinsic
     let registeredRequestEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered' && e.event.section === 'ethBridge')
-    const {event: {data: [requestHash]}} = registeredRequestEvent
     let currenciesEvent = extrinsic.events.find(e => e.event.section === 'currencies')
 
-    if (currenciesEvent == null) {
+    if (registeredRequestEvent == null || currenciesEvent == null ) {
         return
     }
+
+    const {event: {data: [requestHash]}} = registeredRequestEvent
 
     let distinguishedCurrenciesEventValues = distinguishCurrenciesEvent(currenciesEvent)
 
