@@ -28,7 +28,6 @@ type HistoryElement @entity {
   networkFee: String!
   execution: ExecutionResult!
   timestamp: Int!
-  error: Error
   data: HistoryElementDetails
   }
 
