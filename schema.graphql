@@ -46,10 +46,6 @@ type Error @jsonField {
 type HistoryElementDetails @jsonField {
   data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
 }
-type AssetRegistration @jsonField {
-  assetId: String
-  data: String
-}
 
 type BurnedAssetsAmount @entity {
   id: ID!
