@@ -71,3 +71,12 @@ type ClaimableReward @entity {
   currencyId: String!
   balance: BigInt!
 }
+
+type ReferrerReward @entity {
+	id: ID!
+	blockHeight: BigInt!
+	referrer: String! @index
+	referree: String!
+	timestamp: Int!
+	amount: String!
+}

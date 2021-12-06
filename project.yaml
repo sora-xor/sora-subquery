@@ -701,3 +701,9 @@ dataSources:
           filter:
             module: vestedRewards
             method: claimRewards
+
+        - handler: referrerRewardHandler
+          kind: substrate/EventHandler
+          filter:
+            module: xorFee
+            method: ReferrerRewarded

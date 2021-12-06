@@ -13,3 +13,4 @@ export * from './mappings/remintedAssetsAmountHandler'
 export * from './mappings/claimableRewardHandler'
 export * from './mappings/ethSoraTransferHandler'
 export * from './mappings/rewardsHandler'
+export * from "./mappings/referrerRewardHandler";
