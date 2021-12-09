@@ -124,12 +124,12 @@ query {
     node {
       id
       blockHeight
+      blockHash
       module
       method
       address
       networkFee
       execution
-      error
       timestamp
       data
     }

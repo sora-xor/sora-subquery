@@ -28,7 +28,6 @@ type HistoryElement @entity {
   networkFee: String!
   execution: ExecutionResult!
   timestamp: Int!
-  error: Error
   data: HistoryElementDetails
   }
 
@@ -46,10 +45,6 @@ type Error @jsonField {
 
 type HistoryElementDetails @jsonField {
   data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
-}
-type AssetRegistration @jsonField {
-  assetId: String
-  data: String
 }
 
 type BurnedAssetsAmount @entity {
@@ -75,4 +70,13 @@ type ClaimableReward @entity {
   from: String!
   currencyId: String!
   balance: BigInt!
+}
+
+type ReferrerReward @entity {
+	id: ID!
+	blockHeight: BigInt!
+	referrer: String! @index
+	referree: String!
+	timestamp: Int!
+	amount: String!
 }
