@@ -58,6 +58,7 @@ network:
         "tip": "Compact<Balance>",
         "target_asset_id": "AssetId"
     },
+    "ContentSource": "Vec<u8>",
     "CurrencyId": "AssetId",
     "CurrencyIdEncoded": {
         "_enum": {
@@ -76,6 +77,7 @@ network:
         "default_fee": "BasisPoints",
         "default_protocol_fee": "BasisPoints"
     },
+    "Description": "Vec<u8>",
     "DispatchErrorWithPostInfoTPostDispatchInfo": {
         "post_info": "PostDispatchInfo",
         "error": "DispatchError"
@@ -599,7 +601,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 0
+    startBlock: 1
     mapping:
       handlers:
 
