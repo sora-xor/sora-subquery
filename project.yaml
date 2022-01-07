@@ -285,10 +285,7 @@ network:
     },
     "MultiCurrencyBalance": "Balance",
     "MultiCurrencyBalanceOf": "MultiCurrencyBalance",
-    "MultisigAccount": {
-        "signatories": "Vec<AccountId>",
-        "threshold": "u8"
-    },
+    "MultisigAccount": "Null",
     "OffchainRequest": {
         "_enum": {
             "Outgoing": "(OutgoingRequest, H256)",
@@ -594,17 +591,18 @@ network:
         "base_asset_id": "AssetId",
         "target_asset_id": "AssetId"
     },
-    "ValidationFunction": "Null"
+    "ValidationFunction": "Null",
+    "Timepoint": "BridgeTimepoint"
 }
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 0
+    startBlock: 1
     mapping:
       handlers:
 
-        - handler: handleXYKPools
-          kind: substrate/BlockHandler
+        # - handler: handleXYKPools
+        #   kind: substrate/BlockHandler
 
         - handler: handlerTransfers
           kind: substrate/CallHandler
