@@ -29,10 +29,10 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         });
     let pools: Array<Pool> = [];
     pairs.forEach(([{args: [dexId, tradingPair]}, value]) => {
-        if (value.isSome) {
+        if (value) {
             if (value.toHuman().toString().includes(XYK_POOL)) {
-                let baseAssetId = tradingPair.base_asset_id.toString();
-                let targetAssetId = tradingPair.target_asset_id.toString();
+                let baseAssetId = "dummy";
+                let targetAssetId = "dummy";
                 let pool = new Pool(record.id.toString() + "_" + baseAssetId + "_" + targetAssetId);
                 pool.baseAssetId = baseAssetId;
                 pool.targetAssetId = targetAssetId;

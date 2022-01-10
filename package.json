@@ -21,15 +21,15 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@polkadot/typegen": "^4.9.2",
-    "@subql/cli": "^0.11.2",
-    "@subql/types": "^0.8.3",
-    "@subql/node": "^0.23.1",
+    "@polkadot/typegen": "^6",
+    "@subql/cli": "latest",
+    "@subql/types": "latest",
+    "@subql/node": "latest",
     "ts-node": "^8.6.2",
     "typescript": "^4.1.3"
   },
   "dependencies": {
-    "@polkadot/api": "^4.9.2",
+    "@polkadot/api": "^6",
     "@sora-substrate/type-definitions": "^1.6.9",
     "bignumber.js": "^9.0.1"
   }

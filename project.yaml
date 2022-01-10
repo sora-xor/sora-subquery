@@ -1,5 +1,5 @@
 specVersion: 0.2.0
-name: sora-subquery
+name: 'sora-subquery'
 version: 1.0.0
 description: ''
 repository: https://github.com/sora-xor/sora-subquery
@@ -12,10 +12,14 @@ network:
     file: ./types.json
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 1
+    startBlock: 3000
     mapping:
       file: ./dist/index.js
       handlers:
+
+        # - handler: handleXYKPools
+        #   kind: substrate/BlockHandler
+
         - handler: handlerTransfers
           kind: substrate/CallHandler
           filter:
