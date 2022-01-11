@@ -22,6 +22,8 @@ services:
       DB_DATABASE: postgres
       DB_HOST: postgres
       DB_PORT: 5432
+    volumes:
+      - ./:/app
     command:
       - -f=/app
       - --log-level=debug
