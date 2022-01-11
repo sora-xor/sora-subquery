@@ -1,8 +1,8 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import type { Vec } from "@polkadot/types";
-import { SwapAmount } from "sora/api-interfaces";
+// import { SwapAmount } from "sora/api-interfaces";
 import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
-import { LiquiditySourceType } from "sora/api-interfaces";
+// import { LiquiditySourceType } from "sora/api-interfaces";
 
 const receiveExtrinsicSwapAmounts = (swapAmount): string[] => {
     switch (swapAmount.isWithDesiredOutput) {
@@ -35,14 +35,14 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
             baseAssetAmount: formatU128ToBalance(baseAssetAmount.toString()),
             targetAssetAmount: formatU128ToBalance(targetAssetAmount.toString()),
             liquidityProviderFee: formatU128ToBalance(liquidityProviderFee.toString()),
-            selectedMarket: (extrinsic.extrinsic.args[4] as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString()
+            // selectedMarket: (extrinsic.extrinsic.args[4] as Vec<Codec>).map(lst => lst.toString()).toString()
         }
     }
 
     else {
         const { extrinsic: { args: [, baseAssetId, targetAssetId, swapInfo] } } = extrinsic;
 
-        let swapAmount = (swapInfo as SwapAmount);
+        let swapAmount = swapInfo;
 
         details = {
             baseAssetId: baseAssetId.toString(),
@@ -50,7 +50,7 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
             baseAssetAmount: receiveExtrinsicSwapAmounts(swapAmount)[0],
             targetAssetAmount: receiveExtrinsicSwapAmounts(swapAmount)[1],
             liquidityProviderFee: "0",
-            selectedMarket: (extrinsic.extrinsic.args[4] as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString()
+            // selectedMarket: (extrinsic.extrinsic.args[4] as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString()
         }
     }
 

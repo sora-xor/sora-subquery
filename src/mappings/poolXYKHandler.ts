@@ -29,10 +29,10 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         });
     let pools: Array<Pool> = [];
     pairs.forEach(([{args: [dexId, tradingPair]}, value]) => {
-        if (value.isSome) {
+        if (value) {
             if (value.toHuman().toString().includes(XYK_POOL)) {
-                let baseAssetId = tradingPair.base_asset_id.toString();
-                let targetAssetId = tradingPair.target_asset_id.toString();
+                let baseAssetId = "dummy";
+                let targetAssetId = "dummy";
                 let pool = new Pool(record.id.toString() + "_" + baseAssetId + "_" + targetAssetId);
                 pool.baseAssetId = baseAssetId;
                 pool.targetAssetId = targetAssetId;
@@ -47,9 +47,16 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     });
 
     //todo rework to liquidity proxy quote
-    let reserves = await api.query.poolXyk.reserves.entries(XOR)
+    let reserves;
+    try {
+        reserves = await api.query.poolXyk.reserves.entries(XOR)
         .catch(e => logger.error("Error getting reserves", e))
+    } catch (e) {
+        logger.error(e);
+        return;
+    }
     let totalXORWithDoublePools: BigNumber = new BigNumber(0);
+
     let xorPriceInDAI: BigNumber = new BigNumber(0);
     reserves.forEach(([{args: [baseAsset, targetAsset]}, value]) => {
         let xorReserves: BigNumber = new BigNumber(value[0].toBigInt());

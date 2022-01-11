@@ -27,7 +27,7 @@ services:
       - -f=/app
       - --local
       - --log-level=debug
-      - --db-schema=app
+      - --subquery-name=app
 
   graphql-engine:
     image: onfinality/subql-query:latest
