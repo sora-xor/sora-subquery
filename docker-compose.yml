@@ -30,7 +30,7 @@ services:
       - --subquery-name=app
 
   graphql-engine:
-    image: onfinality/subql-query:latest
+    image: onfinality/subql-query:0.9.0
     ports:
       - 3000:3000
     depends_on:
