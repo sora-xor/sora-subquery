@@ -26,11 +26,11 @@ services:
       - ./:/app
     command:
       - -f=/app
-      - --debug
+      - --log-level=debug
       - --subquery-name=app
 
   graphql-engine:
-    image: onfinality/subql-query:v0.9.0
+    image: onfinality/subql-query:latest
     ports:
       - 3000:3000
     depends_on:
@@ -45,4 +45,3 @@ services:
     command:
       - --name=app
       - --playground
-      - --indexer=http://subquery-node:3000
