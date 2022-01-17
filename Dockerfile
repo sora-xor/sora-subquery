@@ -6,4 +6,5 @@ ENTRYPOINT  ["/sbin/tini", "--", "subql-node"]
 RUN         npm i -g @subql/node
 WORKDIR     /app
 COPY        . .
+USER        node
 CMD         ["-f","/app"]
