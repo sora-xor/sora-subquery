@@ -1,5 +1,4 @@
 FROM       node:16 as builder
-# ENTRYPOINT ["subql-node"]
 RUN        npm i -g --unsafe-perm @subql/node
 
 FROM       node:16-alpine
