@@ -889,7 +889,7 @@
     pino "^6.13.1"
     reflect-metadata "^0.1.13"
 
-"@subql/node@^0.23.1":
+"@subql/node@0.23.1":
   version "0.23.1"
   resolved "https://registry.yarnpkg.com/@subql/node/-/node-0.23.1.tgz#8c8613bbda117bc5c7bc04b228343ec070b99683"
   integrity sha512-oG6pHTsQ/QcrSVrW6EOppgaiG5fZu3Mtr8SAOiyCwWXvFxi/XUTObco2/+8D2gp1I8hdTut85s/3WEk/CDmvCQ==
