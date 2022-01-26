@@ -29,7 +29,7 @@ type HistoryElement @entity {
   execution: ExecutionResult!
   timestamp: Int!
   data: HistoryElementDetails
-  }
+}
 
 
 type ExecutionResult @jsonField {
@@ -75,8 +75,32 @@ type ClaimableReward @entity {
 type ReferrerReward @entity {
 	id: ID!
 	blockHeight: BigInt!
-	referrer: String! @index
-	referree: String!
+	referral: String! @index
+	referrer: String!
+	timestamp: Int!
+	amount: String!
+}
+
+type SetReferral @entity {
+	id: ID!
+	blockHeight: BigInt!
+	address: String! @index
+	referrer: String!
+	timestamp: Int!
+}
+
+type ReferralReserve @entity {
+	id: ID!
+	blockHeight: BigInt!
+	address: String! @index
+	timestamp: Int!
+	amount: String!
+}
+
+type ReferralUreserve @entity {
+	id: ID!
+	blockHeight: BigInt!
+	address: String! @index
 	timestamp: Int!
 	amount: String!
 }

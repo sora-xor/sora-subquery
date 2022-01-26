@@ -5,9 +5,10 @@ import { formatU128ToBalance } from "./utils";
 export async function referrerRewardHandler(
 	event: SubstrateEvent
 ): Promise<void> {
+
 	const {
 		event: {
-			data: [referree, referrer, amount],
+			data: [referral, referrer, amount],
 		},
 	} = event;
 
@@ -17,8 +18,8 @@ export async function referrerRewardHandler(
 		event.event.hash.toString()
 	);
 	referrerReward.blockHeight = event.block.block.header.number.toBigInt();
+	referrerReward.referral = referral.toString();
 	referrerReward.referrer = referrer.toString();
-	referrerReward.referree = referree.toString();
 	referrerReward.timestamp = parseInt(
 		(event.block.timestamp.getTime() / 1000).toFixed(0)
 	);
