@@ -8,7 +8,7 @@ export async function referrerRewardHandler(
 
 	const {
 		event: {
-			data: [referral, referrer, amount],
+			data: [referree, referrer, amount],
 		},
 	} = event;
 
@@ -18,7 +18,7 @@ export async function referrerRewardHandler(
 		event.event.hash.toString()
 	);
 	referrerReward.blockHeight = event.block.block.header.number.toBigInt();
-	referrerReward.referral = referral.toString();
+	referrerReward.referral = referree.toString();
 	referrerReward.referrer = referrer.toString();
 	referrerReward.timestamp = parseInt(
 		(event.block.timestamp.getTime() / 1000).toFixed(0)

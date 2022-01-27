@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
 
-export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
+export async function referralUnreserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logger.debug("Caught referral unreserve extrinsic");
 
     const record = assignCommonHistoryElemInfo(extrinsic);
