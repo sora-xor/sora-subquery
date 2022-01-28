@@ -714,6 +714,24 @@ dataSources:
             module: vestedRewards
             method: claimRewards
 
+        - handler: setReferralHandler
+          kind: substrate/CallHandler
+          filter:
+            module: referrals
+            method: setReferrer
+
+        - handler: referralReserveHandler
+          kind: substrate/CallHandler
+          filter:
+            module: referrals
+            method: reserve
+
+        - handler: referralUnreserveHandler
+          kind: substrate/CallHandler
+          filter:
+            module: referrals
+            method: unreserve
+
         - handler: referrerRewardHandler
           kind: substrate/EventHandler
           filter:
