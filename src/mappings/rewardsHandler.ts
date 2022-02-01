@@ -1,5 +1,7 @@
-import { SubstrateExtrinsic } from "@subql/types";
+import { SubstrateEvent, SubstrateExtrinsic } from "@subql/types";
+import { Amount, CurrencyIdOf } from "sora/api-interfaces";
 import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -10,14 +12,18 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
     if (record.execution.success) {
 
         let details = new Object();
-        let moneyTransferEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
-        const { event: { data: [assetId,,,amount] } } = moneyTransferEvent;
+        let rewards = new Array();
+        let moneyTransferEvent1 = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
+        const { event: { data: [assetId,,,amount] } } = moneyTransferEvent1;
+        rewards.push({assetId: assetId.toString(), amount: amount.toString()})
 
-        details = {
-            assetId: assetId.toString(),
-            amount: formatU128ToBalance(amount.toString())
+        let moneyTransferEvent2 = extrinsic.events.slice((moneyTransferEvent1 as SubstrateEvent).idx).find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
+        if (moneyTransferEvent2) {
+            const { event: { data: [assetId,,,amount] } } = moneyTransferEvent2;
+            rewards.push({assetId: assetId.toString(), amount: amount.toString()})
         }
 
+        details = rewards
         record.data = details
 
     }
