@@ -49,7 +49,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     //todo rework to liquidity proxy quote
     let reserves;
     try {
-        reserves = await api.query.poolXyk.reserves.entries(XOR)
+        reserves = await api.query.poolXYK.reserves.entries(XOR)
         .catch(e => logger.error("Error getting reserves", e))
     } catch (e) {
         logger.error(e);
