@@ -20,7 +20,7 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
             requestHash: requestHash.toString(),
             assetId: assetId.toString(),
             sidechainAddress: sidechainAddress.toString(),
-            amount: formatU128ToBalance(amount.toString())
+            amount: formatU128ToBalance(amount.toString(), assetId.toString())
         }
 
     }
@@ -30,7 +30,7 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
         entity = {
             assetId: assetId.toString(),
             sidechainAddress: sidechainAddress.toString(),
-            amount: formatU128ToBalance(amount.toString())
+            amount: formatU128ToBalance(amount.toString(), assetId.toString())
         }
 
     }

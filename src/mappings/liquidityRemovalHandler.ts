@@ -9,12 +9,15 @@ const saveDetails = (extrinsic: SubstrateExtrinsic, details: Object): Object => 
 
     // TODO change the amount from min to real?
 
+    let baseAssetId = assetAId.toString();
+    let targetAssetId = assetBId.toString();
+
     details = {
         type: "Removal",
-        baseAssetId: assetAId.toString(),
-        targetAssetId: assetBId.toString(),
-        baseAssetAmount: formatU128ToBalance(assetAMin.toString()),
-        targetAssetAmount: formatU128ToBalance(assetBMin.toString())
+        baseAssetId: baseAssetId,
+        targetAssetId: targetAssetId,
+        baseAssetAmount: formatU128ToBalance(assetAMin.toString(), baseAssetId),
+        targetAssetAmount: formatU128ToBalance(assetBMin.toString(), targetAssetId)
     }
 
     return details
@@ -39,12 +42,15 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
         if (AssetBTransferEvent.event.method === 'Transferred' && AssetBTransferEvent.event.section === 'currencies') {
 
+            let baseAssetId = inputAsset.toString();
+            let targetAssetId = outputAsset.toString()
+
             details = {
                 type: "Removal",
-                baseAssetId: inputAsset.toString(),
-                targetAssetId: outputAsset.toString(),
-                baseAssetAmount: formatU128ToBalance(inputTransferedAmount.toString()),
-                targetAssetAmount: formatU128ToBalance(outputTransferedAmount.toString())
+                baseAssetId: baseAssetId,
+                targetAssetId: targetAssetId,
+                baseAssetAmount: formatU128ToBalance(inputTransferedAmount.toString(), baseAssetId),
+                targetAssetAmount: formatU128ToBalance(outputTransferedAmount.toString(), targetAssetId)
 
             }
 

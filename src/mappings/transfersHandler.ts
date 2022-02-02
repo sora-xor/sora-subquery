@@ -17,7 +17,7 @@ export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<v
         details = {
             from: extrinsic.extrinsic.signer.toString(),
             to: to.toString(),
-            amount: formatU128ToBalance(amount.toString()),
+            amount: formatU128ToBalance(amount.toString(), assetId.toString()),
             assetId: assetId.toString()
         }
     }
@@ -29,7 +29,7 @@ export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<v
         details = {
             from: extrinsic.extrinsic.signer.toString(),
             to: to.toString(),
-            amount: formatU128ToBalance(amount.toString()),
+            amount: formatU128ToBalance(amount.toString(), assetId.toString()),
             assetId: assetId.toString()
         }
     }

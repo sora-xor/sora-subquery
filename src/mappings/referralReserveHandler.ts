@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { XOR } from "..";
 
 export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logger.debug("Caught referral reserve extrinsic");
@@ -15,13 +16,13 @@ export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Pro
         details = {
             from: from.toString(),
             to: to.toString(),
-            amount: formatU128ToBalance(amount.toString())
+            amount: formatU128ToBalance(amount.toString(), XOR)
         }
     } else {
         const { extrinsic: { args: [amount] } } = extrinsic;
-        
+
         details = {
-            amount: formatU128ToBalance(amount.toString())
+            amount: formatU128ToBalance(amount.toString(), XOR)
         }
     }
 

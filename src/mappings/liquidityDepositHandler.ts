@@ -22,12 +22,15 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
             let outputCurrencyTransferEvent = extrinsic.events.find(e => (e as SubstrateEvent).idx === (inputCurrencyTransferEvent as SubstrateEvent).idx + 1)
             const { event: { data: [outputAsset, , , outputTransferedAmount] } } = outputCurrencyTransferEvent;
 
+            let baseAssetId = inputAsset.toString();
+            let targetAssetId = outputAsset.toString();
+
             details = {
                 type: "Deposit",
-                baseAssetId: inputAsset.toString(),
-                targetAssetId: outputAsset.toString(),
-                baseAssetAmount: formatU128ToBalance(inputTransferedAmount.toString()),
-                targetAssetAmount: formatU128ToBalance(outputTransferedAmount.toString())
+                baseAssetId: baseAssetId,
+                targetAssetId: targetAssetId,
+                baseAssetAmount: formatU128ToBalance(inputTransferedAmount.toString(), baseAssetId),
+                targetAssetAmount: formatU128ToBalance(outputTransferedAmount.toString(), targetAssetId)
             }
 
         }
@@ -42,12 +45,15 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
         const { extrinsic: { args: [, assetAId, assetBId, assetADesired, assetBDesired] } } = extrinsic;
 
+        let baseAssetId = assetAId.toString();
+        let targetAssetId = assetBId.toString();
+
         details = {
             type: "Deposit",
-            baseAssetId: assetAId.toString(),
-            targetAssetId: assetBId.toString(),
-            baseAssetAmount: formatU128ToBalance(assetADesired.toString()),
-            targetAssetAmount: formatU128ToBalance(assetBDesired.toString())
+            baseAssetId: baseAssetId,
+            targetAssetId: targetAssetId,
+            baseAssetAmount: formatU128ToBalance(assetADesired.toString(), baseAssetId),
+            targetAssetAmount: formatU128ToBalance(assetBDesired.toString(), targetAssetId)
         }
 
     }

@@ -16,6 +16,15 @@ dataSources:
     mapping:
       file: ./dist/index.js
       handlers:
+        # Get all assets on the first block being parsed and cache them
+        - handler: getAllAssetsInfos
+          kind: substrate/BlockHandler
+        # Update the cached dictionary on asset creation
+        - handler: assetRegistrationHandler
+          kind: substrate/CallHandler
+          filter:
+            module: assets
+            method: register
         - handler: handleXYKPools
           kind: substrate/BlockHandler
         - handler: handlerTransfers
@@ -63,11 +72,6 @@ dataSources:
           filter:
             module: currencies
             method: Transferred
-        - handler: assetRegistrationHandler
-          kind: substrate/CallHandler
-          filter:
-            module: assets
-            method: register
         - handler: soraEthTransferHandler
           kind: substrate/CallHandler
           filter:
