@@ -12,16 +12,13 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
     if (record.execution.success) {
 
         let details = new Object();
-        let rewards = new Array();
-        let moneyTransferEvent1 = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
-        const { event: { data: [assetId,,,amount] } } = moneyTransferEvent1;
-        rewards.push({assetId: assetId.toString(), amount: amount.toString()})
-
-        let moneyTransferEvent2 = extrinsic.events.slice((moneyTransferEvent1 as SubstrateEvent).idx).find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
-        if (moneyTransferEvent2) {
-            const { event: { data: [assetId,,,amount] } } = moneyTransferEvent2;
-            rewards.push({assetId: assetId.toString(), amount: amount.toString()})
-        }
+        const rewards = extrinsic.events.reduce((buffer, e) => {
+            if (e.event.method === 'Transferred' && e.event.section === 'currencies') {
+              const { event: { data: [assetId,,,amount] } } = e;
+              buffer.push({assetId: assetId.toString(), amount: amount.toString()});
+            }
+            return buffer;
+         }, []);
 
         details = rewards
         record.data = details
