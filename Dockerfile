@@ -1,5 +1,7 @@
 FROM       node:16 as builder
-RUN        npm i -g --unsafe-perm @subql/node@0.23.1
+USER       node
+RUN        npm cache clean \ 
+           npm i -g --unsafe-perm @subql/node@0.23.1
 
 FROM       node:16-alpine
 ARG        SORA_ENDPOINT
