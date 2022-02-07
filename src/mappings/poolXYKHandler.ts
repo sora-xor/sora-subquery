@@ -3,7 +3,8 @@ import {Pool, PoolXYKEntity} from "../types";
 import {formatU128ToBalance} from "./utils";
 import BigNumber from "bignumber.js";
 
-const XOR: string = '0x0200000000000000000000000000000000000000000000000000000000000000';
+import { XOR } from "..";
+
 const VAL: string = '0x0200040000000000000000000000000000000000000000000000000000000000';
 const PSWAP: string = '0x0200050000000000000000000000000000000000000000000000000000000000';
 const DAI: string = '0x0200060000000000000000000000000000000000000000000000000000000000';
@@ -49,7 +50,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     //todo rework to liquidity proxy quote
     let reserves;
     try {
-        reserves = await api.query.poolXyk.reserves.entries(XOR)
+        reserves = await api.query.poolXYK.reserves.entries(XOR)
         .catch(e => logger.error("Error getting reserves", e))
     } catch (e) {
         logger.error(e);
@@ -63,8 +64,8 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         let targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
         let pool = pools.find(p => p.targetAssetId === targetAsset.toHuman());
         if (pool) {
-            pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), 18);
-            pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), 18);
+            pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAsset.toString());
+            pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAsset.toString());
             if (targetAsset.toHuman() === DAI) {
                 xorPriceInDAI = targetAssetReserves.div(xorReserves);
             }
@@ -93,7 +94,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         });
     }
 
-    record.totalXORInPools = formatU128ToBalance(totalXorInPools.toFixed(0).toString(), 18);
+    record.totalXORInPools = formatU128ToBalance(totalXorInPools.toFixed(0).toString(), XOR);
 
     //Add fake XOR Pool in order to add fiat price for it
     let xorPool: Pool = new Pool(record.id.toString() + "_" + XOR + "_" + XOR);

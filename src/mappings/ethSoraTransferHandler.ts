@@ -36,10 +36,12 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
 
     let entity = new Object();
 
+    let assetId = distinguishedCurrenciesEventValues[0].toString();
+
     entity = {
         requestHash: requestHash.toString(),
-        assetId: distinguishedCurrenciesEventValues[0].toString(),
-        amount: formatU128ToBalance(distinguishedCurrenciesEventValues[1].toString())
+        assetId: assetId,
+        amount: formatU128ToBalance(distinguishedCurrenciesEventValues[1].toString(), assetId)
     }
 
     record.data = entity
