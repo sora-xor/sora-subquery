@@ -6,8 +6,8 @@ repository: https://github.com/sora-xor/sora-subquery
 schema:
   file: ./schema.graphql
 network:
-  genesisHash: '0x7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5'
-  endpoint: wss://mof3.sora.org
+  genesisHash: '0x2637ce8bdb9ca490a92c01ccca146b04e116dc203a0278c2e754b863aea6329f'
+  endpoint: wss://ws.framenode-1.s1.dev.sora2.soramitsu.co.jp
   chaintypes:
     file: ./types.json
 dataSources:
