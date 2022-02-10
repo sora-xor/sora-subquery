@@ -40,12 +40,12 @@ dataSources:
         - handler: handleLiquidityDeposit
           kind: substrate/CallHandler
           filter:
-            module: poolXyk
+            module: poolXYK
             method: depositLiquidity
         - handler: handleLiquidityRemoval
           kind: substrate/CallHandler
           filter:
-            module: poolXyk
+            module: poolXYK
             method: withdrawLiquidity
         - handler: handlerIrohaMigration
           kind: substrate/CallHandler
