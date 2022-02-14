@@ -7,7 +7,7 @@ schema:
   file: ./schema.graphql
 network:
   genesisHash:
-   file: ./gethash.json
+   file: /tmp/gethash.json
   endpoint: wss://ws.framenode-1.s1.dev.sora2.soramitsu.co.jp
   chaintypes:
     file: ./types.json
