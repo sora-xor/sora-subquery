@@ -9,7 +9,7 @@ RUN        apk add --no-cache tini git \
            && apk add --no-cache curl \
            && apk add --no-cache jq
 COPY       --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules  
-ENTRYPOINT ["/sbin/tini", "--", "/usr/local/lib/node_modules/@subql/node/bin/run", "/tmp/gethash.sh > gethash.json"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/lib/node_modules/@subql/node/bin/run", "/tmp/gethash.sh > /tmp/gethash.json"]
 WORKDIR    /app
 COPY       . . 
 USER       node
