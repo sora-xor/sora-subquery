@@ -3,15 +3,15 @@ import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
 
 // Obtaining tokens for further transfer may be done by unlocking ("Transferred" event) or by minting ("Deposited"). Either way is a part of ETH->SORA transfer.
 
-const distinguishCurrenciesEvent = (currenciesEvent): string[] => {
+const distinguishCurrenciesEvent = (currenciesEvent) => {
     switch (currenciesEvent.event.method) {
         case "Deposited": {
-            const {event: {data: [assetId,,amount]}} = currenciesEvent
-            return [assetId, amount]
+            const {event: {data: [assetId,to,amount]}} = currenciesEvent
+            return { assetId, amount, to }
         }
         case "Transferred": {
-            const {event: {data: [assetId,,,amount]}} = currenciesEvent
-            return [assetId, amount]
+            const {event: {data: [assetId,from,to,amount]}} = currenciesEvent
+            return { assetId, amount, to }
         }
     }
 }
@@ -30,18 +30,17 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
 
     const {event: {data: [requestHash]}} = registeredRequestEvent
 
-    let distinguishedCurrenciesEventValues = distinguishCurrenciesEvent(currenciesEvent)
+    const { assetId, amount, to } = distinguishCurrenciesEvent(currenciesEvent)
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
     let entity = new Object();
 
-    let assetId = distinguishedCurrenciesEventValues[0].toString();
-
     entity = {
         requestHash: requestHash.toString(),
-        assetId: assetId,
-        amount: formatU128ToBalance(distinguishedCurrenciesEventValues[1].toString(), assetId)
+        assetId: assetId.toString(),
+        amount: formatU128ToBalance(amount.toString(), assetId.toString()),
+        to: to.toString()
     }
 
     record.data = entity
