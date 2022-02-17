@@ -1,5 +1,5 @@
 FROM       node:16.14.0 as builder
-RUN        npm i -g --unsafe-perm @subql/node@0.27.3-5
+RUN        npm i -g --unsafe-perm @subql/node@0.28.2
 
 FROM       node:16-alpine
 ARG        SORA_ENDPOINT
