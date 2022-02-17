@@ -1,4 +1,4 @@
-FROM       node:16.14.0 as builder
+FROM       node:16 as builder
 RUN        npm i -g --unsafe-perm @subql/node@0.23.1
 
 FROM       node:16-alpine
