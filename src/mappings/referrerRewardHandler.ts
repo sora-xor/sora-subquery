@@ -16,7 +16,7 @@ export async function referrerRewardHandler(
 	logger.debug(`Caught referrer reward`);
 
 	let referrerReward: ReferrerReward = new ReferrerReward(
-		event.event.hash.toString()
+		event.event.hash.toString() + event.block.block.header.number.toString()
 	);
 	referrerReward.blockHeight = event.block.block.header.number.toBigInt();
 	referrerReward.referral = referree.toString();
