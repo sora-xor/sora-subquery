@@ -74,8 +74,8 @@ type ClaimableReward @entity {
 
 type ReferrerReward @entity {
 	id: ID!
-	blockHeight: BigInt!
-	referral: String! @index
+	blockHeight: BigInt! @index
+	referral: String!
 	referrer: String!
 	timestamp: Int!
 	amount: String!
