@@ -56,4 +56,3 @@ pipeline {
         cleanup { cleanWs() }
         }
     }   
-}
