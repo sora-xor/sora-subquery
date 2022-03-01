@@ -35,7 +35,7 @@ pipeline {
                   --org ${ env.SUBQUERY_ORG } \
                   --key ${ matrix.chain } \
                   --branch develop \
-                  --sub-folder subql/${{ matrix.chain }} \
+                  --sub-folder subql/${ matrix.chain } \
                   --type stage \
                   --indexer-image-version v0.28.2 \
                   --query-image-version v0.12.0 \
