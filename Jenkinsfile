@@ -19,31 +19,35 @@ pipeline {
     }
     stages {
         stage('Install dependencies') {
-            script {
-              sh """
-                mkdir -p $HOME/.local/bin
-                curl -LO https://github.com/fewensa/subquery-cli/releases/download/v${ env.SUBQUERY_CLI_VERSION }/subquery-linux-x86_64.zip
-                unzip subquery-linux-x86_64.zip -d $HOME/.local/bin/
-                rm -rf subquery-linux-x86_64.zip
-              """
-            }
-        stage('Deploy') {
-            script {
-                sh """ 
-                  set -xe
-                  subquery --token ${ secrets.SUBQUERY_TOKEN } deployment deploy \
-                  --org ${ env.SUBQUERY_ORG } \
-                  --key ${ matrix.chain } \
-                  --branch develop \
-                  --sub-folder subql/${ matrix.chain } \
-                  --type stage \
-                  --indexer-image-version v0.28.2 \
-                  --query-image-version v0.12.0 \
-                  --endpoint wss://ws.framenode-3.s3.dev.sora2.soramitsu.co.jp \
-                  --force
-                  echo "New deployment is executed"
+            steps {
+              script {
+                sh """
+                  mkdir -p $HOME/.local/bin
+                  curl -LO https://github.com/fewensa/subquery-cli/releases/download/v${ env.SUBQUERY_CLI_VERSION }/subquery-linux-x86_64.zip
+                  unzip subquery-linux-x86_64.zip -d $HOME/.local/bin/
+                  rm -rf subquery-linux-x86_64.zip
                 """
             }
+        }    
+        stage('Deploy') {
+            steps {
+              script {
+                  sh """ 
+                    set -xe
+                    subquery --token ${ secrets.SUBQUERY_TOKEN } deployment deploy \
+                    --org ${ env.SUBQUERY_ORG } \
+                    --key ${ matrix.chain } \
+                    --branch develop \
+                    --sub-folder subql/${ matrix.chain } \
+                    --type stage \
+                    --indexer-image-version v0.28.2 \
+                    --query-image-version v0.12.0 \
+                    --endpoint wss://ws.framenode-3.s3.dev.sora2.soramitsu.co.jp \
+                    --force
+                    echo "New deployment is executed"
+                  """
+                }
+            }   
         }
     }
 }
