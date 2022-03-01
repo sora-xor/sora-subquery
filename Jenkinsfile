@@ -6,7 +6,8 @@ String dockerRegistryRWUserId  = 'bot-sora2-rw'
 String dockerImageName         = 'sora2/subquery'
 String buidDockerImage         = 'docker.soramitsu.co.jp/build-tools/node:14-ubuntu'
 //Map preBuildCmds               = ['yarn install', 'yarn codegen']
-Map pushTags                   = ['develop': 'dev']
+//Map pushTags                   = ['develop': 'dev']
+Map dockerImageTags            = ['test': 'test']
 
 pipeline {
     options {
@@ -18,6 +19,16 @@ pipeline {
         label agentLabel
     }
     stages {
+        stage('pre-build'){
+          steps {
+            script {
+                sh """
+                   yarn install
+                   yarn codegen
+                """
+        }  
+    }  
+}
         stage('Install dependencies') {
           steps {
             script {
