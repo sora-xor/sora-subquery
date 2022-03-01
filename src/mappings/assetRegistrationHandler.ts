@@ -15,24 +15,15 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
         let assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
         const { event: { data: [assetId] } } = assetRegistrationEvent;
 
-        const {extrinsic: { args: [ , , , , is_nft ]}} = extrinsic;
-
         details = {
             assetId: assetId.toString()
         }
 
         if (!assetPrecisions.has(assetId.toString())) {
-
-            let assetPrecision = (is_nft): number => {
-                if(is_nft) {
-                    return 0;
-                }
-                return 18;
-              }
-
-            assetPrecisions.set(assetId.toString(), assetPrecision(is_nft));
-
+            const [ , , precision, ] = await api.query.assets.assetInfos(assetId.toString());
+            assetPrecisions.set(assetId.toString(), precision.toNumber());
         }
+
     }
 
     else {
