@@ -5,7 +5,7 @@ String registry                = 'docker.soramitsu.co.jp'
 String dockerRegistryRWUserId  = 'bot-sora2-rw'
 String dockerImageName         = 'sora2/subquery'
 String buidDockerImage         = 'docker.soramitsu.co.jp/build-tools/node:14-ubuntu'
-Map preBuildCmds               = ['yarn install', 'yarn codegen']
+//Map preBuildCmds               = ['yarn install', 'yarn codegen']
 Map pushTags                   = ['develop': 'dev']
 
 pipeline {
