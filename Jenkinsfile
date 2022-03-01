@@ -31,9 +31,9 @@ pipeline {
             script {
                 sh """ 
                   set -xe
-                  subquery --token ${{ secrets.SUBQUERY_TOKEN }} deployment deploy \
-                  --org ${{ env.SUBQUERY_ORG }} \
-                  --key ${{ matrix.chain }} \
+                  subquery --token ${ secrets.SUBQUERY_TOKEN } deployment deploy \
+                  --org ${ env.SUBQUERY_ORG } \
+                  --key ${ matrix.chain } \
                   --branch develop \
                   --sub-folder subql/${{ matrix.chain }} \
                   --type stage \
