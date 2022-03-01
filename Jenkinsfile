@@ -22,7 +22,7 @@ pipeline {
             script {
               sh """
                 mkdir -p $HOME/.local/bin
-                curl -LO https://github.com/fewensa/subquery-cli/releases/download/v${{ env.SUBQUERY_CLI_VERSION }}/subquery-linux-x86_64.zip
+                curl -LO https://github.com/fewensa/subquery-cli/releases/download/v${ env.SUBQUERY_CLI_VERSION }/subquery-linux-x86_64.zip
                 unzip subquery-linux-x86_64.zip -d $HOME/.local/bin/
                 rm -rf subquery-linux-x86_64.zip
               """
