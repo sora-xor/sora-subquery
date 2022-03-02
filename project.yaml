@@ -58,7 +58,7 @@ network:
         "tip": "Compact<Balance>",
         "target_asset_id": "AssetId"
     },
-    "ContentSource": "Text",
+    "ContentSource": "Vec<u8>",
     "ContributionInfo": {
         "funds_contributed": "Balance",
         "tokens_bought": "Balance",
@@ -84,7 +84,7 @@ network:
         "default_fee": "BasisPoints",
         "default_protocol_fee": "BasisPoints"
     },
-    "Description": "Text",
+    "Description": "Vec<u8>",
     "DispatchErrorWithPostInfoTPostDispatchInfo": {
         "post_info": "PostDispatchInfo",
         "error": "DispatchError"
