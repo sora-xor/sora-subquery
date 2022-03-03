@@ -28,7 +28,7 @@ services:
       - --log-level=debug
 
   graphql-engine:
-    image: onfinality/subql-query:latest
+    image: onfinality/subql-query:v0.12.0
     ports:
       - 3000:3000
     depends_on:
