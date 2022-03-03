@@ -23,10 +23,12 @@ pipeline {
           steps {
             script {
                 docker.withRegistry('https://' + registry, dockerRegistryRWUserId) {
+                    {docker.image(envImageName + ':test')
                 sh """
                    yarn install
                    yarn codegen
                 """
+                }  
            }  
        }  
     }
