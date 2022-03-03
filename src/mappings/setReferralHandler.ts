@@ -7,21 +7,11 @@ export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise
     const record = assignCommonHistoryElemInfo(extrinsic);
 
     let details = new Object();
+    const { extrinsic: { args: [referrer] } } = extrinsic;
 
-	if (record.execution.success) {
-        let setReferralEvent = extrinsic.events.find(e => e.event.method === 'ReferrerRewarded' && e.event.section === 'xorFee');
-        const { event: { data: [referral, referrer] } } = setReferralEvent;
-
-        details = {
-            from: referral.toString(),
-            to: referrer.toString()
-        }
-    } else {
-        const { extrinsic: { args: [referrer] } } = extrinsic;
-        
-        details = {
-            to: referrer.toString()
-        }
+    details = {
+        from: record.address,
+        to: referrer.toString()
     }
 
     record.data = details
