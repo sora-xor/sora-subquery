@@ -39,7 +39,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://' + registry, dockerRegistryRWUserId) {
-                        getPushVersion(pushTags)) {
+                        getPushVersion(pushTags) {
                                env.TAG_NAME =~ 'test.*' {
                                 sh """
                                     mkdir -p ${RUNTIME_DIR}
