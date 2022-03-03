@@ -47,7 +47,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://' + registry, dockerRegistryRWUserId) {
-                        docker.image(envImageName + ':test').inside() {
+                        docker.image(envImageName + ':dev').inside() {
                             sh """
                                set -xe
                                subquery --token ${SUBQUERY_TOKEN} deployment deploy
