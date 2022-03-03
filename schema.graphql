@@ -8,23 +8,23 @@ type PoolXYKEntity @entity {
 type Pool @entity {
   id: ID!
   baseAssetId: String!
-  targetAssetId: String! @index
+  targetAssetId: String!
   strategicBonusApy: String
   priceUSD: String
   baseAssetReserves: String!
   targetAssetReserves: String!
   multiplier: BigInt!
-  poolEntity: PoolXYKEntity! @index #relation to PoolXYKEntity
+  poolEntity: PoolXYKEntity!  #relation to PoolXYKEntity
   updated: String!
 }
 
 type HistoryElement @entity {
   id: ID!
   blockHeight: BigInt!
-  blockHash: String! @index
+  blockHash: String!
   module: String!
   method: String!
-  address: String! @index
+  address: String!
   networkFee: String!
   execution: ExecutionResult!
   timestamp: Int!
@@ -49,7 +49,7 @@ type HistoryElementDetails @jsonField {
 
 type BurnedAssetsAmount @entity {
   id: ID!
-  blockHeight: BigInt! @index
+  blockHeight: BigInt!
   blockHash: String!
   currencyId: String!
   balance: BigInt!
@@ -57,7 +57,7 @@ type BurnedAssetsAmount @entity {
 
 type RemintedAssetsAmount @entity {
   id: ID!
-  blockHeight: BigInt! @index
+  blockHeight: BigInt!
   blockHash: String!
   currencyId: String!
   balance: BigInt!
@@ -65,7 +65,7 @@ type RemintedAssetsAmount @entity {
 
 type ClaimableReward @entity {
   id: ID!
-  blockHeight: BigInt! @index
+  blockHeight: BigInt!
   blockHash: String!
   from: String!
   currencyId: String!
@@ -75,7 +75,7 @@ type ClaimableReward @entity {
 type ReferrerReward @entity {
 	id: ID!
 	blockHeight: BigInt!
-	referral: String! @index
+	referral: String!
 	referrer: String!
 	timestamp: Int!
 	amount: String!
