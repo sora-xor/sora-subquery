@@ -2,11 +2,11 @@
 
 String agentLabel              = 'docker-build-agent'
 String registry                = 'docker.soramitsu.co.jp'
+String dockerBuildToolsUserId  = 'bot-build-tools-ro'
 String dockerRegistryRWUserId  = 'bot-sora2-rw'
 String dockerImageName         = 'sora2/subquery'
+String appImageName           = 'docker.soramitsu.co.jp/sora2/subquery'
 String buidDockerImage         = 'docker.soramitsu.co.jp/build-tools/node:14-ubuntu'
-//Map preBuildCmds               = ['yarn install', 'yarn codegen']
-//Map pushTags                   = ['develop': 'dev']
 Map dockerImageTags            = ['test': 'test']
 
 pipeline {
@@ -22,13 +22,15 @@ pipeline {
         stage('pre-build'){
           steps {
             script {
+                docker.withRegistry('https://' + registry, dockerRegistryRWUserId) {
                 sh """
                    yarn install
                    yarn codegen
                 """
-        }  
-    }  
-}
+           }  
+       }  
+    }
+}    
         stage('Install dependencies') {
           steps {
             script {
