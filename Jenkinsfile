@@ -18,16 +18,6 @@ pipeline {
         label agentLabel
     }
     stages {
-        stage('Secret scanner') {
-            steps {
-                script {
-                    gitNotify('main-CI', 'PENDING', 'This commit is being built')
-                    docker.withRegistry('https://' + registry, dockerBuildToolsUserId) {
-                        secretScanner(disableSecretScanner, secretScannerExclusion)
-                    }
-                }
-            }
-        }
         stage('Install Dependencies') {
             environment {
                 SUBQUERY_CLI_VERSION = '0.2.1'
