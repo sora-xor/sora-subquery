@@ -1,8 +1,9 @@
-name: Deploy subquery develop
+name: Redeploy subquery develop on successful merge
 
 on:
-  pull_request:
-    branches: [ develop ]
+  push:
+    branches:
+      - develop
 
 env:
   SUBQUERY_CLI_VERSION: 0.2.1
