@@ -7,6 +7,7 @@ on:
 env:
   SUBQUERY_CLI_VERSION: 0.2.1
   SUBQUERY_ORG: sora-xor
+  SUBQUERY_TOKEN: ${{ secrets.SUBQUERY_TOKEN }}
 
 jobs:
   deploy-subquery:
@@ -33,7 +34,7 @@ jobs:
         run: |
           set -xe
 
-          subquery --token ${{ secrets.SUBQUERY_TOKEN }} deployment deploy \
+          subquery --token ${{ env.SUBQUERY_TOKEN }} deployment deploy \
             --org ${{ env.SUBQUERY_ORG }} \
             --key ${{ matrix.chain }} \
             --branch develop \
