@@ -50,7 +50,7 @@ jobs:
               exit
           fi
 
-          STATUS=$(subquery --token ${{ secrets.SUBQUERY_TOKEN }} deployment sync-status \
+          STATUS=$(subquery --token $SUBQUERY_TOKEN deployment sync-status \
             --org ${{ env.SUBQUERY_ORG }} \
             --key ${{ matrix.chain }} \
             --id $DEPLOYMENT_ID)
