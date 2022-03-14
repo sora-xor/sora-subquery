@@ -7,6 +7,7 @@ on:
 env:
   SUBQUERY_CLI_VERSION: 0.2.2
   SUBQUERY_ORG: sora-xor
+  SUBQUERY_TOKEN: ${{ secrets.SUBQUERY_TOKEN }}
 
 jobs:
   check_and_autopromote:
@@ -60,7 +61,7 @@ jobs:
 
           if [[ $PERCENT_INT -gt 99 ]]
           then
-            subquery --token ${{ secrets.SUBQUERY_TOKEN }} deployment promote \
+            subquery --token ${{ SUBQUERY_TOKEN }} deployment promote \
               --org ${{ env.SUBQUERY_ORG }} \
               --key ${{ matrix.chain }}
               echo "Promoted deployment in ${{ matrix.chain }} project for ${{ env.SUBQUERY_ORG }} organisation"
