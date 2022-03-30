@@ -38,10 +38,9 @@ jobs:
             --org ${{ env.SUBQUERY_ORG }} \
             --key ${{ matrix.chain }} \
             --branch develop \
-            --sub-folder subql/${{ matrix.chain }} \
             --type stage \
-            --indexer-image-version v0.28.2 \
-            --query-image-version v0.12.0 \
+            --indexer-image-version v0.31.1 \
+            --query-image-version v0.13.0 \
             --endpoint wss://ws.framenode-3.s3.dev.sora2.soramitsu.co.jp \
             --force
           echo "New deployment is executed"
