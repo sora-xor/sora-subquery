@@ -684,6 +684,12 @@ dataSources:
             module: liquidityProxy
             method: swap
 
+        - handler: handleSwapTransfers
+          kind: substrate/CallHandler
+          filter:
+            module: liquidityProxy
+            method: swapTransfer
+
         - handler: handleLiquidityDeposit
           kind: substrate/CallHandler
           filter:
