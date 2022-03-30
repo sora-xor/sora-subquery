@@ -6,7 +6,7 @@ on:
       - develop
 
 env:
-  SUBQUERY_CLI_VERSION: 0.2.1
+  SUBQUERY_CLI_VERSION: 0.2.4
   SUBQUERY_ORG: sora-xor
 
 jobs:
