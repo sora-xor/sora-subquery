@@ -86,4 +86,14 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
 
 }
 
+export const getExtrinsicTransferredCurrencies = (extrinsic: SubstrateExtrinsic): Array<{ assetId: string; amount: string }> => {
+    return extrinsic.events.reduce((buffer, e) => {
+        if (e.event.method === 'Transferred' && e.event.section === 'currencies') {
+          const { event: { data: [assetId,,,amount] } } = e;
+          buffer.push({assetId: assetId.toString(), amount: amount.toString()});
+        }
+        return buffer;
+     }, []);
+}
+
 export let assetPrecisions = new Map<string, number>();

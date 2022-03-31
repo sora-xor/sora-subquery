@@ -1,10 +1,11 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
-import { AnyTuple, CallBase, Codec } from '@polkadot/types/types';
-import { assignCommonHistoryElemInfo, formatU128ToBalance, assetPrecisions } from "./utils";
+import { AnyTuple, CallBase } from '@polkadot/types/types';
+import { assignCommonHistoryElemInfo, formatU128ToBalance, getExtrinsicTransferredCurrencies } from "./utils";
 
 function formatSpecificCalls(
-    call: CallBase<AnyTuple>
+    call: CallBase<AnyTuple>,
+    extrinsic: SubstrateExtrinsic,
 ): Object {
     const { args } = call;
     switch (call.method) {
@@ -33,11 +34,23 @@ function formatSpecificCalls(
         }
         case "register": {
             const [dex_id, base_asset_id, target_asset_id] = args;
-            return  { args: {
+            return { args: {
                 dex_id: dex_id.toHuman(),
                 base_asset_id: base_asset_id.toHuman(),
                 target_asset_id: target_asset_id.toHuman(),
                 }
+            }
+        }
+        case "claim":
+        case "claimIncentive":
+        case "claimRewards":
+        case "claimCrowdloanRewards": {
+            const rewards = getExtrinsicTransferredCurrencies(extrinsic);
+            const restData = call.toJSON();
+
+            return {
+                ...restData,
+                rewards
             }
         }
         default: {
@@ -46,47 +59,32 @@ function formatSpecificCalls(
     }
 };
 
-function extractCalls(
+function extractCall(
     call: CallBase<AnyTuple>,
     id: number,
     parentCallId: string,
-    entities: Object[]
-): Object[] {
-
-    let entity = new Object();
-
-    entity = {
+    extrinsic: SubstrateExtrinsic,
+): { callId: string, method: string, module: string, hash: string, data: any } {
+    return {
         callId: `${parentCallId}-${id}`,
         method: call.method,
         module: call.section,
-        hash: call.hash,
-        data: formatSpecificCalls(call)
+        hash: call.hash.toString(),
+        data: formatSpecificCalls(call, extrinsic)
     }
-
-    entities.push(entity);
-
-    return entities;
-
 }
 
 export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-
     logger.debug("Caught batch transaction extrinsic")
-
-    const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
-    const entities = [] as Object[];
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 
-    entities.concat(
-        calls.map((call, idx) => extractCalls(call, idx, record.blockHeight.toString(), entities))
-    );
-
+    const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
+    const entities = calls.map((call, idx) => extractCall(call, idx, record.blockHeight.toString(), extrinsic))
 
     record.data = entities as Object
 
     await record.save()
 
     logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
-
 }
