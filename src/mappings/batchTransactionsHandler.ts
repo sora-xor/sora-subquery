@@ -1,11 +1,10 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
-import { assignCommonHistoryElemInfo, formatU128ToBalance, getExtrinsicTransferredCurrencies } from "./utils";
+import { assignCommonHistoryElemInfo, formatU128ToBalance } from "./utils";
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>,
-    extrinsic: SubstrateExtrinsic,
 ): Object {
     const { args } = call;
     switch (call.method) {
@@ -41,18 +40,6 @@ function formatSpecificCalls(
                 }
             }
         }
-        case "claim":
-        case "claimIncentive":
-        case "claimRewards":
-        case "claimCrowdloanRewards": {
-            const rewards = getExtrinsicTransferredCurrencies(extrinsic);
-            const restData = call.toJSON();
-
-            return {
-                ...restData,
-                rewards
-            }
-        }
         default: {
             return call.toJSON()
         }
@@ -63,14 +50,13 @@ function extractCall(
     call: CallBase<AnyTuple>,
     id: number,
     parentCallId: string,
-    extrinsic: SubstrateExtrinsic,
 ): { callId: string, method: string, module: string, hash: string, data: any } {
     return {
         callId: `${parentCallId}-${id}`,
         method: call.method,
         module: call.section,
         hash: call.hash.toString(),
-        data: formatSpecificCalls(call, extrinsic)
+        data: formatSpecificCalls(call)
     }
 }
 
@@ -79,10 +65,18 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 
-    const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
-    const entities = calls.map((call, idx) => extractCall(call, idx, record.blockHeight.toString(), extrinsic))
+    const callsData = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
+    const calls = callsData.map((call, idx) => extractCall(call, idx, record.blockHeight.toString()))
+    const events = extrinsic.events.map(({ event }) => ({
+        method: event.method.toString(),
+        section: event.section.toString(),
+        data: event.data.toJSON(),
+    }))
 
-    record.data = entities as Object
+    record.data = {
+        calls,
+        events
+    } as Object
 
     await record.save()
 
