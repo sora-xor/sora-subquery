@@ -4,7 +4,7 @@ String agentLabel             = 'docker-build-agent'
 String registry               = 'docker.soramitsu.co.jp'
 String dockerBuildToolsUserId = 'bot-build-tools-ro'
 String dockerRegistryRWUserId = 'bot-sora2-rw'
-String envImageName           = 'docker.soramitsu.co.jp/sora2/env'
+String envImageName           = 'docker.soramitsu.co.jp/build-tools/node:16-ubuntu'
 String appImageName           = 'docker.soramitsu.co.jp/sora2/subquery'
 Boolean disableSecretScanner  = false
 Map pushTags                  = ['master': 'latest', 'develop': 'dev']
@@ -20,11 +20,8 @@ pipeline {
         label agentLabel
     }
     stages {
-        stage('Build & Tests') {
+        stage('Install Dependicies') {
             environment {
-                // PACKAGE = 'framenode-runtime'
-                // RUSTFLAGS = '-Dwarnings'
-                // RUNTIME_DIR = 'runtime'
                 SUBQUERY_CLI_VERSION = '0.2.4'
                 SUBQUERY_TOKEN = credentials("${SUBQUERY_TOKEN}")
                 SUBQUERY_ORG =  'sora-xor'
@@ -34,7 +31,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://' + registry, dockerRegistryRWUserId) {
-                            docker.image(envImageName + ':test').inside() {
+                            docker.image(envImageName).inside() {
                                 sh """
                                    apt-get update && apt-get install --no-install-recommends unzip -y && apt-get install --no-install-recommends jq -y
                                    mkdir -p $HOME/.local/bin
@@ -47,39 +44,19 @@ pipeline {
                      }
                  }
           }
-        stage('Deploy') {
-            steps {
-                script {
-                    sh """
-                    set-xe
-                    subquery --token ${SUBQUERY_TOKEN} deployment deploy \
-                    --org ${SUBQUERY_ORG} \
-                    --key ${matrix_chain} \
-                    --branch develop \
-                    --type stage \
-                    --indexer-image-version v0.31.1 \
-                    --query-image-version v0.13.0 \
-                    --endpoint wss://ws.framenode-3.s3.dev.sora2.soramitsu.co.jp \
-                    --force
-                    echo "New deployment is executed"
-                    """
-                }
-            }
-        }
-
 
         stage('Push Image') {
-            when {
-                expression { getPushVersion(pushTags) }
-            }
+            // when {
+            //     expression { getPushVersion(pushTags) }
+            // }
             steps {
                 script {
                     sh "docker build -f housekeeping/docker/release/Dockerfile -t ${appImageName} ."
-                    baseImageTag = "${getPushVersion(pushTags)}"
+                    baseImageTag = "test2"
                     docker.withRegistry('https://' + registry, dockerRegistryRWUserId) {
                         sh """
-                            docker tag ${appImageName} ${appImageName}:test2
-                            docker push ${appImageName}:test2
+                            docker tag ${appImageName} ${appImageName}:${baseImageTag}
+                            docker push ${appImageName}:${baseImageTag}
                         """
                 }
             }
