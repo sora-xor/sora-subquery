@@ -7,7 +7,8 @@ String dockerRegistryRWUserId = 'bot-sora2-rw'
 String envImageName           = 'docker.soramitsu.co.jp/sora2/env'
 String appImageName           = 'docker.soramitsu.co.jp/sora2/subquery'
 Boolean disableSecretScanner  = false
-Map pushTags                  = ['develop': 'dev','test': 'test2']
+Map pushTags                  = ['master': 'latest', 'develop': 'dev']
+Map dockerImageTags           = ['PR-104': 'test2']
 
 pipeline {
     options {
@@ -19,16 +20,6 @@ pipeline {
         label agentLabel
     }
     stages {
-        stage('Secret scanner') {
-            steps {
-                script {
-                    gitNotify('main-CI', 'PENDING', 'This commit is being built')
-                    docker.withRegistry('https://' + registry, dockerBuildToolsUserId) {
-                        secretScanner(disableSecretScanner, secretScannerExclusion)
-                    }
-                }
-            }
-        }
         stage('Build & Tests') {
             environment {
                 // PACKAGE = 'framenode-runtime'
@@ -36,40 +27,45 @@ pipeline {
                 // RUNTIME_DIR = 'runtime'
                 SUBQUERY_CLI_VERSION = '0.2.4'
                 SUBQUERY_ORG =  'sora-xor'
+                matrix_chain = ''
             }
             steps {
                 script {
                     docker.withRegistry('https://' + registry, dockerRegistryRWUserId) {
-                            docker.image(envImageName + ':test2').inside() {
-                                    featureList = 'include-real-files'
+                            docker.image(envImageName + ':test').inside() {
                                 sh """
+                                   apt-get update && apt-get install --no-install-recommends unzip -y && apt-get install --no-install-recommends jq -y
                                    mkdir -p $HOME/.local/bin
-                                   curl -LO https://github.com/fewensa/subquery-cli/releases/download/v${{ env.SUBQUERY_CLI_VERSION }}/subquery-linux-x86_64.zip
+                                   curl -LO https://github.com/fewensa/subquery-cli/releases/download/v${SUBQUERY_CLI_VERSION}/subquery-linux-x86_64.zip
                                    unzip subquery-linux-x86_64.zip -d $HOME/.local/bin/
                                    rm -rf subquery-linux-x86_64.zip
                                 """
-                                archiveArtifacts artifacts:
-                                    "framenode_runtime.compact.wasm, ${wasmReportFile}"
                              }
                          }
                      }
                  }
           }
-        stage('Code Coverage') {
-            when {
-                expression { getPushVersion(pushTags) }
-            }
+        stage('Deploy') {
             steps {
                 script {
-                    docker.withRegistry('https://' + registry, dockerRegistryRWUserId) {
-                        docker.image(envImageName + ':test2').inside() {
-                            sh './housekeeping/coverage.sh'
-                            cobertura coberturaReportFile: 'cobertura_report'
-                        }
-                    }
+                    sh """
+                    set-xe
+                    subquery --token ${SUBQUERY_TOKEN} deployment deploy \
+                    --org ${env.SUBQUERY_ORG} \
+                    --key ${matrix.chain} \
+                    --branch develop \
+                    --type stage \
+                    --indexer-image-version v0.31.1 \
+                    --query-image-version v0.13.0 \
+                    --endpoint wss://ws.framenode-3.s3.dev.sora2.soramitsu.co.jp \
+                    --force
+                    echo "New deployment is executed"
+                    """
                 }
             }
         }
+
+
         stage('Push Image') {
             when {
                 expression { getPushVersion(pushTags) }
@@ -83,17 +79,11 @@ pipeline {
                             docker tag ${appImageName} ${appImageName}:test2
                             docker push ${appImageName}:test2
                         """
-                    }
-                    // docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
-                    //     sh """
-                    //         docker tag ${appImageName} sora2/subquery:${baseImageTag}
-                    //         docker push sora2/substrate:${baseImageTag}
-                    //     """
-                    // }
                 }
             }
         }
     }
+}
     post {
         always {
             script{
@@ -101,5 +91,5 @@ pipeline {
             }
         }
         cleanup { cleanWs() }
-    }
+  }
 }
