@@ -26,8 +26,10 @@ pipeline {
                 // RUSTFLAGS = '-Dwarnings'
                 // RUNTIME_DIR = 'runtime'
                 SUBQUERY_CLI_VERSION = '0.2.4'
+                SUBQUERY_TOKEN = credentials("${SUBQUERY_TOKEN}")
                 SUBQUERY_ORG =  'sora-xor'
-                matrix_chain = ''
+                matrix_chain = 'sora-dev'
+                
             }
             steps {
                 script {
@@ -51,8 +53,8 @@ pipeline {
                     sh """
                     set-xe
                     subquery --token ${SUBQUERY_TOKEN} deployment deploy \
-                    --org ${env.SUBQUERY_ORG} \
-                    --key ${matrix.chain} \
+                    --org ${SUBQUERY_ORG} \
+                    --key ${matrix_chain} \
                     --branch develop \
                     --type stage \
                     --indexer-image-version v0.31.1 \
