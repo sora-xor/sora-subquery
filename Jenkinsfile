@@ -22,7 +22,7 @@ pipeline {
             environment {
                 SUBQUERY_CLI_VERSION = '0.2.4'
                 SUBQUERY_ORG =  'sora-xor'
-                subquery_env =  'sora-dev'
+                matrix_chain =  'sora-dev'
                 SUBQUERY_TOKEN = credentials("${subqueryToken}")
                 
             }
@@ -37,7 +37,7 @@ pipeline {
                        rm -rf subquery-linux-x86_64.zip
                        /home/ubuntu/.local/bin/subquery --token ${SUBQUERY_TOKEN} deployment deploy \
                            --org ${SUBQUERY_ORG} \
-                           --key ${subquery_env} \
+                           --key ${matrix_chain} \
                            --branch develop \
                            --type stage \
                            --indexer-image-version v0.31.1 \
