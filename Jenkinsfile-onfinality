@@ -3,7 +3,7 @@
 String agentLabel        = 'docker-build-agent'
 String envImageName      = 'ubuntu:latest'
 String subqueryToken     = 'subquery-token'
-String targetEnvironment = getEnvFromJobName()
+String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../deploy/sora2-' + targetEnvironment
 List   jobParams         = [ string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true) ]
 String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '4.v4.tst'
