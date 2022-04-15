@@ -1,3 +1,5 @@
+@Library('jenkins-library')
+
 def pipeline = new org.js.AppPipeline(
     steps:              this,
     test:               false,
@@ -6,3 +8,4 @@ def pipeline = new org.js.AppPipeline(
     buildDockerImage:   'docker.soramitsu.co.jp/build-tools/node:14-ubuntu',
     preBuildCmds:       ['yarn install', 'yarn codegen']
 )
+pipeline.runPipeline()

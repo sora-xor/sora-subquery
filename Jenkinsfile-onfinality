@@ -36,7 +36,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (targetEnvironment =~ 'dev*'){
+                    if (targetEnvironment =~ 'dev*') {
                     sh """
                        set -xe
                        apt-get update && apt-get install --no-install-recommends unzip -y && apt-get install --no-install-recommends jq curl ca-certificates -y
