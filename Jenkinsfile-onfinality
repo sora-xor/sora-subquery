@@ -3,6 +3,13 @@
 String agentLabel             = 'docker-build-agent'
 String envImageName           = 'ubuntu:latest'
 String subqueryToken          = 'subquery-token'
+String targetEnvironment      = getEnvFromJobName()
+String jobList                = targetEnvironment
+
+
+properties([
+    pipelineTriggers([upstream( jobList )])
+])
 
 pipeline {
     options {
@@ -29,7 +36,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (matrix_chain == sora-dev) {
+                    if (targetEnvironment =~ 'dev*'){
                     sh """
                        set -xe
                        apt-get update && apt-get install --no-install-recommends unzip -y && apt-get install --no-install-recommends jq curl ca-certificates -y
