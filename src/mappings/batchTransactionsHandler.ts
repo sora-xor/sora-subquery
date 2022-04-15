@@ -9,19 +9,16 @@ function formatSpecificCalls(
     const { args } = call;
     switch (call.method) {
         case "depositLiquidity": {
-            function parseFloatFromCodec(amount: Codec, asset: Codec): string {
-                return parseFloat(amount.toHuman().toString()).toFixed(assetPrecisions.get(asset.toHuman().toString()));
-            }
-            const [dex_id, input_asset_a, input_asset_b, input_a_min, input_b_min, input_a_desired, input_b_desired] = args;
+            const [dex_id, input_asset_a, input_asset_b, input_a_desired, input_b_desired, input_a_min, input_b_min] = args;
             // TODO move args to common function here and in other cases
             return { args: {
                 dex_id: dex_id.toHuman(),
                 input_asset_a: input_asset_a.toHuman(),
                 input_asset_b: input_asset_b.toHuman(),
-                input_a_min: parseFloatFromCodec(input_a_min, input_asset_a),
-                input_b_min: parseFloatFromCodec(input_b_min, input_asset_b),
-                input_a_desired: parseFloatFromCodec(input_a_desired, input_asset_a),
-                input_b_desired: parseFloatFromCodec(input_b_desired, input_asset_b)
+                input_a_min: formatU128ToBalance(input_a_min.toString(), input_asset_a.toString()),
+                input_b_min: formatU128ToBalance(input_b_min.toString(), input_asset_b.toString()),
+                input_a_desired: formatU128ToBalance(input_a_desired.toString(), input_asset_a.toString()),
+                input_b_desired: formatU128ToBalance(input_b_desired.toString(), input_asset_b.toString())
                 }
             }
         }
