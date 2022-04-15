@@ -4,8 +4,8 @@ String agentLabel             = 'docker-build-agent'
 String envImageName           = 'ubuntu:latest'
 String subqueryToken          = 'subquery-token'
 String targetEnvironment      = getEnvFromJobName()
-String jobList                = targetEnvironment
-
+String jobList                = '../deploy/sora2-' + targetEnvironment
+String endpoint               =  targetEnvironment == 'dev' ? '3.s3.dev' : '4.v4.tst'
 
 properties([
     pipelineTriggers([upstream( jobList )])
@@ -29,8 +29,7 @@ pipeline {
             environment {
                 SUBQUERY_CLI_VERSION = '0.2.4'
                 SUBQUERY_ORG =  'sora-xor'
-                matrix_chain =  'sora-dev'
-                matrix_chain_test = 'sora-test'
+                matrix_chain =  'sora-' + targetEnvironment
                 SUBQUERY_TOKEN = credentials("${subqueryToken}")
                 
             }
@@ -51,7 +50,7 @@ pipeline {
                            --type stage \
                            --indexer-image-version v0.31.1 \
                            --query-image-version v0.13.0 \
-                           --endpoint wss://ws.framenode-3.s3.dev.sora2.soramitsu.co.jp \
+                           --endpoint wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
                            --force
                        echo "New deployment is executed"
                     """
@@ -65,14 +64,14 @@ pipeline {
                            rm -rf subquery-linux-x86_64.zip
                            /home/ubuntu/.local/bin/subquery --token ${SUBQUERY_TOKEN} deployment deploy \
                                --org ${SUBQUERY_ORG} \
-                               --key ${matrix_chain_test} \
+                               --key ${matrix_chain} \
                                --branch develop \
                                --type stage \
                                --indexer-image-version v0.31.1 \
                                --query-image-version v0.13.0 \
                                --endpoint wss://ws.framenode-4.v4.tst.sora2.soramitsu.co.jp \
                                --force
-                           echo "New deployment is executed on test environment!"
+                           echo "New deployment is executed on the test environment!"
                         """ 
                     }
                 }
