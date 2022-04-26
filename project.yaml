@@ -768,6 +768,12 @@ dataSources:
             module: vestedRewards
             method: claimRewards
 
+        - handler: rewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: vestedRewards
+            method: claimCrowdloanRewards
+
         - handler: setReferralHandler
           kind: substrate/CallHandler
           filter:
