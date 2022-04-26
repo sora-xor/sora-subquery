@@ -11,10 +11,10 @@ const DAI: string = '0x020006000000000000000000000000000000000000000000000000000
 const ETH: string = '0x0200070000000000000000000000000000000000000000000000000000000000';
 const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
 const XYK_POOL: string = 'XYKPool';
-const ONE_HOUR_IN_BLOCKS = 600;
+const FIVE_MINUTES_IN_BLOCKS = 50;
 
 export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
-    if (block.block.header.number.toNumber() % ONE_HOUR_IN_BLOCKS != 0) {
+    if (block.block.header.number.toNumber() % FIVE_MINUTES_IN_BLOCKS != 0) {
         return;
     }
 
