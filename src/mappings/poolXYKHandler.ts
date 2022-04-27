@@ -19,12 +19,12 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
 
     const blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
     const record = new PoolXYKEntity(block.block.header.hash.toString());
-    record.updated = blockDate;
-
     const pools: Array<Pool> = [];
+
     let totalXorInPools = new BigNumber(0);
     let totalXORWithDoublePools = new BigNumber(0);
     let xorPriceInDAI = new BigNumber(0);
+    let pswapPriceInDAI = new BigNumber(0);
 
     //todo rework to liquidity proxy quote
     let reserves;
@@ -63,29 +63,33 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         }
     });
 
-    // Update Pools priceUSD & strategicBonusApy
+    // Update pools priceUSD & strategicBonusApy
     if (!xorPriceInDAI.isZero()) {
         const pswapPool = pools.find(p => p.targetAssetId === PSWAP);
 
         if (pswapPool) {
-            const pswapPriceInDAI = new BigNumber(pswapPool.baseAssetReserves)
+            pswapPriceInDAI = new BigNumber(pswapPool.baseAssetReserves)
                 .div(new BigNumber(pswapPool.targetAssetReserves))
+                .multipliedBy(xorPriceInDAI)
+        }
+
+        pools.forEach(p => {
+            const daiPrice = new BigNumber(p.baseAssetReserves)
+                .dividedBy(new BigNumber(p.targetAssetReserves))
                 .multipliedBy(xorPriceInDAI);
 
-            pools.forEach(p => {
-                const priceInXor: BigNumber = new BigNumber(p.baseAssetReserves)
-                    .dividedBy(new BigNumber(p.targetAssetReserves));
-                const daiPrice: BigNumber = priceInXor.multipliedBy(xorPriceInDAI);
-                const strategicBonusApy: BigNumber = ((
+            p.priceUSD = daiPrice.toFixed(18).toString();
+
+            if (!pswapPriceInDAI.isZero()) {
+                const strategicBonusApy = ((
                     (pswapPriceInDAI.multipliedBy(new BigNumber(2500000)))
                         .dividedBy(xorPriceInDAI.multipliedBy(totalXORWithDoublePools.dividedBy(Math.pow(10, 18)))))
                     .multipliedBy(new BigNumber(365 / 2)))
                     .multipliedBy(Number(p.multiplier));
 
-                p.priceUSD = daiPrice.toFixed(18).toString();
                 p.strategicBonusApy = strategicBonusApy.toFixed(18).toString();
-            });
-        }
+            }
+        });
     }
 
     record.totalXORInPools = formatU128ToBalance(totalXorInPools.toFixed(0).toString(), XOR);
@@ -103,6 +107,8 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
     xorPool.poolEntityId = record.id;
     pools.push(xorPool);
 
+    record.updated = blockDate;
     await record.save();
+
     await Promise.all(pools.map(pool => pool.save()));
 }
