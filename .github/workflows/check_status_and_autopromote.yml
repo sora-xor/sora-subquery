@@ -15,7 +15,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        chain: [ sora-dev, sora-staging, sora ]
+        chain: [ sora-dev, sora-test, sora-staging, sora ]
       fail-fast: false
     if: github.ref == 'refs/heads/develop'
     steps:
