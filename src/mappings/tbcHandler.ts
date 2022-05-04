@@ -1,6 +1,7 @@
+import { FPNumber } from '@sora-substrate/math';
 import { SubstrateBlock } from "@subql/types";
 import { PoolTBC, PoolTBCEntity } from "../types";
-import { formatU128ToBalance } from "./utils";
+import { XOR, DAI, XSTUSD, formatU128ToBalance } from "./utils";
 
 const ONE_HOUR_IN_BLOCKS = 5;
 
@@ -29,6 +30,31 @@ const getCollateralReserves = async (): Promise<{ [key: string]: string } | null
   }
 };
 
+const getAveragePriceInXOR = async (assetAddress: string): Promise<string> => {
+  const data = (await api.query.priceTools.priceInfos(assetAddress)).unwrap();
+
+  return data.average_price.toString();
+};
+
+const getAssetIssuance = async (assetAddress: string): Promise<string> => {
+  if (assetAddress === XOR) {
+    return (await api.query.balances.totalIssuance()).toString();
+  }
+  return (await api.query.tokens.totalIssuance(assetAddress)).toString();
+};
+
+const getAssetAveragePrice = async (assetAddress: string): Promise<string> => {
+  if (assetAddress === DAI || assetAddress === XSTUSD) {
+    return new FPNumber(1).toCodecString();
+  }
+
+  if (assetAddress === XOR) {
+    return await getAveragePriceInXOR(DAI);
+  }
+
+  return await getAveragePriceInXOR(assetAddress);
+};
+
 export async function handleTBCPools(block: SubstrateBlock) {
   if (block.block.header.number.toNumber() % ONE_HOUR_IN_BLOCKS != 0) {
     return;
@@ -43,6 +69,12 @@ export async function handleTBCPools(block: SubstrateBlock) {
   ]);
 
   if (!enabledTargets || !collateralReserves) return;
+
+  const initialPrice = (await api.query.multicollateralBondingCurvePool.initialPrice()).toBn();
+  const priceChangeStep = (await api.query.multicollateralBondingCurvePool.priceChangeStep()).toBn();
+  const sellPriceCoefficient = (await api.query.multicollateralBondingCurvePool.sellPriceCoefficient()).toBn();
+  const xorIssuance = await getAssetIssuance(XOR);
+  const xstusdIssuance = await getAssetIssuance(XSTUSD);
 
   const record = new PoolTBCEntity(block.block.header.hash.toString());
   const blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
