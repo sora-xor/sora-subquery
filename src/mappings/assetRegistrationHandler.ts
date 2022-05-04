@@ -20,7 +20,7 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
         }
 
         if (!assetPrecisions.has(assetId.toString())) {
-            const [ , , precision, ] = await api.query.assets.assetInfos(assetId.toString());
+            const [ , , precision, ] = await api.query.assets.assetInfos(assetId.toString()) as any;
             assetPrecisions.set(assetId.toString(), precision.toNumber());
         }
 

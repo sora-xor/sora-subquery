@@ -1,9 +1,14 @@
-import { FPNumber } from '@sora-substrate/math';
+import { FPNumber, tbcQuoteWithoutImpact } from '@sora-substrate/util';
+import { KnownAssets } from '@sora-substrate/util/build/assets/consts';
 import { SubstrateBlock } from "@subql/types";
 import { PoolTBC, PoolTBCEntity } from "../types";
 import { XOR, DAI, XSTUSD, formatU128ToBalance } from "./utils";
 
+import type { QuotePayload } from '@sora-substrate/util/build/swap/types';
+
 const ONE_HOUR_IN_BLOCKS = 5;
+const XOR_ASSET = KnownAssets.get(XOR);
+const QUOTE_AMOUNT = new FPNumber(1);
 
 const getEnabledTargets = async (): Promise<string[] | null> => {
   try {
@@ -31,9 +36,9 @@ const getCollateralReserves = async (): Promise<{ [key: string]: string } | null
 };
 
 const getAveragePriceInXOR = async (assetAddress: string): Promise<string> => {
-  const data = (await api.query.priceTools.priceInfos(assetAddress)).unwrap();
+  const data = await api.query.priceTools.priceInfos(assetAddress);
 
-  return data.average_price.toString();
+  return data.isEmpty ? '0' : (data.toJSON() as any).average_price.toString();
 };
 
 const getAssetIssuance = async (assetAddress: string): Promise<string> => {
@@ -70,26 +75,58 @@ export async function handleTBCPools(block: SubstrateBlock) {
 
   if (!enabledTargets || !collateralReserves) return;
 
-  const initialPrice = (await api.query.multicollateralBondingCurvePool.initialPrice()).toBn();
-  const priceChangeStep = (await api.query.multicollateralBondingCurvePool.priceChangeStep()).toBn();
-  const sellPriceCoefficient = (await api.query.multicollateralBondingCurvePool.sellPriceCoefficient()).toBn();
-  const xorIssuance = await getAssetIssuance(XOR);
-  const xstusdIssuance = await getAssetIssuance(XSTUSD);
-
   const record = new PoolTBCEntity(block.block.header.hash.toString());
   const blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
   const poolEntityId = record.id;
+  const pools: Array<PoolTBC> = [];
 
-  const pools: Array<PoolTBC> = enabledTargets.map(collateralAssetId => {
+  // prepare TBC data for calculations 
+  const initialPrice = (await api.query.multicollateralBondingCurvePool.initialPrice()).toString();
+  const priceChangeStep = (await api.query.multicollateralBondingCurvePool.priceChangeStep()).toString();
+  const sellPriceCoefficient = (await api.query.multicollateralBondingCurvePool.sellPriceCoefficient()).toString();
+  const xorIssuance = await getAssetIssuance(XOR);
+  const xstusdIssuance = await getAssetIssuance(XSTUSD);
+  const xorPrice = await getAssetAveragePrice(XOR);
+  const xstusdPrice = await getAssetAveragePrice(XSTUSD);
+
+  const payload: QuotePayload = {
+    reserves: {
+      xyk: {},
+      tbc: collateralReserves,
+    },
+    issuances: {
+      [XOR]: xorIssuance,
+      [XSTUSD]: xstusdIssuance,
+    },
+    prices: {
+      [XOR]: xorPrice,
+      [XSTUSD]: xstusdPrice,
+    },
+    consts: {
+      tbc: {
+        initialPrice,
+        priceChangeStep,
+        sellPriceCoefficient,
+      },
+    },
+  };
+
+  for (const collateralAssetId of enabledTargets) {
+    payload.prices[collateralAssetId] = await getAssetAveragePrice(collateralAssetId);
+    payload.issuances[collateralAssetId] = await getAssetIssuance(collateralAssetId);
+
     const pool = new PoolTBC(`${poolEntityId}_${collateralAssetId}`);
+    const collateralAsset = KnownAssets.get(collateralAssetId);
+    const baseAssetBuyPrice = tbcQuoteWithoutImpact(collateralAsset, XOR_ASSET, QUOTE_AMOUNT, false, payload).toCodecString();
+    const baseAssetSellPrice = tbcQuoteWithoutImpact(XOR_ASSET, collateralAsset, QUOTE_AMOUNT, true, payload).toCodecString();
 
     pool.poolEntityId = poolEntityId;
     pool.collateralAssetId = collateralAssetId;
     pool.collateralReserves = formatU128ToBalance(collateralReserves[collateralAssetId] || '0', collateralAssetId);
+    pool.baseAssetBuyPrice = formatU128ToBalance(baseAssetBuyPrice, collateralAssetId);
+    pool.baseAssetSellPrice = formatU128ToBalance(baseAssetSellPrice, collateralAssetId);
     pool.updated = blockDate;
-
-    return pool;
-  });
+  }
 
   record.updated = blockDate;
 

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "skipLibCheck": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "esModuleInterop": true,
@@ -14,11 +15,11 @@
     "paths": {
       "sora/*": ["src/*"],
       "@polkadot/api/augment": ["src/api-interfaces/augment-api.ts"],
-      "@polkadot/types/augment": ["src/api-interfaces/augment-types.ts"]
+      "@polkadot/types/augment": ["src/api-interfaces/augment-types.ts"],
     }
   },
   "include": [
-    "src/**/*",
+    "src/mappings/*",
     "node_modules/@subql/types/dist/global.d.ts"
   ],
 }

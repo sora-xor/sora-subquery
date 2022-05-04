@@ -30,8 +30,8 @@
   },
   "dependencies": {
     "@polkadot/api": "^4.9.2",
-    "@sora-substrate/math": "^1.8.32",
     "@sora-substrate/type-definitions": "^1.6.9",
+    "@sora-substrate/util": "^1.8.34",
     "bignumber.js": "^9.0.1"
   }
 }
