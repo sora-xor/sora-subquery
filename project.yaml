@@ -657,7 +657,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 1
+    startBlock: 5176950
     mapping:
       handlers:
         # Get all assets on the first block being parsed and cache them
@@ -670,6 +670,8 @@ dataSources:
             module: assets
             method: register
         - handler: handleXYKPools
+          kind: substrate/BlockHandler
+        - handler: handleTBCPools
           kind: substrate/BlockHandler
 
         - handler: handlerTransfers

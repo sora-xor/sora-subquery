@@ -18,6 +18,22 @@ type Pool @entity {
   updated: String!
 }
 
+type PoolTBCEntity @entity {
+  id: ID!
+  pools: [PoolTBC] @derivedFrom(field: "poolEntity")
+  updated: String!
+}
+
+type PoolTBC @entity {
+  id: ID!
+  collateralAssetId: String! @index
+  collateralReserves: String!
+  baseAssetBuyPrice: String # price for buying 1 XOR
+  baseAssetSellPrice: String # price for selling 1 XOR
+  poolEntity: PoolTBCEntity! @index #relation to PoolTBCEntity
+  updated: String!
+}
+
 type HistoryElement @entity {
   id: ID!
   blockHeight: BigInt!
