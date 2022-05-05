@@ -6,7 +6,7 @@ String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 List   jobParams         = [ string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true) ]
-String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '4.v4.tst'
+String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 
 properties([
     parameters( jobParams ),
