@@ -3,9 +3,6 @@ import { XOR, DAI, XSTUSD } from '../mappings/utils';
 
 export type QuotePayload = {
   reserves: {
-    xyk: {
-      [key: string]: [string, string];
-    };
     tbc: {
       [key: string]: string;
     };

@@ -91,7 +91,6 @@ export async function handleTBCPools(block: SubstrateBlock) {
 
   const payload: QuotePayload = {
     reserves: {
-      xyk: {},
       tbc: collateralReserves,
     },
     issuances: {

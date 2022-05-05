@@ -15,7 +15,7 @@
     "paths": {
       "sora/*": ["src/*"],
       "@polkadot/api/augment": ["src/api-interfaces/augment-api.ts"],
-      "@polkadot/types/augment": ["src/api-interfaces/augment-types.ts"],
+      "@polkadot/types/augment": ["src/api-interfaces/augment-types.ts"]
     }
   },
   "include": [
