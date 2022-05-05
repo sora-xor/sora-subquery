@@ -1,13 +1,11 @@
-import { FPNumber, tbcQuoteWithoutImpact } from '@sora-substrate/util';
-import { KnownAssets } from '@sora-substrate/util/build/assets/consts';
+import { FPNumber } from '@sora-substrate/math';
 import { SubstrateBlock } from "@subql/types";
 import { PoolTBC, PoolTBCEntity } from "../types";
 import { XOR, DAI, XSTUSD, formatU128ToBalance } from "./utils";
+import { tbcQuote } from '../utils/liquidityProxy';
+import type { QuotePayload } from '../utils/liquidityProxy';
 
-import type { QuotePayload } from '@sora-substrate/util/build/swap/types';
-
-const ONE_HOUR_IN_BLOCKS = 5;
-const XOR_ASSET = KnownAssets.get(XOR);
+const FIVE_MINUTES_IN_BLOCKS = 50;
 const QUOTE_AMOUNT = new FPNumber(1);
 
 const getEnabledTargets = async (): Promise<string[] | null> => {
@@ -61,7 +59,7 @@ const getAssetAveragePrice = async (assetAddress: string): Promise<string> => {
 };
 
 export async function handleTBCPools(block: SubstrateBlock) {
-  if (block.block.header.number.toNumber() % ONE_HOUR_IN_BLOCKS != 0) {
+  if (block.block.header.number.toNumber() % FIVE_MINUTES_IN_BLOCKS != 0) {
     return;
   }
 
@@ -116,9 +114,8 @@ export async function handleTBCPools(block: SubstrateBlock) {
     payload.issuances[collateralAssetId] = await getAssetIssuance(collateralAssetId);
 
     const pool = new PoolTBC(`${poolEntityId}_${collateralAssetId}`);
-    const collateralAsset = KnownAssets.get(collateralAssetId);
-    const baseAssetBuyPrice = tbcQuoteWithoutImpact(collateralAsset, XOR_ASSET, QUOTE_AMOUNT, false, payload).toCodecString();
-    const baseAssetSellPrice = tbcQuoteWithoutImpact(XOR_ASSET, collateralAsset, QUOTE_AMOUNT, true, payload).toCodecString();
+    const baseAssetBuyPrice = tbcQuote(collateralAssetId, XOR, QUOTE_AMOUNT, false, payload).toCodecString();
+    const baseAssetSellPrice = tbcQuote(XOR, collateralAssetId, QUOTE_AMOUNT, true, payload).toCodecString();
 
     pool.poolEntityId = poolEntityId;
     pool.collateralAssetId = collateralAssetId;
@@ -126,10 +123,13 @@ export async function handleTBCPools(block: SubstrateBlock) {
     pool.baseAssetBuyPrice = formatU128ToBalance(baseAssetBuyPrice, collateralAssetId);
     pool.baseAssetSellPrice = formatU128ToBalance(baseAssetSellPrice, collateralAssetId);
     pool.updated = blockDate;
+
+    pools.push(pool);
   }
 
   record.updated = blockDate;
 
   await record.save();
+
   await Promise.all(pools.map(pool => pool.save()));
 }

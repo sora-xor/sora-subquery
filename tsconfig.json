@@ -19,7 +19,7 @@
     }
   },
   "include": [
-    "src/mappings/*",
+    "src/**/*",
     "node_modules/@subql/types/dist/global.d.ts"
   ],
 }
