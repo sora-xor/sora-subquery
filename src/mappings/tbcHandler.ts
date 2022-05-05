@@ -73,6 +73,8 @@ export async function handleTBCPools(block: SubstrateBlock) {
 
   if (!enabledTargets || !collateralReserves) return;
 
+  let xorPriceInDAI = new FPNumber(0);
+
   const record = new PoolTBCEntity(block.block.header.hash.toString());
   const blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
   const poolEntityId = record.id;
@@ -114,18 +116,37 @@ export async function handleTBCPools(block: SubstrateBlock) {
     payload.issuances[collateralAssetId] = await getAssetIssuance(collateralAssetId);
 
     const pool = new PoolTBC(`${poolEntityId}_${collateralAssetId}`);
-    const baseAssetBuyPrice = tbcQuote(collateralAssetId, XOR, QUOTE_AMOUNT, false, payload).toCodecString();
-    const baseAssetSellPrice = tbcQuote(XOR, collateralAssetId, QUOTE_AMOUNT, true, payload).toCodecString();
+
+    if (collateralAssetId === DAI) {
+      xorPriceInDAI = tbcQuote(collateralAssetId, XOR, QUOTE_AMOUNT, false, payload);
+    }
 
     pool.poolEntityId = poolEntityId;
     pool.collateralAssetId = collateralAssetId;
     pool.collateralReserves = formatU128ToBalance(collateralReserves[collateralAssetId] || '0', collateralAssetId);
-    pool.baseAssetBuyPrice = formatU128ToBalance(baseAssetBuyPrice, collateralAssetId);
-    pool.baseAssetSellPrice = formatU128ToBalance(baseAssetSellPrice, collateralAssetId);
+    pool.priceUSD = '0';
     pool.updated = blockDate;
 
     pools.push(pool);
   }
+
+  if (!xorPriceInDAI.isZero()) {
+    pools.forEach(pool => {
+      const amountForXor = tbcQuote(pool.collateralAssetId, XOR, QUOTE_AMOUNT, false, payload);
+      const priceUSD = xorPriceInDAI.div(amountForXor);
+
+      pool.priceUSD = formatU128ToBalance(priceUSD.toCodecString(), pool.collateralAssetId);
+    })
+  }
+
+  //Add fake XOR Pool in order to add fiat price for it
+  const xorPool = new PoolTBC(`${poolEntityId}_${XOR}`);
+  xorPool.poolEntityId = poolEntityId;
+  xorPool.collateralAssetId = XOR;
+  xorPool.collateralReserves = '0';
+  xorPool.priceUSD = formatU128ToBalance(xorPriceInDAI.toCodecString(), XOR);
+  xorPool.updated = blockDate;
+  pools.push(xorPool);
 
   record.updated = blockDate;
 

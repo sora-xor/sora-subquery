@@ -28,8 +28,7 @@ type PoolTBC @entity {
   id: ID!
   collateralAssetId: String! @index
   collateralReserves: String!
-  baseAssetBuyPrice: String # price for buying 1 XOR
-  baseAssetSellPrice: String # price for selling 1 XOR
+  priceUSD: String
   poolEntity: PoolTBCEntity! @index #relation to PoolTBCEntity
   updated: String!
 }
