@@ -1,9 +1,9 @@
 import { FPNumber } from '@sora-substrate/math';
+import { tbcQuote } from '@sora-substrate/liquidity-proxy';
 import { SubstrateBlock } from "@subql/types";
 import { PoolTBC, PoolTBCEntity } from "../types";
 import { XOR, DAI, XSTUSD, formatU128ToBalance } from "./utils";
-import { tbcQuote } from '../utils/liquidityProxy';
-import type { QuotePayload } from '../utils/liquidityProxy';
+import type { QuotePayload } from '@sora-substrate/liquidity-proxy';
 
 const FIVE_MINUTES_IN_BLOCKS = 50;
 const QUOTE_AMOUNT = new FPNumber(1);
@@ -91,6 +91,7 @@ export async function handleTBCPools(block: SubstrateBlock) {
 
   const payload: QuotePayload = {
     reserves: {
+      xyk: {},
       tbc: collateralReserves,
     },
     issuances: {
@@ -117,7 +118,7 @@ export async function handleTBCPools(block: SubstrateBlock) {
     const pool = new PoolTBC(`${poolEntityId}_${collateralAssetId}`);
 
     if (collateralAssetId === DAI) {
-      xorPriceInDAI = tbcQuote(collateralAssetId, XOR, QUOTE_AMOUNT, false, payload);
+      xorPriceInDAI = tbcQuote(collateralAssetId, XOR, QUOTE_AMOUNT, false, payload).amount;
     }
 
     pool.poolEntityId = poolEntityId;
@@ -131,7 +132,7 @@ export async function handleTBCPools(block: SubstrateBlock) {
 
   if (!xorPriceInDAI.isZero()) {
     pools.forEach(pool => {
-      const amountForXor = tbcQuote(pool.collateralAssetId, XOR, QUOTE_AMOUNT, false, payload);
+      const amountForXor = tbcQuote(pool.collateralAssetId, XOR, QUOTE_AMOUNT, false, payload).amount;
       const priceUSD = xorPriceInDAI.div(amountForXor);
 
       pool.priceUSD = formatU128ToBalance(priceUSD.toCodecString(), pool.collateralAssetId);

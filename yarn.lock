@@ -1354,10 +1354,17 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@sora-substrate/math@^1.8.34":
-  version "1.8.34"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/math/-/math-1.8.34.tgz#bee9584996d1e6fb920e5a13ae58c73d8e685306"
-  integrity sha512-uxRofPabnv/5Eko/bVVXYhDq/REAoCI1/KUZWel8QAhZxtLI4UKVbfFAxF6v7tvF3b8ZPtqlYyFKqZULSM3EVA==
+"@sora-substrate/liquidity-proxy@^1.9.1":
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/liquidity-proxy/-/liquidity-proxy-1.9.1.tgz#b4f91116e10e5f274a7fe017b7bd9dd77e118cd3"
+  integrity sha512-mq4uEIcX9TvTIxRiMA9g/okbz73Fj/w5j6jaITuglXHVlNAefce2i5hG9jeuJb3ZRFpaLIZ5YVt2T2tZiJviXQ==
+  dependencies:
+    "@sora-substrate/math" "^1.9.1"
+
+"@sora-substrate/math@^1.9.1":
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/math/-/math-1.9.1.tgz#bdc15616726ffa79d7ebf78971289ee36b795c35"
+  integrity sha512-hNGtHgSiZLn0x5QaP12zxH23J583whIfukFZYQPrVS8N5qST/HwzfL7ctkdx7ylWUDEfMZrUNmpBakYnVOAzyQ==
   dependencies:
     "@polkadot/types" "^4.10.1"
     bignumber.js "^9.0.1"
