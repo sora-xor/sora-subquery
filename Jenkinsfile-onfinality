@@ -1,12 +1,12 @@
 @Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
-String envImageName      = 'ubuntu:latest'
+String envImageName      = 'ubuntu:focal'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 List   jobParams         = [ string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true) ]
-String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '4.v4.tst'
+String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 
 properties([
     parameters( jobParams ),
@@ -47,7 +47,7 @@ pipeline {
                        /home/ubuntu/.local/bin/subquery --token ${SUBQUERY_TOKEN} deployment deploy \
                            --org ${SUBQUERY_ORG} \
                            --key ${matrix_chain} \
-                           --branch develop \
+                           --branch dev \
                            --type stage \
                            --indexer-image-version v0.31.1 \
                            --query-image-version v0.13.0 \
