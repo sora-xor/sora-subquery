@@ -1,7 +1,5 @@
 import { SubstrateEvent } from "@subql/types";
 import { ReferrerReward } from "../types";
-import { formatU128ToBalance } from "./utils";
-import { XOR } from "..";
 
 export async function referrerRewardHandler(
 	event: SubstrateEvent
@@ -16,7 +14,7 @@ export async function referrerRewardHandler(
 	logger.debug(`Caught referrer reward`);
 
 	let referrerReward: ReferrerReward = new ReferrerReward(
-		event.event.hash.toString()
+		event.event.hash.toString() + event.block.block.header.number.toString()
 	);
 	referrerReward.blockHeight = event.block.block.header.number.toBigInt();
 	referrerReward.referral = referree.toString();
@@ -24,7 +22,6 @@ export async function referrerRewardHandler(
 	referrerReward.timestamp = parseInt(
 		(event.block.timestamp.getTime() / 1000).toFixed(0)
 	);
-	referrerReward.amount = formatU128ToBalance(amount.toString(), XOR);
-
+	referrerReward.amount = BigInt(amount.toString());
 	await referrerReward.save();
 }

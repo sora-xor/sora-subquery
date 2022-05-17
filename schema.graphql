@@ -78,5 +78,5 @@ type ReferrerReward @entity {
 	referral: String! @index
 	referrer: String!
 	timestamp: Int!
-	amount: String!
+	amount: BigInt!
 }

@@ -1,0 +1,69 @@
+name: Subquery project autopromotion
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+
+env:
+  SUBQUERY_CLI_VERSION: 0.2.4
+  SUBQUERY_ORG: sora-xor
+
+jobs:
+  check_and_autopromote:
+    name: Check Subquery deployment and autopromote if indexation almost more than 99%
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        chain: [ sora-dev, sora-test, sora-staging, sora ]
+      fail-fast: false
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          # Install Subquery Cli
+          mkdir -p $HOME/.local/bin
+          curl -LO https://github.com/fewensa/subquery-cli/releases/download/v${{ env.SUBQUERY_CLI_VERSION }}/subquery-linux-x86_64.zip
+          unzip subquery-linux-x86_64.zip -d $HOME/.local/bin/
+          rm -rf subquery-linux-x86_64.zip
+
+          #Install jq
+          sudo apt-get install jq
+
+      - name: Check and promote
+        run: |
+          set -xe
+          DEPLOYMENT_ID=$(subquery --token ${{ secrets.SUBQUERY_TOKEN }} deployment list \
+            --org ${{ env.SUBQUERY_ORG }} \
+            --key ${{ matrix.chain }} \
+            -o json \
+            | jq '.[] | select(.type | contains("stage")) | .id')
+
+          if [[ -z $DEPLOYMENT_ID ]]
+          then
+              echo "No stage deployment for ${{ matrix.chain }} in ${{ env.SUBQUERY_ORG }} organisation"
+              exit
+          fi
+
+          STATUS=$(subquery --token ${{ secrets.SUBQUERY_TOKEN }} deployment sync-status \
+            --org ${{ env.SUBQUERY_ORG }} \
+            --key ${{ matrix.chain }} \
+            --id $DEPLOYMENT_ID)
+
+          [[ $STATUS =~ ([0-9]*[.])[0-9]+ ]]
+
+          PERCENT_INT=${BASH_REMATCH%.*}
+
+          if [[ $PERCENT_INT -gt 99 ]]
+          then
+            subquery --token ${{ secrets.SUBQUERY_TOKEN }} deployment promote \
+              --org ${{ env.SUBQUERY_ORG }} \
+              --key ${{ matrix.chain }}
+              echo "Promoted deployment in ${{ matrix.chain }} project for ${{ env.SUBQUERY_ORG }} organisation"
+          else
+            echo "The current sync status of ${{ matrix.chain }} project for ${{ env.SUBQUERY_ORG }} organisation is $PERCENT_INT => not ready for autopromotion"
+          fi
