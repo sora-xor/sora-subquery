@@ -32,5 +32,8 @@
     "@polkadot/api": "^4.9.2",
     "@sora-substrate/type-definitions": "^1.6.9",
     "bignumber.js": "^9.0.1"
+  },
+  "resolutions": {
+    "ipfs-unixfs": "6.0.6"
   }
 }
