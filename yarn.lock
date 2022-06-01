@@ -1354,10 +1354,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@sora-substrate/type-definitions@^1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.6.9.tgz#9438b27db69ad40072dc8af6a8fec7d89235b4ca"
-  integrity sha512-ZU6CWFHxjp7sIiINkRH2rDHnoZJrc1p+TMRAHVNe5dGB4H5iIHKZ/bViHaMmv1vUwVurVvh04Am9gTU8P61EVg==
+"@sora-substrate/type-definitions@^1.9.7":
+  version "1.9.7"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.9.7.tgz#dcec9e6a0ea7ac150b20b8e9e7e7982aa8117a91"
+  integrity sha512-itwuoCFacMaDdzDqZPi7zPR9lC9AzS1zCljcXov6/LeaUZbgmohc6MCaOu3aWTGznptT/mPvRFMe4B4Sg4X7ew==
   dependencies:
     "@open-web3/orml-type-definitions" "^0.9.4-35"
 

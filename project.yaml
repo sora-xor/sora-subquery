@@ -855,3 +855,21 @@ dataSources:
           filter:
             module: xorFee
             method: ReferrerRewarded
+
+        - handler: demeterDepositHandler
+          kind: substrate/CallHandler
+          filter:
+            module: demeterFarmingPlatform
+            method: deposit
+
+        - handler: demeterWithdrawHandler
+          kind: substrate/CallHandler
+          filter:
+            module: demeterFarmingPlatform
+            method: withdraw
+
+        - handler: demeterGetRewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: demeterFarmingPlatform
+            method: getRewards
