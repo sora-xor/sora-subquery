@@ -729,6 +729,8 @@ dataSources:
             method: register
         - handler: handleXYKPools
           kind: substrate/BlockHandler
+        - handler: handleTBCPools
+          kind: substrate/BlockHandler
 
         - handler: handlerTransfers
           kind: substrate/CallHandler
