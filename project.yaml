@@ -3,7 +3,7 @@ description: ''
 repository: 'https://github.com/sora-xor/sora-subquery'
 schema: ./schema.graphql
 network:
-  endpoint: wss://mof3.sora.org
+  endpoint: wss://ws.stage.sora2.soramitsu.co.jp
   types: {
     "AccountInfo": "AccountInfoWithDualRefCount",
     "Address": "AccountId",
@@ -715,7 +715,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 1
+    startBlock: 386589
     mapping:
       handlers:
         # Get all assets on the first block being parsed and cache them
@@ -855,3 +855,21 @@ dataSources:
           filter:
             module: xorFee
             method: ReferrerRewarded
+
+        - handler: demeterDepositHandler
+          kind: substrate/CallHandler
+          filter:
+            module: demeterFarmingPlatform
+            method: deposit
+
+        - handler: demeterWithdrawHandler
+          kind: substrate/CallHandler
+          filter:
+            module: demeterFarmingPlatform
+            method: withdraw
+
+        # - handler: demeterGetRewardsHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: demeterFarmingPlatform
+        #     method: getRewards
