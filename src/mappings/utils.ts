@@ -1,11 +1,18 @@
+import BigNumber from "bignumber.js";
+
 import { SubstrateExtrinsic } from "@subql/types";
-import { HistoryElement } from "../types";
+import { HistoryElement, AssetPrice, PriceType } from "../types";
+
 export const XOR: string = '0x0200000000000000000000000000000000000000000000000000000000000000';
 export const VAL: string = '0x0200040000000000000000000000000000000000000000000000000000000000';
 export const PSWAP: string = '0x0200050000000000000000000000000000000000000000000000000000000000';
 export const DAI: string = '0x0200060000000000000000000000000000000000000000000000000000000000';
 export const ETH: string = '0x0200070000000000000000000000000000000000000000000000000000000000';
 export const XSTUSD: string = '0x0200080000000000000000000000000000000000000000000000000000000000'
+
+export const SECONDS_SAMPLE = 300;
+export const SECONDS_SAMPLE_HOUR = 3600;
+export const SECONDS_SAMPLE_DAY = 86400;
 
 export const formatU128ToBalance = (u128: string, assetId: string): string => {
     let decimals = assetPrecisions.get(assetId);
@@ -92,3 +99,33 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
 }
 
 export let assetPrecisions = new Map<string, number>();
+
+export const updatePrice = async (assetId: string, type: PriceType, price: BigNumber, blockTimestamp: number): Promise<AssetPrice> => {
+    const secondsSample = type === PriceType.DEFAULT
+        ? SECONDS_SAMPLE
+        : (type === PriceType.HOUR ? SECONDS_SAMPLE_HOUR : SECONDS_SAMPLE_DAY);
+
+    const index =  Math.floor(blockTimestamp / secondsSample);
+    const id = [assetId, type, index].join('-');
+
+    let priceSample = await AssetPrice.get(id);
+
+    if (!priceSample) {
+        priceSample = new AssetPrice(id);
+        priceSample.assetId = assetId;
+        priceSample.timestamp = index * secondsSample;;
+        priceSample.type = type;
+
+        priceSample.open = price.toString();
+        priceSample.high = price.toString();
+        priceSample.low = price.toString();
+    }
+
+    priceSample.close = price.toString();
+    priceSample.high = BigNumber.max(new BigNumber(priceSample.high), price).toString();
+    priceSample.low = BigNumber.min(new BigNumber(priceSample.low), price).toString();
+
+    await priceSample.save();
+
+    return priceSample;
+}

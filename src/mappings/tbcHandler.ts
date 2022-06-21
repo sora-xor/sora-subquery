@@ -1,7 +1,7 @@
 import { FPNumber } from '@sora-substrate/math';
 import { tbcQuote } from '@sora-substrate/liquidity-proxy';
 import { SubstrateBlock } from "@subql/types";
-import { PoolTBC, PoolTBCEntity } from "../types";
+import { Asset, PoolTBC } from "../types";
 import { XOR, DAI, XSTUSD, formatU128ToBalance } from "./utils";
 import type { QuotePayload } from '@sora-substrate/liquidity-proxy';
 
@@ -75,9 +75,9 @@ export async function handleTBCPools(block: SubstrateBlock) {
 
   let xorPriceInDAI = new FPNumber(0);
 
-  const record = new PoolTBCEntity(block.block.header.hash.toString());
   const blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
-  const poolEntityId = record.id;
+
+  const assets: Array<Asset> = [];
   const pools: Array<PoolTBC> = [];
 
   // prepare TBC data for calculations 
@@ -115,42 +115,45 @@ export async function handleTBCPools(block: SubstrateBlock) {
     payload.prices[collateralAssetId] = await getAssetAveragePrice(collateralAssetId);
     payload.issuances[collateralAssetId] = await getAssetIssuance(collateralAssetId);
 
-    const pool = new PoolTBC(`${poolEntityId}_${collateralAssetId}`);
+    const asset = (await Asset.get(collateralAssetId)) || new Asset(collateralAssetId);
+
+    asset.poolTBCId = asset.id;
+
+    const pool = (await PoolTBC.get(asset.id)) || new PoolTBC(asset.id);
 
     if (collateralAssetId === DAI) {
       xorPriceInDAI = tbcQuote(collateralAssetId, XOR, QUOTE_AMOUNT, false, payload).amount;
     }
 
-    pool.poolEntityId = poolEntityId;
-    pool.collateralAssetId = collateralAssetId;
     pool.collateralReserves = formatU128ToBalance(collateralReserves[collateralAssetId] || '0', collateralAssetId);
     pool.priceUSD = '0';
-    pool.updated = blockDate;
 
     pools.push(pool);
+    assets.push(asset);
   }
 
   if (!xorPriceInDAI.isZero()) {
     pools.forEach(pool => {
-      const amountForXor = tbcQuote(pool.collateralAssetId, XOR, QUOTE_AMOUNT, false, payload).amount;
-      const priceUSD = xorPriceInDAI.div(amountForXor);
+      const amountForXor = tbcQuote(pool.id, XOR, QUOTE_AMOUNT, false, payload).amount;
+      const priceUSD = amountForXor.isZero() ? FPNumber.ZERO : xorPriceInDAI.div(amountForXor);
 
-      pool.priceUSD = formatU128ToBalance(priceUSD.toCodecString(), pool.collateralAssetId);
+      pool.priceUSD = formatU128ToBalance(priceUSD.toCodecString(), pool.id);
     })
   }
 
   //Add fake XOR Pool in order to add fiat price for it
-  const xorPool = new PoolTBC(`${poolEntityId}_${XOR}`);
-  xorPool.poolEntityId = poolEntityId;
-  xorPool.collateralAssetId = XOR;
+  const xorAsset = (await Asset.get(XOR)) || new Asset(XOR);
+
+  xorAsset.poolTBCId = xorAsset.id;
+
+  const xorPool = (await PoolTBC.get(xorAsset.id)) || new PoolTBC(xorAsset.id);
+
   xorPool.collateralReserves = '0';
   xorPool.priceUSD = formatU128ToBalance(xorPriceInDAI.toCodecString(), XOR);
-  xorPool.updated = blockDate;
+
   pools.push(xorPool);
-
-  record.updated = blockDate;
-
-  await record.save();
+  assets.push(xorAsset);
 
   await Promise.all(pools.map(pool => pool.save()));
+  await Promise.all(assets.map(asset => asset.save()));
 }
