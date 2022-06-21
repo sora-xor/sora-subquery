@@ -1,13 +1,19 @@
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK, Asset, PriceType } from "../types";
-import { formatU128ToBalance, updatePrice } from "./utils";
+import { formatU128ToBalance, updatePrice, SECONDS_IN_BLOCK, SECONDS_SAMPLE } from "./utils";
+
 import BigNumber from "bignumber.js";
 
 import { XOR, VAL, PSWAP, DAI, ETH } from "..";
 
 const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
+const EXECUTION_INTERVAL = SECONDS_SAMPLE / SECONDS_IN_BLOCK;
 
 export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
+    if (block.block.header.number.toNumber() % EXECUTION_INTERVAL !== 0) {
+        return;
+    }
+
     const blockTimestamp: number = parseInt(((block.timestamp).getTime() / 1000).toFixed(0));
 
     const pools: Array<PoolXYK> = [];
@@ -108,8 +114,8 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         const assetId = pool.id.toString();
         const currentPrice = new BigNumber(pool.priceUSD || 0);
 
-        await updatePrice(assetId, PriceType.DEFAULT, currentPrice, blockTimestamp);
-        await updatePrice(assetId, PriceType.HOUR, currentPrice, blockTimestamp);
-        await updatePrice(assetId, PriceType.DAY, currentPrice, blockTimestamp);
+        await updatePrice(assetId, currentPrice, blockTimestamp, PriceType.DEFAULT);
+        await updatePrice(assetId, currentPrice, blockTimestamp, PriceType.HOUR);
+        await updatePrice(assetId, currentPrice, blockTimestamp, PriceType.DAY);
     }
 }

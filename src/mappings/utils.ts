@@ -8,7 +8,9 @@ export const VAL: string = '0x02000400000000000000000000000000000000000000000000
 export const PSWAP: string = '0x0200050000000000000000000000000000000000000000000000000000000000';
 export const DAI: string = '0x0200060000000000000000000000000000000000000000000000000000000000';
 export const ETH: string = '0x0200070000000000000000000000000000000000000000000000000000000000';
-export const XSTUSD: string = '0x0200080000000000000000000000000000000000000000000000000000000000'
+export const XSTUSD: string = '0x0200080000000000000000000000000000000000000000000000000000000000';
+
+export const SECONDS_IN_BLOCK = 6;
 
 export const SECONDS_SAMPLE = 300;
 export const SECONDS_SAMPLE_HOUR = 3600;
@@ -100,7 +102,7 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
 
 export let assetPrecisions = new Map<string, number>();
 
-export const updatePrice = async (assetId: string, type: PriceType, price: BigNumber, blockTimestamp: number): Promise<AssetPrice> => {
+export const updatePrice = async (assetId: string, price: BigNumber, blockTimestamp: number, type: PriceType): Promise<AssetPrice> => {
     const secondsSample = type === PriceType.DEFAULT
         ? SECONDS_SAMPLE
         : (type === PriceType.HOUR ? SECONDS_SAMPLE_HOUR : SECONDS_SAMPLE_DAY);
