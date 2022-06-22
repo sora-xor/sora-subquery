@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateExtrinsic } from "@subql/types";
-import { HistoryElement, AssetPrice, PriceType } from "../types";
+import { HistoryElement, PoolXYK, Asset, AssetSnapshot, AssetSnapshotType } from "../types";
 
 export const XOR: string = '0x0200000000000000000000000000000000000000000000000000000000000000';
 export const VAL: string = '0x0200040000000000000000000000000000000000000000000000000000000000';
@@ -12,9 +12,23 @@ export const XSTUSD: string = '0x02000800000000000000000000000000000000000000000
 
 export const SECONDS_IN_BLOCK = 6;
 
-export const SECONDS_SAMPLE = 300;
-export const SECONDS_SAMPLE_HOUR = 3600;
-export const SECONDS_SAMPLE_DAY = 86400;
+export let assetPrecisions = new Map<string, number>();
+
+export const PoolsPrices = {
+    flag: false,
+    get() {
+        return this.flag;
+    },
+    set(flag: boolean) {
+        this.flag = flag;
+    },
+};
+
+export const SnapshotSecondsMap = {
+    [AssetSnapshotType.DEFAULT]: 300, // 5 min
+    [AssetSnapshotType.HOUR]: 3600,
+    [AssetSnapshotType.DAY]: 86400,
+};
 
 export const formatU128ToBalance = (u128: string, assetId: string): string => {
     let decimals = assetPrecisions.get(assetId);
@@ -100,34 +114,74 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
 
 }
 
-export let assetPrecisions = new Map<string, number>();
+export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number): Promise<void> => {
+    for (const type of Object.values(AssetSnapshotType)) {
+        const seconds = SnapshotSecondsMap[type];
+        const index =  Math.floor(blockTimestamp / seconds);
+        const id = [assetId, type, index].join('-');
 
-export const updatePrice = async (assetId: string, price: BigNumber, blockTimestamp: number, type: PriceType): Promise<AssetPrice> => {
-    const secondsSample = type === PriceType.DEFAULT
-        ? SECONDS_SAMPLE
-        : (type === PriceType.HOUR ? SECONDS_SAMPLE_HOUR : SECONDS_SAMPLE_DAY);
+        let snapshot = await AssetSnapshot.get(id);
 
-    const index =  Math.floor(blockTimestamp / secondsSample);
-    const id = [assetId, type, index].join('-');
+        if (!snapshot) {
+            snapshot = new AssetSnapshot(id);
+            snapshot.assetId = assetId;
+            snapshot.timestamp = index * seconds;
+            snapshot.type = type;
+            snapshot.volume = {
+                amount: '0',
+                amountUSD: '0'
+            };
+            snapshot.priceUSD = {
+                open: price,
+                close: price,
+                high: price,
+                low: price,
+            };
+        }
 
-    let priceSample = await AssetPrice.get(id);
+        snapshot.priceUSD.close = price;
+        snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), new BigNumber(price)).toString();
+        snapshot.priceUSD.low = BigNumber.min(new BigNumber(snapshot.priceUSD.low), new BigNumber(price)).toString();
 
-    if (!priceSample) {
-        priceSample = new AssetPrice(id);
-        priceSample.assetId = assetId;
-        priceSample.timestamp = index * secondsSample;;
-        priceSample.type = type;
-
-        priceSample.open = price.toString();
-        priceSample.high = price.toString();
-        priceSample.low = price.toString();
+        await snapshot.save();
     }
+};
 
-    priceSample.close = price.toString();
-    priceSample.high = BigNumber.max(new BigNumber(priceSample.high), price).toString();
-    priceSample.low = BigNumber.min(new BigNumber(priceSample.low), price).toString();
+export const updateAssetVolume = async (assetId: string, amount: string, blockTimestamp: number): Promise<void> => {
+    const assetPrice = [XSTUSD, DAI].includes(assetId)
+        ? new BigNumber(1)
+        : new BigNumber((await PoolXYK.get(assetId))?.priceUSD ?? 0);
 
-    await priceSample.save();
+    for (const type of Object.values(AssetSnapshotType)) {
+        const seconds = SnapshotSecondsMap[type];
+        const index =  Math.floor(blockTimestamp / seconds);
+        const id = [assetId, type, index].join('-');
 
-    return priceSample;
-}
+        let snapshot = await AssetSnapshot.get(id);
+
+        if (!snapshot) {
+            snapshot = new AssetSnapshot(id);
+            snapshot.assetId = assetId;
+            snapshot.timestamp = index * seconds;
+            snapshot.type = type;
+            snapshot.volume = {
+                amount: '0',
+                amountUSD: '0'
+            };
+            snapshot.priceUSD = {
+                open: '0',
+                close: '0',
+                high: '0',
+                low: '0',
+            };
+        }
+
+        const volume = new BigNumber(amount);
+        const volumeUSD = volume.multipliedBy(assetPrice);
+
+        snapshot.volume.amount = new BigNumber(snapshot.volume.amount).plus(volume).toString();
+        snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toString();
+
+        await snapshot.save();
+    }
+};

@@ -1,18 +1,20 @@
 import { SubstrateBlock } from "@subql/types";
-import { PoolXYK, Asset, PriceType } from "../types";
-import { formatU128ToBalance, updatePrice, SECONDS_IN_BLOCK, SECONDS_SAMPLE } from "./utils";
+import { PoolXYK, Asset, AssetSnapshotType } from "../types";
+import { formatU128ToBalance, updateAssetPrice, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK } from "./utils";
 
 import BigNumber from "bignumber.js";
 
 import { XOR, VAL, PSWAP, DAI, ETH } from "..";
 
 const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
-const EXECUTION_INTERVAL = SECONDS_SAMPLE / SECONDS_IN_BLOCK;
 
-export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
-    if (block.block.header.number.toNumber() % EXECUTION_INTERVAL !== 0) {
-        return;
-    }
+const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[AssetSnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
+
+export async function handleSync(block: SubstrateBlock): Promise<void> {
+    const blockNumber = block.block.header.number.toNumber();
+    const shouldSync = PoolsPrices.get() || blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
+
+    if (!shouldSync) return;
 
     const blockTimestamp: number = parseInt(((block.timestamp).getTime() / 1000).toFixed(0));
 
@@ -111,11 +113,8 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
 
     // update price samples
     for (const pool of pools) {
-        const assetId = pool.id.toString();
-        const currentPrice = new BigNumber(pool.priceUSD || 0);
-
-        await updatePrice(assetId, currentPrice, blockTimestamp, PriceType.DEFAULT);
-        await updatePrice(assetId, currentPrice, blockTimestamp, PriceType.HOUR);
-        await updatePrice(assetId, currentPrice, blockTimestamp, PriceType.DAY);
+        await updateAssetPrice(pool.id.toString(), pool.priceUSD, blockTimestamp);
     }
+
+    PoolsPrices.set(false);
 }

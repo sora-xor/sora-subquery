@@ -1,26 +1,35 @@
-enum PriceType {
+type Asset @entity {
+  id: ID!
+  poolXYK: PoolXYK
+  poolTBC: PoolTBC
+  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
+}
+
+type AssetPrice @jsonField {
+  open: String!
+  close: String!
+  high: String!
+  low: String!
+}
+
+type AssetVolume @jsonField {
+  amount: String!
+  amountUSD: String!
+}
+
+enum AssetSnapshotType {
   DEFAULT
   HOUR
   DAY
 }
 
-type Asset @entity {
-  id: ID!
-  poolXYK: PoolXYK
-  poolTBC: PoolTBC
-  prices: [AssetPrice!]! @derivedFrom(field: "asset")
-}
-
-type AssetPrice @entity {
+type AssetSnapshot @entity {
   id: ID!
   asset: Asset! @index #relation to Asset
   timestamp: Int!
-  type: PriceType!
-
-  open: String!
-  close: String!
-  high: String!
-  low: String!
+  type: AssetSnapshotType!
+  priceUSD: AssetPrice
+  volume: AssetVolume
 }
 
 type PoolXYK @entity {
