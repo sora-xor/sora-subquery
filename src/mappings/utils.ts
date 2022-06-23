@@ -14,8 +14,10 @@ export const SECONDS_IN_BLOCK = 6;
 
 export let assetPrecisions = new Map<string, number>();
 
+// getters & setter for flag, should we sync poolXYK reserves
+// and then calc asset prices
 export const PoolsPrices = {
-    flag: false,
+    flag: true,
     get() {
         return this.flag;
     },
@@ -24,10 +26,11 @@ export const PoolsPrices = {
     },
 };
 
+// Intervals for snapshots (in seconds)
 export const SnapshotSecondsMap = {
     [AssetSnapshotType.DEFAULT]: 300, // 5 min
-    [AssetSnapshotType.HOUR]: 3600,
-    [AssetSnapshotType.DAY]: 86400,
+    [AssetSnapshotType.HOUR]: 3_600,
+    [AssetSnapshotType.DAY]: 86_400,
 };
 
 export const formatU128ToBalance = (u128: string, assetId: string): string => {
@@ -111,26 +114,34 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     }
 
     return record
-
 }
+
+const getAssetSnapshot = async (assetId: string, blockTimestamp: number, type: AssetSnapshotType): Promise<AssetSnapshot> => {
+    const seconds = SnapshotSecondsMap[type];
+    const index =  Math.floor(blockTimestamp / seconds);
+    const id = [assetId, type, index].join('-');
+
+    let snapshot = await AssetSnapshot.get(id);
+
+    if (!snapshot) {
+        snapshot = new AssetSnapshot(id);
+        snapshot.assetId = assetId;
+        snapshot.timestamp = index * seconds;
+        snapshot.type = type;
+        snapshot.volume = {
+            amount: '0',
+            amountUSD: '0'
+        };
+    }
+
+    return snapshot;
+};
 
 export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number): Promise<void> => {
     for (const type of Object.values(AssetSnapshotType)) {
-        const seconds = SnapshotSecondsMap[type];
-        const index =  Math.floor(blockTimestamp / seconds);
-        const id = [assetId, type, index].join('-');
+        const snapshot = await getAssetSnapshot(assetId, blockTimestamp, type);
 
-        let snapshot = await AssetSnapshot.get(id);
-
-        if (!snapshot) {
-            snapshot = new AssetSnapshot(id);
-            snapshot.assetId = assetId;
-            snapshot.timestamp = index * seconds;
-            snapshot.type = type;
-            snapshot.volume = {
-                amount: '0',
-                amountUSD: '0'
-            };
+        if (!snapshot.priceUSD) {
             snapshot.priceUSD = {
                 open: price,
                 close: price,
@@ -153,28 +164,7 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
         : new BigNumber((await PoolXYK.get(assetId))?.priceUSD ?? 0);
 
     for (const type of Object.values(AssetSnapshotType)) {
-        const seconds = SnapshotSecondsMap[type];
-        const index =  Math.floor(blockTimestamp / seconds);
-        const id = [assetId, type, index].join('-');
-
-        let snapshot = await AssetSnapshot.get(id);
-
-        if (!snapshot) {
-            snapshot = new AssetSnapshot(id);
-            snapshot.assetId = assetId;
-            snapshot.timestamp = index * seconds;
-            snapshot.type = type;
-            snapshot.volume = {
-                amount: '0',
-                amountUSD: '0'
-            };
-            snapshot.priceUSD = {
-                open: '0',
-                close: '0',
-                high: '0',
-                low: '0',
-            };
-        }
+        const snapshot = await getAssetSnapshot(assetId, blockTimestamp, type);
 
         const volume = new BigNumber(amount);
         const volumeUSD = volume.multipliedBy(assetPrice);

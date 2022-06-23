@@ -10,7 +10,7 @@ const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
 
 const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[AssetSnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
 
-export async function handleSync(block: SubstrateBlock): Promise<void> {
+export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     const blockNumber = block.block.header.number.toNumber();
     const shouldSync = PoolsPrices.get() || blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
 

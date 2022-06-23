@@ -34,9 +34,13 @@ const getCollateralReserves = async (): Promise<{ [key: string]: string } | null
 };
 
 const getAveragePriceInXOR = async (assetAddress: string): Promise<string> => {
-  const data = await api.query.priceTools.priceInfos(assetAddress);
+  try {
+    const data = await api.query.priceTools.priceInfos(assetAddress);
 
-  return data.isEmpty ? '0' : (data.toJSON() as any).average_price.toString();
+    return data.isEmpty ? '0' : (data.toJSON() as any).average_price.toString();
+  } catch (error) {
+    return '0';
+  }
 };
 
 const getAssetIssuance = async (assetAddress: string): Promise<string> => {
@@ -58,7 +62,7 @@ const getAssetAveragePrice = async (assetAddress: string): Promise<string> => {
   return await getAveragePriceInXOR(assetAddress);
 };
 
-export async function handleTBCPools(block: SubstrateBlock) {
+export async function syncTBCPools(block: SubstrateBlock) {
   if (block.block.header.number.toNumber() % FIVE_MINUTES_IN_BLOCKS != 0) {
     return;
   }
@@ -74,8 +78,6 @@ export async function handleTBCPools(block: SubstrateBlock) {
   if (!enabledTargets || !collateralReserves) return;
 
   let xorPriceInDAI = new FPNumber(0);
-
-  const blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
 
   const assets: Array<Asset> = [];
   const pools: Array<PoolTBC> = [];

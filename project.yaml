@@ -727,9 +727,11 @@ dataSources:
           filter:
             module: assets
             method: register
-        - handler: handleXYKPools
+
+        # sync pools reserves & prices, create snapshots
+        - handler: syncXYKPools
           kind: substrate/BlockHandler
-        - handler: handleTBCPools
+        - handler: syncTBCPools
           kind: substrate/BlockHandler
 
         - handler: handlerTransfers
