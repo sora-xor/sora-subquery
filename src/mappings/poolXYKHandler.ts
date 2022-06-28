@@ -79,7 +79,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
                 .dividedBy(new BigNumber(p.targetAssetReserves))
                 .multipliedBy(xorPriceInDAI);
 
-            p.priceUSD = daiPrice.toFixed(18).toString();
+            p.priceUSD = daiPrice.toFixed(18);
 
             if (!pswapPriceInDAI.isZero()) {
                 const strategicBonusApy = ((
@@ -88,7 +88,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
                     .multipliedBy(new BigNumber(365 / 2)))
                     .multipliedBy(Number(p.multiplier));
 
-                p.strategicBonusApy = strategicBonusApy.toFixed(18).toString();
+                p.strategicBonusApy = strategicBonusApy.toFixed(18);
             }
         });
     }
@@ -101,8 +101,8 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
 
     xorPool.multiplier = BigInt(1);
     xorPool.baseAssetReserves = "0";
-    xorPool.targetAssetReserves = "0";
-    xorPool.priceUSD = xorPriceInDAI.toFixed(18).toString();
+    xorPool.targetAssetReserves = formatU128ToBalance(totalXorInPools.toFixed(0), XOR);
+    xorPool.priceUSD = xorPriceInDAI.toFixed(18);
     xorPool.strategicBonusApy = "0";
 
     assets.push(xorAsset);
