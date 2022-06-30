@@ -94,8 +94,9 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
   // reward for farming or staking
   details.isFarm = isFarm.toHuman();
 
-  if (record.execution.success) {
-    const event = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies');
+  const event = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies');
+
+  if (event) {
     const { event: { data: [currencyId, from, to, amount] } } = event;
 
     details.amount = formatU128ToBalance(amount.toString(), rewardAssetId.toString());

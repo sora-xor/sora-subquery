@@ -1,36 +1,50 @@
-type PoolXYKEntity @entity {
+type Asset @entity {
   id: ID!
-  pools: [Pool] @derivedFrom(field: "poolEntity")
-  totalXORInPools: String!
-  updated: String!
+  poolXYK: PoolXYK
+  poolTBC: PoolTBC
+  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
 }
 
-type Pool @entity {
+type AssetPrice @jsonField {
+  open: String!
+  close: String!
+  high: String!
+  low: String!
+}
+
+type AssetVolume @jsonField {
+  amount: String!
+  amountUSD: String!
+}
+
+enum AssetSnapshotType {
+  DEFAULT
+  HOUR
+  DAY
+}
+
+type AssetSnapshot @entity {
   id: ID!
-  baseAssetId: String!
-  targetAssetId: String! @index
-  strategicBonusApy: String
+  asset: Asset! @index #relation to Asset
+  timestamp: Int!
+  type: AssetSnapshotType!
+  priceUSD: AssetPrice
+  volume: AssetVolume
+}
+
+type PoolXYK @entity {
+  id: ID!
   priceUSD: String
+  strategicBonusApy: String
   baseAssetReserves: String!
   targetAssetReserves: String!
   multiplier: BigInt!
-  poolEntity: PoolXYKEntity! @index #relation to PoolXYKEntity
-  updated: String!
-}
-
-type PoolTBCEntity @entity {
-  id: ID!
-  pools: [PoolTBC] @derivedFrom(field: "poolEntity")
-  updated: String!
 }
 
 type PoolTBC @entity {
   id: ID!
-  collateralAssetId: String! @index
-  collateralReserves: String!
   priceUSD: String
-  poolEntity: PoolTBCEntity! @index #relation to PoolTBCEntity
-  updated: String!
+  collateralReserves: String!
 }
 
 type HistoryElement @entity {
