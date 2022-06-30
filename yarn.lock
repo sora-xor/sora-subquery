@@ -1009,7 +1009,7 @@
     "@polkadot/types" "6.5.2"
     "@polkadot/util" "^7.6.1"
 
-"@polkadot/types@4.17.1":
+"@polkadot/types@4.17.1", "@polkadot/types@^4.10.1":
   version "4.17.1"
   resolved "https://registry.yarnpkg.com/@polkadot/types/-/types-4.17.1.tgz#41d43621d53820ee930ba4036bfa8b16cf98ca6f"
   integrity sha512-rjW4OFdwvFekzN3ATLibC2JPSd8AWt5YepJhmuCPdwH26r3zB8bEC6dM7YQExLVUmygVPvgXk5ffHI6RAdXBMg==
@@ -1354,10 +1354,26 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@sora-substrate/type-definitions@^1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.6.9.tgz#9438b27db69ad40072dc8af6a8fec7d89235b4ca"
-  integrity sha512-ZU6CWFHxjp7sIiINkRH2rDHnoZJrc1p+TMRAHVNe5dGB4H5iIHKZ/bViHaMmv1vUwVurVvh04Am9gTU8P61EVg==
+"@sora-substrate/liquidity-proxy@^1.9.8":
+  version "1.9.8"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/liquidity-proxy/-/liquidity-proxy-1.9.8.tgz#074a81bb48d05515716d8628a023aff52acaa887"
+  integrity sha512-mUhZrNwXGV3Z4C/EeW+2d5n2W1qH2SnuYtsefJ+CRFwZ8mwUE/orcLVSceenUgect4scCBz7bYxguBN3PxuV3w==
+  dependencies:
+    "@sora-substrate/math" "1.9.8"
+
+"@sora-substrate/math@1.9.8", "@sora-substrate/math@^1.9.8":
+  version "1.9.8"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/math/-/math-1.9.8.tgz#ad386516375730711e74e1d627236155393049af"
+  integrity sha512-/0l3vJ2li5B0Q2+qqVRMd4Lz2K5LGf2jOq0ir01IfV1i4abCZyAgnbpwtPAuoae0T3DVpeY/8CG0vz/d2u4Mkw==
+  dependencies:
+    "@polkadot/types" "^4.10.1"
+    bignumber.js "^9.0.1"
+    lodash "^4.17.15"
+
+"@sora-substrate/type-definitions@^1.9.8":
+  version "1.9.8"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.9.8.tgz#4ad7d5df3050ea7b3cd360f85fcee062a0c9f891"
+  integrity sha512-zL45PmpzAbFhgCDs5kxOdrY0AEeYvPShUBYLSlDIQ1BwgkCaA/9CChl0HriRRXSsoaMprwwNOrV3YbgtOmkO9Q==
   dependencies:
     "@open-web3/orml-type-definitions" "^0.9.4-35"
 
@@ -4813,7 +4829,7 @@ lodash.merge@^4.6.2:
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
-lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.20, lodash@^4.17.21:
+lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.15, lodash@^4.17.20, lodash@^4.17.21:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==

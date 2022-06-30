@@ -1,21 +1,50 @@
-type PoolXYKEntity @entity {
+type Asset @entity {
   id: ID!
-  pools: [Pool] @derivedFrom(field: "poolEntity")
-  totalXORInPools: String!
-  updated: String!
+  poolXYK: PoolXYK
+  poolTBC: PoolTBC
+  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
 }
 
-type Pool @entity {
+type AssetPrice @jsonField {
+  open: String!
+  close: String!
+  high: String!
+  low: String!
+}
+
+type AssetVolume @jsonField {
+  amount: String!
+  amountUSD: String!
+}
+
+enum AssetSnapshotType {
+  DEFAULT
+  HOUR
+  DAY
+}
+
+type AssetSnapshot @entity {
   id: ID!
-  baseAssetId: String!
-  targetAssetId: String! @index
-  strategicBonusApy: String
+  asset: Asset! @index #relation to Asset
+  timestamp: Int!
+  type: AssetSnapshotType!
+  priceUSD: AssetPrice
+  volume: AssetVolume
+}
+
+type PoolXYK @entity {
+  id: ID!
   priceUSD: String
+  strategicBonusApy: String
   baseAssetReserves: String!
   targetAssetReserves: String!
   multiplier: BigInt!
-  poolEntity: PoolXYKEntity! @index #relation to PoolXYKEntity
-  updated: String!
+}
+
+type PoolTBC @entity {
+  id: ID!
+  priceUSD: String
+  collateralReserves: String!
 }
 
 type HistoryElement @entity {
@@ -74,9 +103,8 @@ type ClaimableReward @entity {
 
 type ReferrerReward @entity {
 	id: ID!
-	blockHeight: BigInt!
 	referral: String! @index
 	referrer: String!
-	timestamp: Int!
+	updated: Int!
 	amount: BigInt!
 }

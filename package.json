@@ -30,7 +30,9 @@
   },
   "dependencies": {
     "@polkadot/api": "^4.9.2",
-    "@sora-substrate/type-definitions": "^1.6.9",
+    "@sora-substrate/liquidity-proxy": "^1.9.8",
+    "@sora-substrate/math": "^1.9.8",
+    "@sora-substrate/type-definitions": "^1.9.8",
     "bignumber.js": "^9.0.1"
   },
   "resolutions": {

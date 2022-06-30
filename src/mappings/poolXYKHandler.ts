@@ -1,25 +1,25 @@
-import {SubstrateBlock} from "@subql/types";
-import {Pool, PoolXYKEntity} from "../types";
-import {formatU128ToBalance} from "./utils";
+import { SubstrateBlock } from "@subql/types";
+import { PoolXYK, Asset, AssetSnapshotType } from "../types";
+import { formatU128ToBalance, updateAssetPrice, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK } from "./utils";
+
 import BigNumber from "bignumber.js";
 
-import { XOR } from "..";
+import { XOR, VAL, PSWAP, DAI, ETH } from "..";
 
-const VAL: string = '0x0200040000000000000000000000000000000000000000000000000000000000';
-const PSWAP: string = '0x0200050000000000000000000000000000000000000000000000000000000000';
-const DAI: string = '0x0200060000000000000000000000000000000000000000000000000000000000';
-const ETH: string = '0x0200070000000000000000000000000000000000000000000000000000000000';
 const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
-const FIVE_MINUTES_IN_BLOCKS = 50;
 
-export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
-    if (block.block.header.number.toNumber() % FIVE_MINUTES_IN_BLOCKS != 0) {
-        return;
-    }
+const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[AssetSnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
 
-    const blockDate: string = ((block.timestamp).getTime() / 1000).toFixed(0).toString();
-    const record = new PoolXYKEntity(block.block.header.hash.toString());
-    const pools: Array<Pool> = [];
+export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
+    const blockNumber = block.block.header.number.toNumber();
+    const shouldSync = PoolsPrices.get() || blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
+
+    if (!shouldSync) return;
+
+    const blockTimestamp: number = parseInt(((block.timestamp).getTime() / 1000).toFixed(0));
+
+    const pools: Array<PoolXYK> = [];
+    const assets: Array<Asset> = [];
 
     let totalXorInPools = new BigNumber(0);
     let totalXORWithDoublePools = new BigNumber(0);
@@ -36,24 +36,25 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         return;
     }
 
-    reserves.forEach(([{ args: [baseAsset, targetAsset] }, value]) => {
+    for (const [{ args: [baseAsset, targetAsset] }, value] of reserves) {
         const baseAssetId = baseAsset.toString();
         const targetAssetId = targetAsset.toString();
         const xorReserves: BigNumber = new BigNumber(value[0].toBigInt());
         const targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
-        const pool = new Pool(record.id.toString() + "_" + baseAssetId + "_" + targetAssetId);
 
-        pool.baseAssetId = baseAssetId;
-        pool.targetAssetId = targetAssetId;
+        const asset = (await Asset.get(targetAssetId)) || new Asset(targetAssetId);
+        const pool = (await PoolXYK.get(asset.id.toString())) || new PoolXYK(asset.id.toString());
+
+        asset.poolXYKId = pool.id;
+
         pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAssetId);
         pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAssetId);
         pool.multiplier = DOUBLE_PRICE_POOL.includes(targetAssetId) ? BigInt(2) : BigInt(1);
-        pool.poolEntityId = record.id;
         pool.priceUSD = '0';
         pool.strategicBonusApy = '0';
-        pool.updated = blockDate;
 
         pools.push(pool);
+        assets.push(asset);
 
         totalXorInPools = totalXorInPools.plus(xorReserves);
         totalXORWithDoublePools = totalXORWithDoublePools.plus(xorReserves.multipliedBy(Number(pool.multiplier)));
@@ -61,11 +62,11 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
         if (targetAssetId === DAI) {
             xorPriceInDAI = targetAssetReserves.div(xorReserves);
         }
-    });
+    }
 
     // Update pools priceUSD & strategicBonusApy
     if (!xorPriceInDAI.isZero()) {
-        const pswapPool = pools.find(p => p.targetAssetId === PSWAP);
+        const pswapPool = pools.find(p => p.id === PSWAP);
 
         if (pswapPool) {
             pswapPriceInDAI = new BigNumber(pswapPool.baseAssetReserves)
@@ -78,7 +79,7 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
                 .dividedBy(new BigNumber(p.targetAssetReserves))
                 .multipliedBy(xorPriceInDAI);
 
-            p.priceUSD = daiPrice.toFixed(18).toString();
+            p.priceUSD = daiPrice.toFixed(18);
 
             if (!pswapPriceInDAI.isZero()) {
                 const strategicBonusApy = ((
@@ -87,28 +88,33 @@ export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
                     .multipliedBy(new BigNumber(365 / 2)))
                     .multipliedBy(Number(p.multiplier));
 
-                p.strategicBonusApy = strategicBonusApy.toFixed(18).toString();
+                p.strategicBonusApy = strategicBonusApy.toFixed(18);
             }
         });
     }
 
-    record.totalXORInPools = formatU128ToBalance(totalXorInPools.toFixed(0).toString(), XOR);
-
     //Add fake XOR Pool in order to add fiat price for it
-    const xorPool: Pool = new Pool(record.id.toString() + "_" + XOR + "_" + XOR);
-    xorPool.baseAssetId = XOR;
-    xorPool.targetAssetId = XOR;
+    const xorAsset: Asset = (await Asset.get(XOR)) || new Asset(XOR);
+    const xorPool: PoolXYK = (await PoolXYK.get(xorAsset.id.toString())) || new PoolXYK(xorAsset.id.toString());
+
+    xorAsset.poolXYKId = xorPool.id;
+
     xorPool.multiplier = BigInt(1);
     xorPool.baseAssetReserves = "0";
-    xorPool.targetAssetReserves = "0";
-    xorPool.priceUSD = xorPriceInDAI.toFixed(18).toString();
+    xorPool.targetAssetReserves = formatU128ToBalance(totalXorInPools.toFixed(0), XOR);
+    xorPool.priceUSD = xorPriceInDAI.toFixed(18);
     xorPool.strategicBonusApy = "0";
-    xorPool.updated = blockDate;
-    xorPool.poolEntityId = record.id;
+
+    assets.push(xorAsset);
     pools.push(xorPool);
 
-    record.updated = blockDate;
-    await record.save();
-
     await Promise.all(pools.map(pool => pool.save()));
+    await Promise.all(assets.map(asset => asset.save()));
+
+    // update price samples
+    for (const pool of pools) {
+        await updateAssetPrice(pool.id.toString(), pool.priceUSD, blockTimestamp);
+    }
+
+    PoolsPrices.set(false);
 }
