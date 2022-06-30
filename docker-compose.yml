@@ -44,5 +44,4 @@ services:
     command:
       - --name=app
       - --playground
-      - --unsafe
       - --subscription

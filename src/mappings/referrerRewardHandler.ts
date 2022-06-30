@@ -13,15 +13,22 @@ export async function referrerRewardHandler(
 
 	logger.debug(`Caught referrer reward`);
 
-	let referrerReward: ReferrerReward = new ReferrerReward(
-		event.event.hash.toString() + event.block.block.header.number.toString()
-	);
-	referrerReward.blockHeight = event.block.block.header.number.toBigInt();
-	referrerReward.referral = referree.toString();
-	referrerReward.referrer = referrer.toString();
-	referrerReward.timestamp = parseInt(
+	const key = `${referree.toString()}-${referrer.toString()}`;
+
+	let referrerReward = await ReferrerReward.get(key);
+
+	if (!referrerReward) {
+		referrerReward = new ReferrerReward(key);
+		referrerReward.referral = referree.toString();
+		referrerReward.referrer = referrer.toString();
+		referrerReward.amount = BigInt(0);
+	}
+
+	referrerReward.updated = parseInt(
 		(event.block.timestamp.getTime() / 1000).toFixed(0)
 	);
-	referrerReward.amount = BigInt(amount.toString());
+
+	referrerReward.amount = referrerReward.amount + (BigInt(amount.toString()));
+
 	await referrerReward.save();
 }
