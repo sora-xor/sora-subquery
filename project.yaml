@@ -4,17 +4,17 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 1.2.1
+    version: 1.3.0
   query:
     name: '@subql/query'
-    version: latest
+    version: 1.2.0
 description: ''
 repository: 'https://github.com/sora-xor/sora-subquery'
 schema:
   file: ./schema.graphql
 network:
-  chainId: '0xc7b9a0bd710009fbab6ec0ca07c57b9c88f30595ea62de1f74a9a1bc0b94f8fd'
-  endpoint: 'wss://ws.framenode-3.s3.dev.sora2.soramitsu.co.jp'
+  chainId: '0xf38347e2c568cde56fd2d9bd62e98135274a9a6c25bf56e636420e178e048cb9'
+  endpoint: wss://ws.framenode-1.s1.dev.sora2.soramitsu.co.jp
   chaintypes:
     file: ./types.json
 dataSources:
@@ -30,9 +30,11 @@ dataSources:
           filter:
             module: assets
             method: register
-        - handler: handleXYKPools
+
+        # sync pools reserves & prices, create snapshots
+        - handler: syncXYKPools
           kind: substrate/BlockHandler
-        - handler: handleTBCPools
+        - handler: syncTBCPools
           kind: substrate/BlockHandler
         - handler: handlerTransfers
           kind: substrate/CallHandler

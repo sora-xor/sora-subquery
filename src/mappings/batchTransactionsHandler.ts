@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase, Codec } from '@polkadot/types/types';
-import { assignCommonHistoryElemInfo, formatU128ToBalance, assetPrecisions } from "./utils";
+import { assignCommonHistoryElemInfo, formatU128ToBalance, PoolsPrices } from "./utils";
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -89,4 +89,8 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
 
     logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
 
+
+    if (calls.some(call => call.method === 'initializePool')) {
+        PoolsPrices.set(true);
+    }
 }

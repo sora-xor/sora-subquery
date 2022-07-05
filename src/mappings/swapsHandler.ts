@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import type { Vec } from "@polkadot/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, PoolsPrices, updateAssetVolume } from "./utils";
 import { XOR } from '..';
 import { Enum, Struct } from "@polkadot/types/codec";
 import { Balance } from "@polkadot/types/interfaces/runtime"
@@ -49,6 +49,7 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 }
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
+    const blockTimestamp: number = parseInt(((extrinsic.block.timestamp).getTime() / 1000).toFixed(0));
     const record = assignCommonHistoryElemInfo(extrinsic)
 
     const [filterMode, liquiditySources, swapAmount, targetAssetId, baseAssetId, dexId, to] = extrinsic.extrinsic.args.slice().reverse();
@@ -79,6 +80,13 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
     record.data = details
 
     await record.save();
+
+    // update assets volume
+    if (record.execution.success) {
+        await updateAssetVolume(details.baseAssetId, details.baseAssetAmount, blockTimestamp);
+        await updateAssetVolume(details.targetAssetId, details.targetAssetAmount, blockTimestamp);
+        PoolsPrices.set(true);
+    }
 }
 
 export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> {
