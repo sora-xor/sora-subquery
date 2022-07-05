@@ -7,28 +7,28 @@ import type { AccountId, AssetId, Balance, FixedU128, H512, Pays, Weight } from 
 import type { DispatchError } from '@polkadot/types/interfaces/system';
 
 /** @name Amount */
-export interface Amount extends i128 {}
+export interface Amount extends i128 { }
 
 /** @name AmountOf */
-export interface AmountOf extends Amount {}
+export interface AmountOf extends Amount { }
 
 /** @name AssetId32 */
-export interface AssetId32 extends U8aFixed {}
+export interface AssetId32 extends U8aFixed { }
 
 /** @name AssetIdOf */
-export interface AssetIdOf extends AssetId {}
+export interface AssetIdOf extends AssetId { }
 
 /** @name AssetName */
-export interface AssetName extends Bytes {}
+export interface AssetName extends Bytes { }
 
 /** @name AssetSymbol */
-export interface AssetSymbol extends Bytes {}
+export interface AssetSymbol extends Bytes { }
 
 /** @name BalancePrecision */
-export interface BalancePrecision extends u8 {}
+export interface BalancePrecision extends u8 { }
 
 /** @name BasisPoints */
-export interface BasisPoints extends u16 {}
+export interface BasisPoints extends u16 { }
 
 /** @name ChargeFeeInfo */
 export interface ChargeFeeInfo extends Struct {
@@ -37,16 +37,16 @@ export interface ChargeFeeInfo extends Struct {
 }
 
 /** @name CurrencyId */
-export interface CurrencyId extends AssetId {}
+export interface CurrencyId extends AssetId { }
 
 /** @name CurrencyIdOf */
-export interface CurrencyIdOf extends AssetId {}
+export interface CurrencyIdOf extends AssetId { }
 
 /** @name DEXId */
-export interface DEXId extends u32 {}
+export interface DEXId extends u32 { }
 
 /** @name DEXIdOf */
-export interface DEXIdOf extends DEXId {}
+export interface DEXIdOf extends DEXId { }
 
 /** @name DEXInfo */
 export interface DEXInfo extends Struct {
@@ -74,19 +74,19 @@ export interface DispatchResultWithPostInfo extends Result<PostDispatchInfo, Dis
 }
 
 /** @name DistributionAccounts */
-export interface DistributionAccounts extends Null {}
+export interface DistributionAccounts extends Null { }
 
 /** @name Duration */
-export interface Duration extends Null {}
+export interface Duration extends Null { }
 
 /** @name Farm */
-export interface Farm extends Null {}
+export interface Farm extends Null { }
 
 /** @name Farmer */
-export interface Farmer extends Null {}
+export interface Farmer extends Null { }
 
 /** @name FarmId */
-export interface FarmId extends u64 {}
+export interface FarmId extends u64 { }
 
 /** @name FilterMode */
 export interface FilterMode extends Enum {
@@ -96,10 +96,10 @@ export interface FilterMode extends Enum {
 }
 
 /** @name Fixed */
-export interface Fixed extends FixedU128 {}
+export interface Fixed extends FixedU128 { }
 
 /** @name HolderId */
-export interface HolderId extends AccountId {}
+export interface HolderId extends AccountId { }
 
 /** @name LiquiditySourceType */
 export interface LiquiditySourceType extends Enum {
@@ -125,22 +125,22 @@ export interface Mode extends Enum {
 }
 
 /** @name MultiCurrencyBalanceOf */
-export interface MultiCurrencyBalanceOf extends Null {}
+export interface MultiCurrencyBalanceOf extends Null { }
 
 /** @name MultisigAccount */
-export interface MultisigAccount extends Null {}
+export interface MultisigAccount extends Null { }
 
 /** @name OracleKey */
-export interface OracleKey extends AssetId {}
+export interface OracleKey extends AssetId { }
 
 /** @name OwnerId */
-export interface OwnerId extends AccountId {}
+export interface OwnerId extends AccountId { }
 
 /** @name Permission */
-export interface Permission extends Null {}
+export interface Permission extends Null { }
 
 /** @name PermissionId */
-export interface PermissionId extends u32 {}
+export interface PermissionId extends u32 { }
 
 /** @name PostDispatchInfo */
 export interface PostDispatchInfo extends Struct {
@@ -170,7 +170,7 @@ export interface PriceInfo extends Struct {
 }
 
 /** @name Public */
-export interface Public extends U8aFixed {}
+export interface Public extends U8aFixed { }
 
 /** @name QuoteAmount */
 export interface QuoteAmount extends Enum {
@@ -213,13 +213,13 @@ export interface Scope extends Enum {
 }
 
 /** @name SmoothPriceState */
-export interface SmoothPriceState extends Null {}
+export interface SmoothPriceState extends Null { }
 
 /** @name StorageVersion */
-export interface StorageVersion extends Null {}
+export interface StorageVersion extends Null { }
 
 /** @name SwapAction */
-export interface SwapAction extends Null {}
+export interface SwapAction extends Null { }
 
 /** @name SwapAmount */
 export interface SwapAmount extends Enum {
@@ -249,14 +249,14 @@ export interface SwapVariant extends Enum {
 
 /** @name SwapWithDesiredInput */
 export interface SwapWithDesiredInput extends Struct {
-  readonly desired_amount_in: Balance;
-  readonly min_amount_out: Balance;
+  readonly desiredAmountIn: Balance;
+  readonly minAmountOut: Balance;
 }
 
 /** @name SwapWithDesiredOutput */
 export interface SwapWithDesiredOutput extends Struct {
-  readonly desired_amount_out: Balance;
-  readonly max_amount_in: Balance;
+  readonly desiredAmountOut: Balance;
+  readonly maxAmountIn: Balance;
 }
 
 /** @name TechAccountId */
@@ -272,7 +272,7 @@ export interface TechAccountId extends Enum {
 }
 
 /** @name TechAmount */
-export interface TechAmount extends Amount {}
+export interface TechAmount extends Amount { }
 
 /** @name TechAssetId */
 export interface TechAssetId extends Enum {
@@ -283,7 +283,7 @@ export interface TechAssetId extends Enum {
 }
 
 /** @name TechBalance */
-export interface TechBalance extends Balance {}
+export interface TechBalance extends Balance { }
 
 /** @name TechPurpose */
 export interface TechPurpose extends Enum {
@@ -309,6 +309,6 @@ export interface TradingPair extends Struct {
 }
 
 /** @name ValidationFunction */
-export interface ValidationFunction extends Null {}
+export interface ValidationFunction extends Null { }
 
 export type PHANTOM_SORA = 'sora';

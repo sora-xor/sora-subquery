@@ -8,12 +8,12 @@ import { XOR } from '..';
 const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): string[] => {
     switch (swapAmount.isWithDesiredOutput) {
         case true: {
-            return [formatU128ToBalance(swapAmount.asWithDesiredOutput.max_amount_in.toString(), assetId),
-            formatU128ToBalance(swapAmount.asWithDesiredOutput.desired_amount_out.toString(), assetId)]
+            return [formatU128ToBalance(swapAmount.asWithDesiredOutput.maxAmountIn.toString(), assetId),
+            formatU128ToBalance(swapAmount.asWithDesiredOutput.desiredAmountOut.toString(), assetId)]
         }
         case false: {
-            return [formatU128ToBalance(swapAmount.asWithDesiredInput.desired_amount_in.toString(), assetId),
-            formatU128ToBalance(swapAmount.asWithDesiredInput.min_amount_out.toString(), assetId)]
+            return [formatU128ToBalance(swapAmount.asWithDesiredInput.desiredAmountIn.toString(), assetId),
+            formatU128ToBalance(swapAmount.asWithDesiredInput.minAmountOut.toString(), assetId)]
         }
     }
 }
