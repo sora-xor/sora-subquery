@@ -14,13 +14,14 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
         let assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
         const { event: { data: [assetId] } } = assetRegistrationEvent;
+        logger.debug(assetId.toHuman())
 
         details = {
-            assetId: assetId.toString()
+            assetId: assetId.toHuman()
         }
 
         if (!assetPrecisions.has(assetId.toString())) {
-            const [ , , precision, ] = await api.query.assets.assetInfos(assetId.toString()) as any;
+            const [, , precision,] = await api.query.assets.assetInfos(assetId.toString()) as any;
             assetPrecisions.set(assetId.toString(), precision.toNumber());
         }
 
@@ -28,7 +29,7 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
     else {
 
-        const { extrinsic: { args: [symbol, to, amount, ] } } = extrinsic;
+        const { extrinsic: { args: [symbol, to, amount,] } } = extrinsic;
 
         details = {
             assetId: symbol.toString()
