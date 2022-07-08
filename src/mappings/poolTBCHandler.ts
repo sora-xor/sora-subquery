@@ -2,7 +2,7 @@ import { FPNumber } from '@sora-substrate/math';
 import { tbcQuote } from '@sora-substrate/liquidity-proxy';
 import { SubstrateBlock } from "@subql/types";
 import { Asset, PoolTBC } from "../types";
-import { XOR, DAI, XSTUSD, formatU128ToBalance } from "./utils";
+import { XOR, DAI, XSTUSD, formatU128ToBalance, getOrCreateAssetEntity } from "./utils";
 import type { QuotePayload } from '@sora-substrate/liquidity-proxy';
 
 const FIVE_MINUTES_IN_BLOCKS = 50;
@@ -117,7 +117,7 @@ export async function syncTBCPools(block: SubstrateBlock) {
     payload.prices[collateralAssetId] = await getAssetAveragePrice(collateralAssetId);
     payload.issuances[collateralAssetId] = await getAssetIssuance(collateralAssetId);
 
-    const asset = (await Asset.get(collateralAssetId)) || new Asset(collateralAssetId);
+    const asset = await getOrCreateAssetEntity(collateralAssetId);
 
     asset.poolTBCId = asset.id;
 
@@ -144,7 +144,7 @@ export async function syncTBCPools(block: SubstrateBlock) {
   }
 
   //Add fake XOR Pool in order to add fiat price for it
-  const xorAsset = (await Asset.get(XOR)) || new Asset(XOR);
+  const xorAsset = await getOrCreateAssetEntity(XOR);
 
   xorAsset.poolTBCId = xorAsset.id;
 

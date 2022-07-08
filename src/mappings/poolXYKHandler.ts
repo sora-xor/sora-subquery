@@ -1,6 +1,6 @@
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK, Asset, AssetSnapshotType } from "../types";
-import { formatU128ToBalance, updateAssetPrice, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK } from "./utils";
+import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK } from "./utils";
 
 import BigNumber from "bignumber.js";
 
@@ -42,7 +42,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         const xorReserves: BigNumber = new BigNumber(value[0].toBigInt());
         const targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
 
-        const asset = (await Asset.get(targetAssetId)) || new Asset(targetAssetId);
+        const asset = await getOrCreateAssetEntity(targetAssetId);
         const pool = (await PoolXYK.get(asset.id.toString())) || new PoolXYK(asset.id.toString());
 
         asset.poolXYKId = pool.id;
@@ -94,7 +94,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     }
 
     //Add fake XOR Pool in order to add fiat price for it
-    const xorAsset: Asset = (await Asset.get(XOR)) || new Asset(XOR);
+    const xorAsset = await getOrCreateAssetEntity(XOR);
     const xorPool: PoolXYK = (await PoolXYK.get(xorAsset.id.toString())) || new PoolXYK(xorAsset.id.toString());
 
     xorAsset.poolXYKId = xorPool.id;
