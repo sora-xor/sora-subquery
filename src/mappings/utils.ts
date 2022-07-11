@@ -117,7 +117,14 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
 }
 
 export const getOrCreateAssetEntity = async (assetId: string) => {
-    return (await Asset.get(assetId)) || new Asset(assetId);
+    let  asset = await Asset.get(assetId);
+
+    if (!asset) {
+        asset = new Asset(assetId);
+        await asset.save();
+    }
+
+    return asset;
 }
 
 const getAssetSnapshot = async (assetId: string, blockTimestamp: number, type: AssetSnapshotType): Promise<AssetSnapshot> => {
