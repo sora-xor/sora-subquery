@@ -116,6 +116,17 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     return record
 }
 
+export const getOrCreateAssetEntity = async (assetId: string) => {
+    let  asset = await Asset.get(assetId);
+
+    if (!asset) {
+        asset = new Asset(assetId);
+        await asset.save();
+    }
+
+    return asset;
+}
+
 const getAssetSnapshot = async (assetId: string, blockTimestamp: number, type: AssetSnapshotType): Promise<AssetSnapshot> => {
     const seconds = SnapshotSecondsMap[type];
     const index =  Math.floor(blockTimestamp / seconds);
@@ -138,6 +149,8 @@ const getAssetSnapshot = async (assetId: string, blockTimestamp: number, type: A
 };
 
 export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number): Promise<void> => {
+    await getOrCreateAssetEntity(assetId);
+
     for (const type of Object.values(AssetSnapshotType)) {
         const snapshot = await getAssetSnapshot(assetId, blockTimestamp, type);
 
@@ -159,6 +172,8 @@ export const updateAssetPrice = async (assetId: string, price: string, blockTime
 };
 
 export const updateAssetVolume = async (assetId: string, amount: string, blockTimestamp: number): Promise<void> => {
+    await getOrCreateAssetEntity(assetId);
+
     const assetPrice = [XSTUSD, DAI].includes(assetId)
         ? new BigNumber(1)
         : new BigNumber((await PoolXYK.get(assetId))?.priceUSD ?? 0);
