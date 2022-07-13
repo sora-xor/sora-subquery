@@ -3,15 +3,15 @@ import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
 import { XOR } from "..";
 
 export async function referralUnreserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logger.debug("Caught referral unreserve extrinsic");
+	logger.debug("Caught referral unreserve extrinsic");
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 
     let details = new Object();
 
-    if (record.execution.success) {
-        let referralUnreserveEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'balances');
-        const { event: { data: [from, to, amount] } } = referralUnreserveEvent;
+	if (record.execution.success) {
+        let referralUnreserveEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies');
+        const { event: { data: [, from, to, amount] } } = referralUnreserveEvent;
 
         details = {
             from: from.toString(),

@@ -1,9 +1,39 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import type { Vec } from "@polkadot/types";
-import { SwapAmount } from "sora/api-interfaces";
 import { formatU128ToBalance, assignCommonHistoryElemInfo, PoolsPrices, updateAssetVolume } from "./utils";
-import { LiquiditySourceType } from "sora/api-interfaces";
 import { XOR } from '..';
+import { Enum, Struct } from "@polkadot/types/codec";
+import { Balance } from "@polkadot/types/interfaces/runtime"
+
+interface SwapAmount extends Enum {
+    readonly isWithDesiredInput: boolean;
+    readonly asWithDesiredInput: SwapWithDesiredInput;
+    readonly isWithDesiredOutput: boolean;
+    readonly asWithDesiredOutput: SwapWithDesiredOutput;
+}
+
+/** @name SwapWithDesiredInput */
+export interface SwapWithDesiredInput extends Struct {
+    readonly desiredAmountIn: Balance;
+    readonly minAmountOut: Balance;
+}
+
+/** @name SwapWithDesiredOutput */
+export interface SwapWithDesiredOutput extends Struct {
+    readonly desiredAmountOut: Balance;
+    readonly maxAmountIn: Balance;
+}
+
+/** @name LiquiditySourceType */
+export interface LiquiditySourceType extends Enum {
+    readonly isXykPool: boolean;
+    readonly isBondingCurvePool: boolean;
+    readonly isMulticollateralBondingCurvePool: boolean;
+    readonly isMockPool: boolean;
+    readonly isMockPool2: boolean;
+    readonly isMockPool3: boolean;
+    readonly isMockPool4: boolean;
+}
 
 const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): string[] => {
     switch (swapAmount.isWithDesiredOutput) {

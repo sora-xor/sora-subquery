@@ -14,7 +14,6 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
         let assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
         const { event: { data: [assetId] } } = assetRegistrationEvent;
-        logger.debug(assetId.toHuman())
 
         details = {
             assetId: assetId.toHuman()
