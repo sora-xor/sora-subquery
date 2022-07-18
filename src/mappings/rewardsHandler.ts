@@ -1,5 +1,5 @@
 import { SubstrateEvent, SubstrateExtrinsic } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { getAssetId, assignCommonHistoryElemInfo } from "./utils";
 
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -14,7 +14,7 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
         const rewards = extrinsic.events.reduce((buffer, e) => {
             if (e.event.method === 'Transferred' && e.event.section === 'currencies') {
                 const { event: { data: [assetId, , , amount] } } = e;
-                buffer.push({ assetId: assetId.toString(), amount: amount.toString() });
+                buffer.push({ assetId: getAssetId(assetId), amount: amount.toString() });
             }
             return buffer;
         }, []);

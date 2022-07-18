@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic, SubstrateEvent } from '@subql/types';
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId } from "./utils";
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -22,8 +22,8 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
             let outputCurrencyTransferEvent = extrinsic.events.find(e => (e as SubstrateEvent).idx === (inputCurrencyTransferEvent as SubstrateEvent).idx + 1)
             const { event: { data: [outputAsset, , , outputTransferedAmount] } } = outputCurrencyTransferEvent;
 
-            let baseAssetId = inputAsset.toString();
-            let targetAssetId = outputAsset.toString();
+            let baseAssetId = getAssetId(inputAsset);
+            let targetAssetId = getAssetId(outputAsset);
 
             details = {
                 type: "Deposit",
@@ -45,8 +45,8 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
         const { extrinsic: { args: [, assetAId, assetBId, assetADesired, assetBDesired] } } = extrinsic;
 
-        let baseAssetId = assetAId.toString();
-        let targetAssetId = assetBId.toString();
+        let baseAssetId = getAssetId(assetAId);
+        let targetAssetId = getAssetId(assetBId);
 
         details = {
             type: "Deposit",
