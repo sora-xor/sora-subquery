@@ -13,10 +13,12 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
     if (record.execution.success) {
 
         let assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
-        const { event: { data: [assetId] } } = assetRegistrationEvent;
+        const { event: { data: [asset] } } = assetRegistrationEvent;
+
+        let assetId: string = ((asset as any).code ?? asset).toString()
 
         details = {
-            assetId: assetId.toHuman()
+            assetId: assetId
         }
 
         if (!assetPrecisions.has(assetId.toString())) {
@@ -28,7 +30,7 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
     else {
 
-        const { extrinsic: { args: [symbol, , ,] } } = extrinsic;
+        const { extrinsic: { args: [symbol, ,] } } = extrinsic;
 
         details = {
             assetId: symbol.toHuman()
