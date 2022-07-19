@@ -4,7 +4,7 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 1.4.1
+    version: 1.5.1
   query:
     name: '@subql/query'
     version: 1.2.1
@@ -34,8 +34,8 @@ dataSources:
         # sync pools reserves & prices, create snapshots
         - handler: syncXYKPools
           kind: substrate/BlockHandler
-        - handler: syncTBCPools
-          kind: substrate/BlockHandler
+        # - handler: syncTBCPools
+        #   kind: substrate/BlockHandler
         - handler: handlerTransfers
           kind: substrate/CallHandler
           filter:

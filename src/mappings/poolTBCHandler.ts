@@ -2,7 +2,7 @@ import { FPNumber } from '@sora-substrate/math';
 import { tbcQuote } from '@sora-substrate/liquidity-proxy';
 import { SubstrateBlock } from "@subql/types";
 import { Asset, PoolTBC } from "../types";
-import { XOR, DAI, XSTUSD, formatU128ToBalance, getOrCreateAssetEntity } from "./utils";
+import { XOR, DAI, XSTUSD, formatU128ToBalance, getOrCreateAssetEntity, getAssetId } from "./utils";
 import type { QuotePayload } from '@sora-substrate/liquidity-proxy';
 
 const FIVE_MINUTES_IN_BLOCKS = 50;
@@ -25,7 +25,7 @@ const getCollateralReserves = async (): Promise<{ [key: string]: string } | null
     return reserves.reduce((buffer, item) => {
       const [{ args: [assetId] }, balance] = item;
 
-      return { ...buffer, [assetId.toString()]: balance.toString() }
+      return { ...buffer, [getAssetId(assetId)]: balance.toString() }
     }, {});
   } catch (error) {
     logger.error(error);

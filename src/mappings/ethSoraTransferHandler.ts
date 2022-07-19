@@ -1,6 +1,6 @@
 
 import { SubstrateEvent } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId } from "./utils";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { Codec } from "@polkadot/types/types/codec";
 
@@ -41,8 +41,8 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
 
     entity = {
         requestHash: requestHash.toString(),
-        assetId: assetId.toString(),
-        amount: formatU128ToBalance(amount.toString(), assetId.toString()),
+        assetId: getAssetId(assetId),
+        amount: formatU128ToBalance(amount.toString(), getAssetId(assetId)),
         to: to.toString()
     }
 
