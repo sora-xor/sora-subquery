@@ -1,5 +1,6 @@
 //Exports all handler functions
 export * from './mappings/poolXYKHandler'
+export * from './mappings/tbcHandler'
 export * from './mappings/swapsHandler'
 export * from './mappings/transfersHandler'
 export * from './mappings/liquidityDepositHandler'
@@ -18,4 +19,5 @@ export * from "./mappings/referralReserveHandler";
 export * from "./mappings/referralUnreserveHandler";
 export * from "./mappings/referrerRewardHandler";
 export * from "./mappings/getAllAssetsInfos";
+export * from "./mappings/demeterFarmingPlatformHandlers";
 export * from "./mappings/utils";
