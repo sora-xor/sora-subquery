@@ -34,8 +34,8 @@ dataSources:
         # sync pools reserves & prices, create snapshots
         - handler: syncXYKPools
           kind: substrate/BlockHandler
-        - handler: syncTBCPools
-          kind: substrate/BlockHandler
+        # - handler: syncTBCPools
+        #   kind: substrate/BlockHandler
         - handler: handlerTransfers
           kind: substrate/CallHandler
           filter:

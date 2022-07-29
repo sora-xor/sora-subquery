@@ -313,8 +313,8 @@
       "amountWithoutImpact": "Balance"
     },
     "LiquiditySourceIdOf": {
-      "dex_id": "DEXId",
-      "liquidity_source_index": "LiquiditySourceType"
+      "dexId": "DEXId",
+      "liquiditySourceIndex": "LiquiditySourceType"
     },
     "LiquiditySourceType": {
       "_enum": [

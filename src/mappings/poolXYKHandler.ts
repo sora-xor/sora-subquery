@@ -1,6 +1,6 @@
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK, Asset, AssetSnapshotType } from "../types";
-import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK } from "./utils";
+import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice, getAssetId, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK } from "./utils";
 
 import BigNumber from "bignumber.js";
 
@@ -37,8 +37,8 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     }
 
     for (const [{ args: [baseAsset, targetAsset] }, value] of reserves) {
-        const baseAssetId = baseAsset.toString();
-        const targetAssetId = targetAsset.toString();
+        const baseAssetId = getAssetId(baseAsset);
+        const targetAssetId = getAssetId(targetAsset);
         const xorReserves: BigNumber = new BigNumber(value[0].toBigInt());
         const targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
 

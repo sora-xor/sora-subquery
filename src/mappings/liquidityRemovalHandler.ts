@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic, SubstrateEvent } from '@subql/types';
 import { HistoryElement } from 'sora/types';
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId } from "./utils";
 
 
 
@@ -9,8 +9,8 @@ const saveDetails = (extrinsic: SubstrateExtrinsic, details: Object): Object => 
 
     // TODO change the amount from min to real?
 
-    let baseAssetId = assetAId.toString();
-    let targetAssetId = assetBId.toString();
+    let baseAssetId = getAssetId(assetAId);
+    let targetAssetId = getAssetId(assetBId);
 
     details = {
         type: "Removal",
@@ -45,8 +45,8 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
             if (AssetBTransferEvent.event.method === 'Transferred' && AssetBTransferEvent.event.section === 'currencies') {
 
-                let baseAssetId = inputAsset.toString();
-                let targetAssetId = outputAsset.toString()
+                let baseAssetId = getAssetId(inputAsset);
+                let targetAssetId = getAssetId(outputAsset.toString);
 
                 details = {
                     type: "Removal",
