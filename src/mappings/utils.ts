@@ -1,8 +1,13 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { HistoryElement } from "../types";
+export const XOR: string = '0x0200000000000000000000000000000000000000000000000000000000000000';
 
-export const formatU128ToBalance = (u128: string, decimals: number = 18): string => {
+export const formatU128ToBalance = (u128: string, assetId: string): string => {
+    let decimals = assetPrecisions.get(assetId);
     let padded = u128.padStart(decimals + 1, "0");
+    if (decimals == 0) {
+        return padded
+    }
     return `${padded.slice(0, -decimals)}.${padded.slice(-decimals)}`;
 }
 
@@ -38,7 +43,7 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     record.module = extrinsic.extrinsic.method.section
     record.method = extrinsic.extrinsic.method.method
     record.address = extrinsic.extrinsic.signer.toString()
-    record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic))
+    record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic), XOR)
     record.timestamp = parseInt(((extrinsic.block.timestamp).getTime() / 1000).toFixed(0))
 
     let failedEvent = extrinsic.events.find(e => e.event.method === 'ExtrinsicFailed');
@@ -80,3 +85,5 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     return record
 
 }
+
+export let assetPrecisions = new Map<string, number>();

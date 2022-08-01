@@ -14,18 +14,20 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
         let assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Deposited' && e.event.section === 'currencies')
         if (assetTransferEvent) {
             const { event: { data: [asset, , amount] } } = assetTransferEvent;
+            let assetId = asset.toString();
             details = {
-                assetId: asset.toString(),
-                amount: formatU128ToBalance(amount.toString())
+                assetId: assetId,
+                amount: formatU128ToBalance(amount.toString(), assetId)
             }
 
         } else {
             assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
             if (assetTransferEvent) {
                 const { event: { data: [asset, , , amount] } } = assetTransferEvent;
+                let assetId = asset.toString();
                 details = {
-                    assetId: asset.toString(),
-                    amount: formatU128ToBalance(amount.toString())
+                    assetId: assetId,
+                    amount: formatU128ToBalance(amount.toString(), assetId)
                 }
 
             }

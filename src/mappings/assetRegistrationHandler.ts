@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { assetPrecisions } from "./utils";
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -17,6 +18,12 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
         details = {
             assetId: assetId.toString()
         }
+
+        if (!assetPrecisions.has(assetId.toString())) {
+            const [ , , precision, ] = await api.query.assets.assetInfos(assetId.toString());
+            assetPrecisions.set(assetId.toString(), precision.toNumber());
+        }
+
     }
 
     else {

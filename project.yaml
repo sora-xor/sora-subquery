@@ -58,6 +58,14 @@ network:
         "tip": "Compact<Balance>",
         "target_asset_id": "AssetId"
     },
+    "ContentSource": "Vec<u8>",
+    "ContributionInfo": {
+        "funds_contributed": "Balance",
+        "tokens_bought": "Balance",
+        "tokens_claimed": "Balance",
+        "claiming_finished": "bool",
+        "number_of_claims": "u32"
+    },
     "CurrencyId": "AssetId",
     "CurrencyIdEncoded": {
         "_enum": {
@@ -76,6 +84,7 @@ network:
         "default_fee": "BasisPoints",
         "default_protocol_fee": "BasisPoints"
     },
+    "Description": "Vec<u8>",
     "DispatchErrorWithPostInfoTPostDispatchInfo": {
         "post_info": "PostDispatchInfo",
         "error": "DispatchError"
@@ -107,6 +116,30 @@ network:
     "Fixed": "FixedU128",
     "FixedBytes": "Vec<u8>",
     "HolderId": "AccountId",
+    "ILOInfo": {
+        "ilo_organizer": "AccountId",
+        "tokens_for_ilo": "Balance",
+        "tokens_for_liquidity": "Balance",
+        "ilo_price": "Balance",
+        "soft_cap": "Balance",
+        "hard_cap": "Balance",
+        "min_contribution": "Balance",
+        "max_contribution": "Balance",
+        "refund_type": "bool",
+        "liquidity_percent": "Balance",
+        "listing_price": "Balance",
+        "lockup_days": "u32",
+        "start_block": "BlockNumber",
+        "end_block": "BlockNumber",
+        "token_vesting": "VestingInfo",
+        "sold_tokens": "Balance",
+        "funds_raised": "Balance",
+        "succeeded": "bool",
+        "failed": "bool",
+        "lp_tokens": "Balance",
+        "claimed_lp_tokens": "bool",
+        "finish_block": "BlockNumber"
+    },
     "IncomingAddToken": {
         "token_address": "EthereumAddress",
         "asset_id": "AssetId",
@@ -265,6 +298,12 @@ network:
         "timepoint": "BridgeTimepoint",
         "kind": "IncomingTransactionRequestKind",
         "network_id": "BridgeNetworkId"
+    },
+    "LockInfo": {
+        "pool_tokens": "Balance",
+        "unlocking_block": "BlockNumber",
+        "asset_a": "AssetId",
+        "asset_b": "AssetId"
     },
     "LookupSource": "AccountId",
     "MarketMakerInfo": {
@@ -453,6 +492,11 @@ network:
     },
     "Permission": "Null",
     "PermissionId": "u32",
+    "PollInfo": {
+        "number_of_options": "u32",
+        "poll_start_block": "BlockNumber",
+        "poll_end_block": "BlockNumber"
+    },
     "PoolFarmer": {
         "account": "AccountId",
         "block": "BlockNumber",
@@ -530,6 +574,10 @@ network:
         "v": "u8"
     },
     "SmoothPriceState": "Null",
+    "StakingInfo": {
+        "deposited": "Balance",
+        "rewards": "Balance"
+    },
     "StorageVersion": "Null",
     "SwapAction": "Null",
     "SwapAmount": {
@@ -590,19 +638,37 @@ network:
         "base_asset_id": "TechAssetId",
         "target_asset_id": "TechAssetId"
     },
+    "TokenLockInfo": {
+        "tokens": "Balance",
+        "unlocking_block": "BlockNumber",
+        "asset_id": "AssetId"
+    },
     "TradingPair": {
         "base_asset_id": "AssetId",
         "target_asset_id": "AssetId"
     },
-    "ValidationFunction": "Null"
+    "ValidationFunction": "Null",
+    "VotingInfo": {
+        "voting_option": "u32",
+        "number_of_votes": "Balance",
+        "ceres_withdrawn": "bool"
+    }
 }
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 0
+    startBlock: 1
     mapping:
       handlers:
-
+        # Get all assets on the first block being parsed and cache them
+        - handler: getAllAssetsInfos
+          kind: substrate/BlockHandler
+        # Update the cached dictionary on asset creation
+        - handler: assetRegistrationHandler
+          kind: substrate/CallHandler
+          filter:
+            module: assets
+            method: register
         - handler: handleXYKPools
           kind: substrate/BlockHandler
 
@@ -618,16 +684,22 @@ dataSources:
             module: liquidityProxy
             method: swap
 
+        - handler: handleSwapTransfers
+          kind: substrate/CallHandler
+          filter:
+            module: liquidityProxy
+            method: swapTransfer
+
         - handler: handleLiquidityDeposit
           kind: substrate/CallHandler
           filter:
-            module: poolXyk
+            module: poolXYK
             method: depositLiquidity
 
         - handler: handleLiquidityRemoval
           kind: substrate/CallHandler
           filter:
-            module: poolXyk
+            module: poolXYK
             method: withdrawLiquidity
 
         - handler: handlerIrohaMigration
@@ -659,12 +731,6 @@ dataSources:
           filter:
             module: currencies
             method: Transferred
-
-        - handler: assetRegistrationHandler
-          kind: substrate/CallHandler
-          filter:
-            module: assets
-            method: register
 
         - handler: soraEthTransferHandler
           kind: substrate/CallHandler
@@ -701,3 +767,33 @@ dataSources:
           filter:
             module: vestedRewards
             method: claimRewards
+
+        - handler: rewardsHandler
+          kind: substrate/CallHandler
+          filter:
+            module: vestedRewards
+            method: claimCrowdloanRewards
+
+        - handler: setReferralHandler
+          kind: substrate/CallHandler
+          filter:
+            module: referrals
+            method: setReferrer
+
+        - handler: referralReserveHandler
+          kind: substrate/CallHandler
+          filter:
+            module: referrals
+            method: reserve
+
+        - handler: referralUnreserveHandler
+          kind: substrate/CallHandler
+          filter:
+            module: referrals
+            method: unreserve
+
+        - handler: referrerRewardHandler
+          kind: substrate/EventHandler
+          filter:
+            module: xorFee
+            method: ReferrerRewarded
