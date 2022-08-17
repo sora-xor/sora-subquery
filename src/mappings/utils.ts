@@ -33,6 +33,10 @@ export const SnapshotSecondsMap = {
     [AssetSnapshotType.DAY]: 86_400,
 };
 
+export const getAssetId = (asset: any): string => {
+    return (asset?.code?.code ?? asset?.code ?? asset).toHuman();
+};
+
 export const formatU128ToBalance = (u128: string, assetId: string): string => {
     let decimals = assetPrecisions.get(assetId);
     let padded = u128.padStart(decimals + 1, "0");
@@ -117,7 +121,7 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
 }
 
 export const getOrCreateAssetEntity = async (assetId: string) => {
-    let  asset = await Asset.get(assetId);
+    let asset = await Asset.get(assetId);
 
     if (!asset) {
         asset = new Asset(assetId);

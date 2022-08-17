@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId } from "./utils";
 import { XOR } from "..";
 
 const Section = 'demeterFarmingPlatform';
@@ -14,9 +14,9 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
   const details: any = {};
 
   // asset id paired with XOR (farming), or asset id (staking)
-  details.assetId = assetId.toString();
+  details.assetId = getAssetId(assetId);
   // reward asset id
-  details.rewardAssetId = rewardAssetId.toString();
+  details.rewardAssetId = getAssetId(rewardAssetId);
   // farming or staking
   details.isFarm = isFarm.toHuman();
 
@@ -30,9 +30,9 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
     const { event: { data: [who, pool_asset, reward_asset, is_farm, amount] } } = event;
 
     // a little trick - we get decimals from pool asset, not lp token
-    details.amount = formatU128ToBalance(amount.toString(), assetId.toString());
+    details.amount = formatU128ToBalance(amount.toString(), getAssetId(assetId));
   } else {
-    details.amount = formatU128ToBalance(desiredAmount.toString(), assetId.toString());
+    details.amount = formatU128ToBalance(desiredAmount.toString(), getAssetId(assetId));
   }
 
   record.data = details;
@@ -52,9 +52,9 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
   const details: any = {};
 
   // asset id paired with XOR (farming), or asset id (staking)
-  details.assetId = assetId.toString();
+  details.assetId = getAssetId(assetId);
   // reward asset id
-  details.rewardAssetId = rewardAssetId.toString();
+  details.rewardAssetId = getAssetId(rewardAssetId);
   // farming or staking
   details.isFarm = isFarm.toHuman();
 
@@ -68,9 +68,9 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
     const { event: { data: [who, amount, pool_asset, reward_asset, is_farm] } } = event;
 
     // a little trick - we get decimals from pool asset, not lp token
-    details.amount = formatU128ToBalance(amount.toString(), assetId.toString());
+    details.amount = formatU128ToBalance(amount.toString(), getAssetId(assetId));
   } else {
-    details.amount = formatU128ToBalance(desiredAmount.toString(), assetId.toString());
+    details.amount = formatU128ToBalance(desiredAmount.toString(), getAssetId(assetId));
   }
 
   record.data = details;
@@ -90,7 +90,7 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
   const details: any = {};
 
   // reward asset id
-  details.assetId = rewardAssetId.toString();
+  details.assetId = getAssetId(rewardAssetId);
   // reward for farming or staking
   details.isFarm = isFarm.toHuman();
 
@@ -99,7 +99,7 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
   if (event) {
     const { event: { data: [currencyId, from, to, amount] } } = event;
 
-    details.amount = formatU128ToBalance(amount.toString(), rewardAssetId.toString());
+    details.amount = formatU128ToBalance(amount.toString(), getAssetId(rewardAssetId));
   } else {
     details.amount = '0';
   }
