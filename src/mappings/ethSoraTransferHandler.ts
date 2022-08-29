@@ -33,7 +33,7 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
 
     const {event: {data: [requestHash]}} = registeredRequestEvent
 
-    const { assetId, amount, to } = distinguishCurrenciesEvent(currenciesEvent)
+    const { assetId, amount, to } = distinguishCurrenciesEvent(currenciesEvent as EventRecord)
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
