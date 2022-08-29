@@ -11,14 +11,14 @@ export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Pro
 
     if (record.execution.success) {
 
-        let referralReserveEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies');
+        let referralReserveEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'balances');
 
         if (referralReserveEvent == undefined) {
             logger.debug("No currencies.Transferred event is found")
             return
         }
 
-        const { event: { data: [, from, to, amount] } } = referralReserveEvent;
+        const { event: { data: [from, to, amount] } } = referralReserveEvent;
 
         details = {
             from: from.toString(),
