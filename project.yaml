@@ -19,7 +19,7 @@ network:
     file: ./types.json
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 73712
+    startBlock: 1
     mapping:
       file: ./dist/index.js
       handlers:
