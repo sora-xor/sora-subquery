@@ -1,12 +1,11 @@
 
-import { SubstrateEvent } from "@subql/types";
+import { SubstrateEvent, TypedEventRecord } from "@subql/types";
 import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId } from "./utils";
-import type { EventRecord } from "@polkadot/types/interfaces";
 import type { Codec } from "@polkadot/types/types/codec";
 
 // Obtaining tokens for further transfer may be done by unlocking ("Transferred" event) or by minting ("Deposited"). Either way is a part of ETH->SORA transfer.
 
-const distinguishCurrenciesEvent = (currenciesEvent: EventRecord): { assetId: Codec; amount: Codec; to: Codec; } => {
+const distinguishCurrenciesEvent = (currenciesEvent: TypedEventRecord<any>): { assetId: Codec; amount: Codec; to: Codec; } => {
     switch (currenciesEvent.event.method) {
         case "Deposited": {
             const {event: {data: [assetId,to,amount]}} = currenciesEvent
