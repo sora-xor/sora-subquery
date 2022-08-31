@@ -1,6 +1,6 @@
 
 import { SubstrateEvent } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, updateHistoryElementAccounts, getAssetId } from "./utils";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { Codec } from "@polkadot/types/types/codec";
 
@@ -49,6 +49,7 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
     record.data = entity
 
     await record.save();
+    await updateHistoryElementAccounts(record);
 
     logger.debug(`===== Saved ETH->SORA transfer extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
