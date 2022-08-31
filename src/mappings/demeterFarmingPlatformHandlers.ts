@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, updateHistoryElementAccounts, getAssetId } from "./utils";
 import { XOR } from "..";
 
 const Section = 'demeterFarmingPlatform';
@@ -38,6 +38,7 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
   record.data = details;
 
   await record.save();
+  await updateHistoryElementAccounts(record);
 
   logger.debug(`===== Saved demeterFarmingPlatform deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }
@@ -76,6 +77,7 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
   record.data = details;
 
   await record.save();
+  await updateHistoryElementAccounts(record);
 
   logger.debug(`===== Saved demeterFarmingPlatform withdraw with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }
@@ -107,6 +109,7 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
   record.data = details;
 
   await record.save();
+  await updateHistoryElementAccounts(record);
 
   logger.debug(`===== Saved demeterFarmingPlatform getRewards with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }

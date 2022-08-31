@@ -1,6 +1,5 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
-import { assetPrecisions, getAssetId } from "./utils";
+import { assetPrecisions, getAssetId, assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -41,6 +40,7 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
     record.data = details
 
     await record.save();
+    await updateHistoryElementAccounts(record);
 
     logger.debug(`===== Saved asset registration with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

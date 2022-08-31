@@ -47,6 +47,11 @@ type PoolTBC @entity {
   collateralReserves: String!
 }
 
+type Account @entity {
+  id: ID!
+  latestHistoryElement: HistoryElement
+}
+
 type HistoryElement @entity {
   id: ID!
   blockHeight: BigInt!

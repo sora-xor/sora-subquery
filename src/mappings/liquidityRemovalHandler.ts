@@ -1,8 +1,5 @@
 import { SubstrateExtrinsic, SubstrateEvent } from '@subql/types';
-import { HistoryElement } from 'sora/types';
-import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId } from "./utils";
-
-
+import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId, updateHistoryElementAccounts } from "./utils";
 
 const saveDetails = (extrinsic: SubstrateExtrinsic, details: Object): Object => {
     const { extrinsic: { args: [, assetAId, assetBId, , assetAMin, assetBMin] } } = extrinsic;
@@ -79,6 +76,7 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
     record.data = details
 
     await record.save();
+    await updateHistoryElementAccounts(record);
 
     logger.debug(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

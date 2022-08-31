@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateExtrinsic } from "@subql/types";
-import { HistoryElement, PoolXYK, Asset, AssetSnapshot, AssetSnapshotType } from "../types";
+import { HistoryElement, PoolXYK, Asset, AssetSnapshot, AssetSnapshotType, Account } from "../types";
 
 export const XOR: string = '0x0200000000000000000000000000000000000000000000000000000000000000';
 export const VAL: string = '0x0200040000000000000000000000000000000000000000000000000000000000';
@@ -92,14 +92,11 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
         const { event: { data: [error] } } = failedEvent
 
         if ((error as any).isModule) {
-
-            const parsed_error = JSON.parse(error.toString())
-
             record.execution.error = {
-                moduleErrorId: parsed_error.module.error,
-                moduleErrorIndex: parsed_error.module.index
+                // tricky way to get int
+                moduleErrorId: (error as any).asModule.error.toU8a()[0],
+                moduleErrorIndex: (error as any).asModule.index.toU8a()[0],
             }
-
         } else {
 
             // Other, CannotLookup, BadOrigin, no extra info
@@ -118,6 +115,37 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
     }
 
     return record
+}
+
+export const getOrCreateAccountEntity = async (accountAddress: string) => {
+    let account = await Account.get(accountAddress);
+
+    if (!account) {
+        account = new Account(accountAddress);
+        await account.save();
+    }
+
+    return account;
+};
+
+const INCOMING_TRANSFER_METHODS = ['transfer', 'swapTransfer'];
+
+export const updateHistoryElementAccounts = async (history: HistoryElement) => {
+    const addresses = [history.address.toString()];
+
+    if (
+        INCOMING_TRANSFER_METHODS.includes(history.method.toString()) &&
+        history.data &&
+        history.data['to']
+    ) {
+        addresses.push((history.data['to'] as string).toString());
+    }
+
+    for (const address of addresses) {
+        const account = await getOrCreateAccountEntity(address);
+        account.latestHistoryElementId = history.id.toString();
+        await account.save();
+    }
 }
 
 export const getOrCreateAssetEntity = async (assetId: string) => {
