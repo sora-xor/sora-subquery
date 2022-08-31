@@ -92,14 +92,11 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
         const { event: { data: [error] } } = failedEvent
 
         if ((error as any).isModule) {
-
-            const parsed_error = JSON.parse(error.toString())
-
             record.execution.error = {
-                moduleErrorId: parsed_error.module.error,
-                moduleErrorIndex: parsed_error.module.index
+                // tricky way to get int
+                moduleErrorId: (error as any).asModule.error.toU8a()[0],
+                moduleErrorIndex: (error as any).asModule.index.toU8a()[0],
             }
-
         } else {
 
             // Other, CannotLookup, BadOrigin, no extra info
