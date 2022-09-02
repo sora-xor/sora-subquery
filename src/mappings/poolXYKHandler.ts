@@ -113,7 +113,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
 
     // update price samples
     for (const pool of pools) {
-        await updateAssetPrice(pool.id.toString(), pool.priceUSD, blockTimestamp);
+        await updateAssetPrice(pool.id.toString(), pool.priceUSD, blockTimestamp, blockNumber);
     }
 
     PoolsPrices.set(false);

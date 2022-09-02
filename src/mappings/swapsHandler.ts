@@ -49,6 +49,7 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 }
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
+    const blockNumber = extrinsic.block.block.header.number.toNumber();
     const blockTimestamp: number = parseInt(((extrinsic.block.timestamp).getTime() / 1000).toFixed(0));
     const record = assignCommonHistoryElemInfo(extrinsic)
 
@@ -86,8 +87,8 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 
     // update assets volume
     if (record.execution.success) {
-        await updateAssetVolume(baseAssetId, details.baseAssetAmount, blockTimestamp);
-        await updateAssetVolume(targetAssetId, details.targetAssetAmount, blockTimestamp);
+        await updateAssetVolume(baseAssetId, details.baseAssetAmount, blockTimestamp, blockNumber);
+        await updateAssetVolume(targetAssetId, details.targetAssetAmount, blockTimestamp, blockNumber);
         PoolsPrices.set(true);
     }
 }

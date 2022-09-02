@@ -161,56 +161,64 @@ export const getOrCreateAssetEntity = async (assetId: string) => {
 
 const getAssetSnapshotId = (assetId: string, type: AssetSnapshotType, index: number) => [assetId, type, index].join('-');
 
-const getAssetSnapshot = async (assetId: string, blockTimestamp: number, type: AssetSnapshotType): Promise<AssetSnapshot> => {
+const getAssetSnapshot = async (assetId: string, type: AssetSnapshotType, blockTimestamp: number, blockNumber: number): Promise<AssetSnapshot> => {
     const seconds = SnapshotSecondsMap[type];
+    const interval = Math.floor(seconds / SECONDS_IN_BLOCK);
     const index =  Math.floor(blockTimestamp / seconds);
-    const id = getAssetSnapshotId(assetId, type, index);
+    const timestamp = index * seconds; // rounded snapshot timestamp
+    const shapshotIndex = Math.floor(blockNumber / interval); // rounded snapshot index (from 0)
+    const id = getAssetSnapshotId(assetId, type, shapshotIndex);
 
     let snapshot = await AssetSnapshot.get(id);
 
     if (!snapshot) {
         snapshot = new AssetSnapshot(id);
         snapshot.assetId = assetId;
-        snapshot.timestamp = index * seconds;
+        snapshot.timestamp = timestamp;
         snapshot.type = type;
         snapshot.volume = {
             amount: '0',
             amountUSD: '0'
         };
+        snapshot.priceUSD = {
+            open: '0',
+            close: '0',
+            high: '0',
+            low: '0',
+        };
 
         // find prev snapshot, to get it's "close" price, and set it as "open" price for new snapshot
-        const prevSnapshotId = getAssetSnapshotId(assetId, type, index - 1);
-        const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
+        let prevSnapshotIndex = shapshotIndex - 1;
 
-        if (prevSnapshot) {
-            const snapshotOpenPrice = prevSnapshot.priceUSD.close;
+        while (prevSnapshotIndex >= 0) {
+            const prevSnapshotId = getAssetSnapshotId(assetId, type, prevSnapshotIndex);
+            const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
 
-            snapshot.priceUSD = {
-                open: snapshotOpenPrice,
-                close: snapshotOpenPrice,
-                high: snapshotOpenPrice,
-                low: snapshotOpenPrice,
-            };
+            if (prevSnapshot?.priceUSD) {
+                const snapshotOpenPrice = prevSnapshot?.priceUSD?.close;
+
+                snapshot.priceUSD = {
+                    open: snapshotOpenPrice,
+                    close: snapshotOpenPrice,
+                    high: snapshotOpenPrice,
+                    low: snapshotOpenPrice,
+                };
+
+                break;
+            }
+
+            prevSnapshotIndex = prevSnapshotIndex - 1;
         }
     }
 
     return snapshot;
 };
 
-export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number): Promise<void> => {
+export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
     await getOrCreateAssetEntity(assetId);
 
     for (const type of Object.values(AssetSnapshotType)) {
-        const snapshot = await getAssetSnapshot(assetId, blockTimestamp, type);
-
-        if (!snapshot.priceUSD) {
-            snapshot.priceUSD = {
-                open: price,
-                close: price,
-                high: price,
-                low: price,
-            };
-        }
+        const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
         snapshot.priceUSD.close = price;
         snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), new BigNumber(price)).toString();
@@ -220,7 +228,7 @@ export const updateAssetPrice = async (assetId: string, price: string, blockTime
     }
 };
 
-export const updateAssetVolume = async (assetId: string, amount: string, blockTimestamp: number): Promise<void> => {
+export const updateAssetVolume = async (assetId: string, amount: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
     await getOrCreateAssetEntity(assetId);
 
     const assetPrice = [XSTUSD, DAI].includes(assetId)
@@ -228,7 +236,7 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
         : new BigNumber((await PoolXYK.get(assetId))?.priceUSD ?? 0);
 
     for (const type of Object.values(AssetSnapshotType)) {
-        const snapshot = await getAssetSnapshot(assetId, blockTimestamp, type);
+        const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
         const volume = new BigNumber(amount);
         const volumeUSD = volume.multipliedBy(assetPrice);
