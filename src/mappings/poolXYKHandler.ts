@@ -93,27 +93,29 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         });
     }
 
-    //Add fake XOR Pool in order to add fiat price for it
-    const xorAsset = await getOrCreateAssetEntity(XOR);
-    const xorPool: PoolXYK = (await PoolXYK.get(xorAsset.id.toString())) || new PoolXYK(xorAsset.id.toString());
+    //If pools exists, add fake XOR Pool in order to add fiat price for it
+    if (pools.length > 0) {
+        const xorAsset = await getOrCreateAssetEntity(XOR);
+        const xorPool: PoolXYK = (await PoolXYK.get(xorAsset.id.toString())) || new PoolXYK(xorAsset.id.toString());
 
-    xorAsset.poolXYKId = xorPool.id;
+        xorAsset.poolXYKId = xorPool.id;
 
-    xorPool.multiplier = BigInt(1);
-    xorPool.baseAssetReserves = "0";
-    xorPool.targetAssetReserves = formatU128ToBalance(totalXorInPools.toFixed(0), XOR);
-    xorPool.priceUSD = xorPriceInDAI.toFixed(18);
-    xorPool.strategicBonusApy = "0";
+        xorPool.multiplier = BigInt(1);
+        xorPool.baseAssetReserves = "0";
+        xorPool.targetAssetReserves = formatU128ToBalance(totalXorInPools.toFixed(0), XOR);
+        xorPool.priceUSD = xorPriceInDAI.toFixed(18);
+        xorPool.strategicBonusApy = "0";
 
-    assets.push(xorAsset);
-    pools.push(xorPool);
+        assets.push(xorAsset);
+        pools.push(xorPool);
+    }
 
     await Promise.all(pools.map(pool => pool.save()));
     await Promise.all(assets.map(asset => asset.save()));
 
     // update price samples
     for (const pool of pools) {
-        await updateAssetPrice(pool.id.toString(), pool.priceUSD, blockTimestamp);
+        await updateAssetPrice(pool.id.toString(), pool.priceUSD, blockTimestamp, blockNumber);
     }
 
     PoolsPrices.set(false);
