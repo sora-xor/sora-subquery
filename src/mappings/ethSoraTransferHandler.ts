@@ -1,10 +1,13 @@
 
 import { SubstrateEvent } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo, updateHistoryElementAccounts, getAssetId } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, updateHistoryElementAccounts, getAssetId, XOR } from "./utils";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { Codec } from "@polkadot/types/types/codec";
 
-// Obtaining tokens for further transfer may be done by unlocking ("Transferred" event) or by minting ("Deposited"). Either way is a part of ETH->SORA transfer.
+// Obtaining tokens for further transfer may be done by unlocking
+// Below Substrate 4: "Transferred" event or by minting "Deposited".
+// Substrate 4: "Transfer" event
+// Either way is a part of ETH->SORA transfer.
 
 const distinguishCurrenciesEvent = (currenciesEvent: EventRecord): { assetId: Codec; amount: Codec; to: Codec; } => {
     switch (currenciesEvent.event.method) {
@@ -12,9 +15,12 @@ const distinguishCurrenciesEvent = (currenciesEvent: EventRecord): { assetId: Co
             const {event: {data: [assetId,to,amount]}} = currenciesEvent
             return { assetId, amount, to }
         }
+        case "Transfer":
         case "Transferred": {
-            const {event: {data: [assetId,from,to,amount]}} = currenciesEvent
-            return { assetId, amount, to }
+            const [amount, to, from, assetId] = currenciesEvent.event.data.slice().reverse();
+
+            // assetId is undefined on balances.Transfer (XOR transfer)
+            return { assetId, amount, to };
         }
     }
 }
@@ -24,16 +30,20 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
     logger.debug("Caught ETH->SORA transfer extrinsic")
 
     const extrinsic = incomingRequestFinalizationEvent.extrinsic
-    let registeredRequestEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered' && e.event.section === 'ethBridge')
-    let currenciesEvent = extrinsic.events.find(e => e.event.section === 'currencies')
+    const registeredRequestEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered' && e.event.section === 'ethBridge')
+    const currenciesEvent = extrinsic.events.find(e => 
+        e.event.section === 'currencies' && e.event.method === 'Transferred' ||
+        e.event.section === 'tokens' && e.event.method === 'Transfer' ||
+        e.event.section === 'balances' && e.event.method === 'Transfer'
+    );
 
-    if (registeredRequestEvent == null || currenciesEvent == null ) {
-        return
-    }
+    if (!registeredRequestEvent || !currenciesEvent) return;
 
     const {event: {data: [requestHash]}} = registeredRequestEvent
 
-    const { assetId, amount, to } = distinguishCurrenciesEvent(currenciesEvent as EventRecord)
+    const data = distinguishCurrenciesEvent(currenciesEvent as EventRecord)
+
+    const asset = data.assetId ? getAssetId(data.assetId) : XOR;
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
@@ -41,9 +51,9 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
 
     entity = {
         requestHash: requestHash.toString(),
-        assetId: getAssetId(assetId),
-        amount: formatU128ToBalance(amount.toString(), getAssetId(assetId)),
-        to: to.toString()
+        assetId: asset,
+        amount: formatU128ToBalance(data.amount.toString(), asset),
+        to: data.to.toString()
     }
 
     record.data = entity
