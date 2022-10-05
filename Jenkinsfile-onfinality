@@ -29,7 +29,7 @@ pipeline {
     stages {
         stage('Install Dependicies & Deploy') {
             environment {
-                SUBQUERY_CLI_VERSION = '0.2.4'
+                SUBQUERY_CLI_VERSION = '0.2.10'
                 SUBQUERY_ORG =  'sora-xor'
                 matrix_chain = "sora-${targetEnvironment}"
                 SUBQUERY_TOKEN = credentials("${subqueryToken}")
