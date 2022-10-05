@@ -1,7 +1,7 @@
 @Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
-String envImageName      = 'node:16-buster-slim'
+String envImageName      = 'node:current-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
@@ -33,6 +33,7 @@ pipeline {
                 SUBQUERY_ORG =  'sora-xor'
                 matrix_chain = "sora-${targetEnvironment}"
                 SUBQUERY_TOKEN = credentials("${subqueryToken}")
+                SUBQL_IPFS_CID = credentials("${subquery-ipfs-cid}")
                 
             }
             steps {
@@ -40,8 +41,8 @@ pipeline {
                     sh """
                        set -xe
                        export SUBQL_ACCESS_TOKEN=${SUBQUERY_TOKEN}
+                       export SUBQL_IPFS_CID=${SUBQL_IPFS_CID}
                        npm install -g @subql/cli
-                       subql publish
                        subql deployment:deploy \
                            --org=${SUBQUERY_ORG} \
                            --projectName=${matrix_chain} \
