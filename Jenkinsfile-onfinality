@@ -41,7 +41,7 @@ pipeline {
                        set -xe
                        export SUBQL_ACCESS_TOKEN=${SUBQUERY_TOKEN}
                        npm install -g @subql/cli
-					   subql publish
+                       subql publish
                        subql deployment:deploy \
                            --org=${SUBQUERY_ORG} \
                            --projectName=${matrix_chain} \
