@@ -3,11 +3,10 @@
 String agentLabel        = 'docker-build-agent'
 String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
-String subqueryIpfsCid   = 'subquery-ipfs-cid'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 List   jobParams         = [ string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true) ]
-String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
+String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 
 properties([
     parameters( jobParams ),
@@ -34,17 +33,22 @@ pipeline {
                 SUBQUERY_ORG =  'sora-xor'
                 matrix_chain = "sora-${targetEnvironment}"
                 SUBQUERY_TOKEN = credentials("${subqueryToken}")
-                SUBQL_IPFS_CID = credentials("${subqueryIpfsCid}")
+                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
             }
             steps {
                 script {
                     sh """
-                       export SUBQL_ACCESS_TOKEN=${SUBQUERY_TOKEN}
-                       sh './script/deploy.sh'
+                       npm install -g @subql/cli@1.6.1
+                       npm install -g typescript
+                       npm install tslib
+                       npm link typescript
+                       yarn
+                       yarn codegen
+                       RESULT=\$(subql publish | grep -oP ': \\K.*')
                        subql deployment:deploy \
                        --useDefaults \
                        --org=${SUBQUERY_ORG} \
-                       --ipfsCID=${RESULT} \
+                       --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
                        --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
                        echo "New deployment is executed"
