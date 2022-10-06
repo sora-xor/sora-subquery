@@ -1,13 +1,14 @@
 @Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
-String envImageName      = 'node:16-buster-slim'
+String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
 String subqueryIpfsCid   = 'subquery-ipfs-cid'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 List   jobParams         = [ string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true) ]
 String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
+String RESULT
 
 properties([
     parameters( jobParams ),
@@ -35,19 +36,24 @@ pipeline {
                 matrix_chain = "sora-${targetEnvironment}"
                 SUBQUERY_TOKEN = credentials("${subqueryToken}")
                 SUBQL_IPFS_CID = credentials("${subqueryIpfsCid}")
-                
             }
             steps {
                 script {
                     sh """
                        set -xe
                        export SUBQL_ACCESS_TOKEN=${SUBQUERY_TOKEN}
-                       export SUBQL_IPFS_CID=${SUBQL_IPFS_CID}
-                       npm install -g @subql/cli
+                       npm install -g @subql/cli@1.6.1
+                       npm install -g typescript
+                       npm install tslib
+                       npm link typescript
+                       yarn
+                       yarn codegen
+                       RESULT=${subql publish | grep -v 'SubQuery Project uploaded to IPFS: '}
+                       echo $RESULT
                        subql deployment:deploy \
                            --useDefaults \
                            --org=${SUBQUERY_ORG} \
-                           --ipfsCID=${SUBQL_IPFS_CID} \
+                           --ipfsCID=$RESULT \
                            --projectName=${matrix_chain} \
                            --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
                        echo "New deployment is executed"
