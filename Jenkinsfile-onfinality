@@ -42,6 +42,13 @@ pipeline {
                     sh """
                        export SUBQL_ACCESS_TOKEN=${SUBQUERY_TOKEN}
                        sh './script/deploy.sh'
+                       subql deployment:deploy \
+                       --useDefaults \
+                       --org=${SUBQUERY_ORG} \
+                       --ipfsCID=${RESULT} \
+                       --projectName=${matrix_chain} \
+                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                       echo "New deployment is executed"
                     """
                 }
             }
