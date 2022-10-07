@@ -46,7 +46,7 @@ pipeline {
         stage('Deleting and creating a project if needed') {
             when {
                 expression {
-                    params.deleteProject
+                    params.deleteProject == 'true'
                 }
             }
             environment {
