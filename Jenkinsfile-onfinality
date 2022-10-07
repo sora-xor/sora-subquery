@@ -3,12 +3,15 @@
 String agentLabel        = 'docker-build-agent'
 String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
-String subqueryIpfsCid   = 'subquery-ipfs-cid'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
-List   jobParams         = [ string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true) ]
-String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
-String RESULT
+List   jobParams         = [ 
+    string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
+    booleanParam(defaultValue: false, name: 'deleteProject'),
+    booleanParam(defaultValue: false, name: 'createProject'),
+    booleanParam(defaultValue: false, name: 'stagingSlot'),
+    ]
+String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 
 properties([
     parameters( jobParams ),
@@ -26,29 +29,122 @@ pipeline {
             label agentLabel
             image envImageName
         }
-    }   
+    }
+    environment {
+        SUBQUERY_CLI_VERSION = '1.6.1'
+        SUBQUERY_INDEXER_VERSION = 'v1.9.1'
+        SUBQUERY_NODE_VERSION = 'v1.5.0'
+        SUBQUERY_CLI_VERSION_STAGING = '1.6.1'
+        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.9.1'
+        SUBQUERY_NODE_VERSION_STAGING = 'v1.5.0'
+        SUBQUERY_ORG =  'sora-xor'
+        matrix_chain = "sora-${targetEnvironment}"
+        SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
+    }
 
     stages {
-        stage('Install Dependicies & Deploy') {
+        stage('Validation before deployment') {
+            steps {
+                script {
+                    sh """
+                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                       subql validate
+                    """
+                }
+            }
+        }
+        stage('Deleting a project if needed') {
+            when {
+                expression {
+                    params.deleteProject == 'true'
+                }
+            }
             environment {
-                SUBQUERY_CLI_VERSION = '0.2.3'
                 SUBQUERY_ORG =  'sora-xor'
                 matrix_chain = "sora-${targetEnvironment}"
-                SUBQUERY_TOKEN = credentials("${subqueryToken}")
-                SUBQL_IPFS_CID = credentials("${subqueryIpfsCid}")
+                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
             }
             steps {
                 script {
                     sh """
-                       export SUBQL_ACCESS_TOKEN=${SUBQUERY_TOKEN}
-                       sh './script/deploy.sh'
+                    subql project:delete-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain}
+                    echo project ${matrix_chain} is deleted
+                """
+                }
+            }
+        }
+        stage('Creating a project if needed') {
+            when {
+                anyOf {
+                expression {
+                    params.deleteProject == 'true'
+                    params.createProject == 'true'
+                }
+            }
+        }
+            steps {
+                script {
+                    sh """
+                    subql project:create-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain} \
+                    --gitRepo=https://github.com/sora-xor/sora-subquery
+                    echo project ${matrix_chain} is created
+                """
+                }
+            }
+        }
+        stage('Install Dependencies & Deploy in production slot') {
+            steps {
+                script {
+                    sh """
+                       npm install -g typescript
+                       npm install tslib
+                       npm link typescript
+                       yarn
+                       yarn codegen
+                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                        subql deployment:deploy \
-                       --useDefaults \
+                       --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
+                       --queryVersion=${SUBQUERY_NODE_VERSION} \
                        --org=${SUBQUERY_ORG} \
-                       --ipfsCID=${RESULT} \
+                       --dict=null \
+                       --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
                        --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
-                       echo "New deployment is executed"
+                       echo "New deployment in production slot is executed"
+                    """
+                }
+            }
+        }
+        stage('Install Dependencies & Deploy in staging slot') {
+            when {
+                expression {
+                    params.stagingSlot == 'true'
+                }
+            }
+            steps {
+                script {
+                    sh """
+                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION_STAGING}
+                       npm install -g typescript
+                       npm install tslib
+                       npm link typescript
+                       yarn
+                       yarn codegen
+                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
+                       subql deployment:deploy \
+                       --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
+                       --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
+                       --org=${SUBQUERY_ORG} \
+                       --dict=null \
+                       --ipfsCID=\$RESULT \
+                       --projectName=${matrix_chain} \
+                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                       --type=stage
+                       echo "New deployment in staging slot is executed"
                     """
                 }
             }
@@ -56,5 +152,5 @@ pipeline {
     }
     post {
         cleanup { cleanWs() }
-      }
-   }
+    }
+}
