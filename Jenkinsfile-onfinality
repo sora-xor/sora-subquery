@@ -31,6 +31,8 @@ pipeline {
     }
     environment {
         SUBQUERY_CLI_VERSION = '1.6.1'
+        SUBQUERY_INDEXER_VERSION = '1.9.1'
+        SUBQUERY_NODE_VERSION = '1.5.0'
         SUBQUERY_ORG =  'sora-xor'
         matrix_chain = "sora-${targetEnvironment}"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
@@ -101,7 +103,8 @@ pipeline {
                        yarn codegen
                        RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                        subql deployment:deploy \
-                       --useDefaults \
+                       --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
+                       --queryVersion=${SUBQUERY_NODE_VERSION} \
                        --org=${SUBQUERY_ORG} \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
