@@ -80,10 +80,13 @@ pipeline {
                 anyOf {
                 expression {
                     params.deleteProject == 'true'
+                }
+                expression{
                     params.createProject == 'true'
                 }
             }
         }
+    }
             steps {
                 script {
                     sh """
