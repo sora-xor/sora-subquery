@@ -5,7 +5,10 @@ String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
-List   jobParams         = [ string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true) ]
+List   jobParams         = [ 
+    string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
+    booleanParam(defaultValue: 'false', name: 'deleteProject', targetEnvironment == 'targetEnvironment', description: 'DANGER!!! Set it to "true" to wipe all existing data before the deployment process.' )
+    ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 
 properties([
@@ -27,18 +30,49 @@ pipeline {
     }   
 
     stages {
-        stage('Install Dependicies & Deploy') {
+        stage('Validation before deployment') {
             environment {
                 SUBQUERY_CLI_VERSION = '1.6.1'
-                SUBQUERY_ORG =  'sora-xor'
-                matrix_chain = "sora-${targetEnvironment}"
-                SUBQUERY_TOKEN = credentials("${subqueryToken}")
-                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
             }
             steps {
                 script {
                     sh """
                        npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                       subql validate
+                    """
+                }
+        }
+        stage('Deleting and creating a project if needed') {
+            if (params.deleteProject) {
+            environment {
+                SUBQUERY_ORG =  'sora-xor'
+                matrix_chain = "sora-${targetEnvironment}"
+                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
+            }
+            steps {
+                script {
+                    sh """
+                    subql project:delete-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain}
+                    subql project:create-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain} \
+                    --gitRepo=https://github.com/sora-xor/sora-subquery
+                """
+                }
+            }
+        }
+    }
+        stage('Install Dependicies & Deploy') {
+            environment {
+                SUBQUERY_ORG =  'sora-xor'
+                matrix_chain = "sora-${targetEnvironment}"
+                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
+            }
+            steps {
+                script {
+                    sh """
                        npm install -g typescript
                        npm install tslib
                        npm link typescript
