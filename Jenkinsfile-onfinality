@@ -31,8 +31,8 @@ pipeline {
     }
     environment {
         SUBQUERY_CLI_VERSION = '1.6.1'
-        SUBQUERY_INDEXER_VERSION = '1.9.1'
-        SUBQUERY_NODE_VERSION = '1.5.0'
+        SUBQUERY_INDEXER_VERSION = 'v1.9.1'
+        SUBQUERY_NODE_VERSION = 'v1.5.0'
         SUBQUERY_ORG =  'sora-xor'
         matrix_chain = "sora-${targetEnvironment}"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
