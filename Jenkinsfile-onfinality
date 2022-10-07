@@ -121,6 +121,7 @@ pipeline {
             steps {
                 script {
                     sh """
+                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                        subql deployment:deploy \
                        --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
                        --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
