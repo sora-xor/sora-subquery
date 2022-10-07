@@ -55,7 +55,7 @@ pipeline {
         }
         stage('Deleting a project if needed') {
             when {
-                expression {params.deleteProject == 'true'}
+                expression {params.deleteProject}
             }
             environment {
                 SUBQUERY_ORG =  'sora-xor'
@@ -74,10 +74,9 @@ pipeline {
             }
         }
         stage('Creating a project if needed') {
-            when {
-                anyOf {
-                expression {params.deleteProject == 'true'}
-                expression {params.createProject == 'true'}
+            when { anyOf {
+                expression {params.deleteProject}
+                expression {params.createProject}
                 }
             }
             steps {
@@ -117,7 +116,7 @@ pipeline {
         }
         stage('Install Dependencies & Deploy in staging slot') {
             when {
-                expression {params.stagingSlot == 'true'}
+                expression {params.stagingSlot}
             }
             steps {
                 script {
