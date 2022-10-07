@@ -5,7 +5,7 @@ String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
-List   jobParams         = [ 
+List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'deleteProject'),
     booleanParam(defaultValue: false, name: 'createProject'),
@@ -55,9 +55,7 @@ pipeline {
         }
         stage('Deleting a project if needed') {
             when {
-                expression {
-                    params.deleteProject == 'true'
-                }
+                expression {params.deleteProject}
             }
             environment {
                 SUBQUERY_ORG =  'sora-xor'
@@ -76,17 +74,11 @@ pipeline {
             }
         }
         stage('Creating a project if needed') {
-            when {
-                anyOf {
-                expression {
-                    params.deleteProject == 'true'
-                }
-                expression{
-                    params.createProject == 'true'
+            when { anyOf {
+                expression {params.deleteProject}
+                expression {params.createProject}
                 }
             }
-        }
-    }
             steps {
                 script {
                     sh """
@@ -124,20 +116,11 @@ pipeline {
         }
         stage('Install Dependencies & Deploy in staging slot') {
             when {
-                expression {
-                    params.stagingSlot == 'true'
-                }
+                expression {params.stagingSlot}
             }
             steps {
                 script {
                     sh """
-                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION_STAGING}
-                       npm install -g typescript
-                       npm install tslib
-                       npm link typescript
-                       yarn
-                       yarn codegen
-                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                        subql deployment:deploy \
                        --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
                        --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
