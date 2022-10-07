@@ -114,7 +114,6 @@ pipeline {
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
                        --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
-                       --type=primary
                        echo "New deployment in production slot is executed"
                     """
                 }
