@@ -7,7 +7,7 @@ String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 List   jobParams         = [ 
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
-    booleanParam(defaultValue: '', name: 'deleteProject', targetEnvironment == 'targetEnvironment', description: 'DANGER!!! Set it to "true" to wipe all existing data before the deployment process.' )
+    booleanParam(defaultValue: false, name: 'deleteProject'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 
@@ -44,6 +44,11 @@ pipeline {
             }    
         }
         stage('Deleting and creating a project if needed') {
+            when {
+                expression {
+                    params.deleteProject
+                }
+            }
             environment {
                 SUBQUERY_ORG =  'sora-xor'
                 matrix_chain = "sora-${targetEnvironment}"
@@ -51,7 +56,6 @@ pipeline {
             }
             steps {
                 script {
-                    if (params.deleteProject) {
                     sh """
                     subql project:delete-project \
                     --org=${SUBQUERY_ORG} \
@@ -64,7 +68,6 @@ pipeline {
                 }
             }
         }
-    }
         stage('Install Dependicies & Deploy') {
             environment {
                 SUBQUERY_ORG =  'sora-xor'
