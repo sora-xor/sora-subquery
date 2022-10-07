@@ -5,7 +5,7 @@ String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
-List   jobParams         = [ 
+List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'deleteProject'),
     booleanParam(defaultValue: false, name: 'createProject'),
@@ -55,9 +55,7 @@ pipeline {
         }
         stage('Deleting a project if needed') {
             when {
-                expression {
-                    params.deleteProject == 'true'
-                }
+                expression {params.deleteProject == 'true'}
             }
             environment {
                 SUBQUERY_ORG =  'sora-xor'
@@ -78,15 +76,10 @@ pipeline {
         stage('Creating a project if needed') {
             when {
                 anyOf {
-                expression {
-                    params.deleteProject == 'true'
-                }
-                expression{
-                    params.createProject == 'true'
+                expression {params.deleteProject == 'true'}
+                expression {params.createProject == 'true'}
                 }
             }
-        }
-    }
             steps {
                 script {
                     sh """
@@ -124,9 +117,7 @@ pipeline {
         }
         stage('Install Dependencies & Deploy in staging slot') {
             when {
-                expression {
-                    params.stagingSlot == 'true'
-                }
+                expression {params.stagingSlot == 'true'}
             }
             steps {
                 script {
