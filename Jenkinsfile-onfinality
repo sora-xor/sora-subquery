@@ -29,7 +29,7 @@ pipeline {
     stages {
         stage('Install Dependicies & Deploy') {
             environment {
-                SUBQUERY_CLI_VERSION = '0.2.3'
+                SUBQUERY_CLI_VERSION = '1.6.1'
                 SUBQUERY_ORG =  'sora-xor'
                 matrix_chain = "sora-${targetEnvironment}"
                 SUBQUERY_TOKEN = credentials("${subqueryToken}")
@@ -38,13 +38,13 @@ pipeline {
             steps {
                 script {
                     sh """
-                       npm install -g @subql/cli@1.6.1
+                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                        npm install -g typescript
                        npm install tslib
                        npm link typescript
                        yarn
                        yarn codegen
-                       RESULT=\$(subql publish | grep -oP ': \\K.*')
+                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                        subql deployment:deploy \
                        --useDefaults \
                        --org=${SUBQUERY_ORG} \
