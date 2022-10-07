@@ -8,6 +8,7 @@ String jobList           = '../sora2-' + targetEnvironment
 List   jobParams         = [ 
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'deleteProject'),
+    booleanParam(defaultValue: false, name: 'createProject'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 
@@ -43,12 +44,40 @@ pipeline {
                 }
             }    
         }
-        stage('Deleting and creating a project if needed') {
+        stage('Deleting project if needed') {
             when {
                 expression {
                     params.deleteProject == 'true'
                 }
             }
+            environment {
+                SUBQUERY_ORG =  'sora-xor'
+                matrix_chain = "sora-${targetEnvironment}"
+                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
+            }
+            steps {
+                script {
+                    sh """
+                    subql project:delete-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain}
+                    subql project:create-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain} \
+                    --gitRepo=https://github.com/sora-xor/sora-subquery
+                """
+                }
+            }
+        }
+        stage('Creating a project if needed') {
+            when {
+                anyOf {
+                expression {
+                    params.deleteProject == 'true'
+                    params.createProject == 'true'
+                }
+            }
+        }
             environment {
                 SUBQUERY_ORG =  'sora-xor'
                 matrix_chain = "sora-${targetEnvironment}"
