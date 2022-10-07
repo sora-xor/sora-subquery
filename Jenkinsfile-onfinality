@@ -44,7 +44,7 @@ pipeline {
                 }
             }    
         }
-        stage('Deleting project if needed') {
+        stage('Deleting a project if needed') {
             when {
                 expression {
                     params.deleteProject == 'true'
@@ -61,10 +61,6 @@ pipeline {
                     subql project:delete-project \
                     --org=${SUBQUERY_ORG} \
                     --projectName=${matrix_chain}
-                    subql project:create-project \
-                    --org=${SUBQUERY_ORG} \
-                    --projectName=${matrix_chain} \
-                    --gitRepo=https://github.com/sora-xor/sora-subquery
                 """
                 }
             }
@@ -86,9 +82,6 @@ pipeline {
             steps {
                 script {
                     sh """
-                    subql project:delete-project \
-                    --org=${SUBQUERY_ORG} \
-                    --projectName=${matrix_chain}
                     subql project:create-project \
                     --org=${SUBQUERY_ORG} \
                     --projectName=${matrix_chain} \
