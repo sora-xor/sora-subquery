@@ -28,13 +28,16 @@ pipeline {
             label agentLabel
             image envImageName
         }
-    }   
+    }
+    environment {
+        SUBQUERY_CLI_VERSION = '1.6.1'
+        SUBQUERY_ORG =  'sora-xor'
+        matrix_chain = "sora-${targetEnvironment}"
+        SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
+    }
 
     stages {
         stage('Validation before deployment') {
-            environment {
-                SUBQUERY_CLI_VERSION = '1.6.1'
-            }
             steps {
                 script {
                     sh """
@@ -42,7 +45,7 @@ pipeline {
                        subql validate
                     """
                 }
-            }    
+            }
         }
         stage('Deleting a project if needed') {
             when {
@@ -61,6 +64,7 @@ pipeline {
                     subql project:delete-project \
                     --org=${SUBQUERY_ORG} \
                     --projectName=${matrix_chain}
+                    echo project ${matrix_chain} is deleted
                 """
                 }
             }
@@ -74,11 +78,6 @@ pipeline {
                 }
             }
         }
-            environment {
-                SUBQUERY_ORG =  'sora-xor'
-                matrix_chain = "sora-${targetEnvironment}"
-                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
-            }
             steps {
                 script {
                     sh """
@@ -86,16 +85,12 @@ pipeline {
                     --org=${SUBQUERY_ORG} \
                     --projectName=${matrix_chain} \
                     --gitRepo=https://github.com/sora-xor/sora-subquery
+                    echo project ${matrix_chain} is created
                 """
                 }
             }
         }
         stage('Install Dependicies & Deploy') {
-            environment {
-                SUBQUERY_ORG =  'sora-xor'
-                matrix_chain = "sora-${targetEnvironment}"
-                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
-            }
             steps {
                 script {
                     sh """
