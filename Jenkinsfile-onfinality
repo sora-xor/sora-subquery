@@ -106,6 +106,7 @@ pipeline {
                        --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
                        --queryVersion=${SUBQUERY_NODE_VERSION} \
                        --org=${SUBQUERY_ORG} \
+                       --dict=null \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
                        --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
