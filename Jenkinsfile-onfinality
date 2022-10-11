@@ -1,12 +1,17 @@
 @Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
-String envImageName      = 'ubuntu:focal'
+String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
-List   jobParams         = [ string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true) ]
-String endpoint          =  targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
+List   jobParams         = [
+    string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
+    booleanParam(defaultValue: false, name: 'deleteProject'),
+    booleanParam(defaultValue: false, name: 'createProject'),
+    booleanParam(defaultValue: false, name: 'stagingSlot'),
+    ]
+String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 
 properties([
     parameters( jobParams ),
@@ -24,36 +29,109 @@ pipeline {
             label agentLabel
             image envImageName
         }
-    }   
+    }
+    environment {
+        SUBQUERY_CLI_VERSION = '1.6.1'
+        SUBQUERY_INDEXER_VERSION = 'v1.9.1'
+        SUBQUERY_NODE_VERSION = 'v1.5.0'
+        SUBQUERY_CLI_VERSION_STAGING = '1.6.1'
+        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.9.1'
+        SUBQUERY_NODE_VERSION_STAGING = 'v1.5.0'
+        SUBQUERY_ORG =  'sora-xor'
+        matrix_chain = "sora-${targetEnvironment}"
+        SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
+    }
 
     stages {
-        stage('Install Dependicies & Deploy') {
+        stage('Validation before deployment') {
+            steps {
+                script {
+                    sh """
+                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                       subql validate
+                    """
+                }
+            }
+        }
+        stage('Deleting a project if needed') {
+            when {
+                expression {params.deleteProject}
+            }
             environment {
-                SUBQUERY_CLI_VERSION = '0.2.10'
                 SUBQUERY_ORG =  'sora-xor'
                 matrix_chain = "sora-${targetEnvironment}"
-                SUBQUERY_TOKEN = credentials("${subqueryToken}")
-                
+                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
             }
             steps {
                 script {
                     sh """
-                       set -xe
-                       apt-get update && apt-get install --no-install-recommends unzip -y && apt-get install --no-install-recommends jq curl ca-certificates -y
-                       mkdir -p $HOME/.local/bin
-                       curl -LO https://github.com/fewensa/subquery-cli/releases/download/v${SUBQUERY_CLI_VERSION}/subquery-linux-x86_64.zip
-                       unzip subquery-linux-x86_64.zip -d $HOME/.local/bin/
-                       rm -rf subquery-linux-x86_64.zip
-                       /home/ubuntu/.local/bin/subquery --token ${SUBQUERY_TOKEN} deployment deploy \
-                           --org ${SUBQUERY_ORG} \
-                           --key ${matrix_chain} \
-                           --branch dev \
-                           --type stage \
-                           --indexer-image-version v0.31.1 \
-                           --query-image-version v0.13.0 \
-                           --endpoint wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
-                           --force
-                       echo "New deployment is executed"
+                    subql project:delete-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain}
+                    echo project ${matrix_chain} is deleted
+                """
+                }
+            }
+        }
+        stage('Creating a project if needed') {
+            when { anyOf {
+                expression {params.deleteProject}
+                expression {params.createProject}
+                }
+            }
+            steps {
+                script {
+                    sh """
+                    subql project:create-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain} \
+                    --gitRepo=https://github.com/sora-xor/sora-subquery
+                    echo project ${matrix_chain} is created
+                """
+                }
+            }
+        }
+        stage('Install Dependencies & Deploy in production slot') {
+            steps {
+                script {
+                    sh """
+                       npm install -g typescript
+                       npm install tslib
+                       npm link typescript
+                       yarn
+                       yarn codegen
+                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
+                       subql deployment:deploy \
+                       --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
+                       --queryVersion=${SUBQUERY_NODE_VERSION} \
+                       --org=${SUBQUERY_ORG} \
+                       --dict=null \
+                       --ipfsCID=\$RESULT \
+                       --projectName=${matrix_chain} \
+                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                       echo "New deployment in production slot is executed"
+                    """
+                }
+            }
+        }
+        stage('Install Dependencies & Deploy in staging slot') {
+            when {
+                expression {params.stagingSlot}
+            }
+            steps {
+                script {
+                    sh """
+                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
+                       subql deployment:deploy \
+                       --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
+                       --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
+                       --org=${SUBQUERY_ORG} \
+                       --dict=null \
+                       --ipfsCID=\$RESULT \
+                       --projectName=${matrix_chain} \
+                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                       --type=stage
+                       echo "New deployment in staging slot is executed"
                     """
                 }
             }
@@ -61,5 +139,5 @@ pipeline {
     }
     post {
         cleanup { cleanWs() }
-      }
-   }
+    }
+}
