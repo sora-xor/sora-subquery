@@ -12,6 +12,10 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
+String telegramChatId    = 'sora2-telegram-chat-id'
+String telegramAppId     = 'sora-subquery'
+String botID             = 'sora2-deploy-chat-bot'
+
 
 properties([
     parameters( jobParams ),
@@ -40,6 +44,8 @@ pipeline {
         SUBQUERY_ORG =  'sora-xor'
         matrix_chain = "sora-${targetEnvironment}"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
+        TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
+        TELEGRAM_BOT_ID = credentials("${botID}")
     }
 
     stages {
@@ -95,6 +101,7 @@ pipeline {
             steps {
                 script {
                     sh """
+                       apt-get update && apt-get install curl -y
                        npm install -g typescript
                        npm install tslib
                        npm link typescript
@@ -134,6 +141,13 @@ pipeline {
                        echo "New deployment in staging slot is executed"
                     """
                 }
+            }
+        }
+        stage('Send Notification to telegram') {
+            steps { 
+                sh """
+                   curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_ID}/sendMessage -d chat_id=${TELEGRAM_CHAT_ID} -d text='${currentBuild.fullDisplayName} - ${currentBuild.currentResult}. Details ${BUILD_URL}'
+                   """
             }
         }
     }
