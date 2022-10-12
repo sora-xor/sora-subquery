@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
-import { AnyTuple, CallBase, Codec } from '@polkadot/types/types';
-import { assignCommonHistoryElemInfo, formatU128ToBalance, assetPrecisions } from "./utils";
+import { AnyTuple, CallBase } from '@polkadot/types/types';
+import { assignCommonHistoryElemInfo, formatU128ToBalance, PoolsPrices, getAssetId, updateHistoryElementAccounts } from "./utils";
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -13,12 +13,12 @@ function formatSpecificCalls(
             // TODO move args to common function here and in other cases
             return { args: {
                 dex_id: dex_id.toHuman(),
-                input_asset_a: input_asset_a.toHuman(),
-                input_asset_b: input_asset_b.toHuman(),
-                input_a_min: formatU128ToBalance(input_a_min.toString(), input_asset_a.toString()),
-                input_b_min: formatU128ToBalance(input_b_min.toString(), input_asset_b.toString()),
-                input_a_desired: formatU128ToBalance(input_a_desired.toString(), input_asset_a.toString()),
-                input_b_desired: formatU128ToBalance(input_b_desired.toString(), input_asset_b.toString())
+                input_asset_a: getAssetId(input_asset_a),
+                input_asset_b: getAssetId(input_asset_b),
+                input_a_min: formatU128ToBalance(input_a_min.toString(), getAssetId(input_asset_a)),
+                input_b_min: formatU128ToBalance(input_b_min.toString(), getAssetId(input_asset_b)),
+                input_a_desired: formatU128ToBalance(input_a_desired.toString(), getAssetId(input_asset_a)),
+                input_b_desired: formatU128ToBalance(input_b_desired.toString(), getAssetId(input_asset_b))
                 }
             }
         }
@@ -26,8 +26,8 @@ function formatSpecificCalls(
             const [dex_id, asset_a, asset_b] = args;
             return { args: {
                 dex_id: dex_id.toHuman(),
-                asset_a: asset_a.toHuman(),
-                asset_b: asset_b.toHuman(),
+                asset_a: getAssetId(asset_a),
+                asset_b: getAssetId(asset_b),
                 }
             }
         }
@@ -35,8 +35,8 @@ function formatSpecificCalls(
             const [dex_id, base_asset_id, target_asset_id] = args;
             return  { args: {
                 dex_id: dex_id.toHuman(),
-                base_asset_id: base_asset_id.toHuman(),
-                target_asset_id: target_asset_id.toHuman(),
+                base_asset_id: getAssetId(base_asset_id),
+                target_asset_id: getAssetId(target_asset_id),
                 }
             }
         }
@@ -86,7 +86,12 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
     record.data = entities as Object
 
     await record.save()
+    await updateHistoryElementAccounts(record);
 
     logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
 
+
+    if (calls.some(call => call.method === 'initializePool')) {
+        PoolsPrices.set(true);
+    }
 }

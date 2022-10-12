@@ -1,5 +1,6 @@
 import { SubstrateEvent } from "@subql/types";
 import { ClaimableReward } from "../types";
+import { getAssetId } from "./utils";
 
 const lpFeesAccount: string = 'cnTQ1kbv7PBNNQrEb1tZpmK7ftiv4yCCpUQy1J2y7Y54Taiaw';
 const tbcRewardsAccount: string = 'cnTQ1kbv7PBNNQrEb1tZpmK7easBTbiFMQUUwfLf9LX66ND8u';
@@ -18,7 +19,7 @@ export async function handleClaimableReward(event: SubstrateEvent): Promise<void
 
         claimableReward.blockHeight = event.block.block.header.number.toBigInt();
         claimableReward.blockHash = event.block.block.header.hash.toString();
-        claimableReward.currencyId = currencyId.toString();
+        claimableReward.currencyId = getAssetId(currencyId);
         claimableReward.balance = BigInt(balance.toString());
 
         await claimableReward.save();

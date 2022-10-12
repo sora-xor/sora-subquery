@@ -1,5 +1,5 @@
 import { SubstrateBlock } from "@subql/types";
-import { assetPrecisions } from "./utils";
+import { assetPrecisions, getAssetId } from "./utils";
 
 let isFirstBlockIndexed = true;
 
@@ -11,9 +11,8 @@ export async function getAllAssetsInfos(block: SubstrateBlock): Promise<void> {
     let initialAssets = await api.query.assets.assetInfos.entries()
 
     initialAssets.forEach(([{args: [assetId]}, value]) => {
-        assetPrecisions.set(assetId.toHuman(), value[2].toNumber())
+        assetPrecisions.set(getAssetId(assetId), value[2].toNumber())
     });
 
     isFirstBlockIndexed = false;
-
 }
