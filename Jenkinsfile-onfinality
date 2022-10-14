@@ -13,8 +13,8 @@ List   jobParams         = [
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 String telegramChatId    = 'sora2-telegram-chat-id'
-String telegramAppId     = 'sora-subquery'
-String botID             = 'sora2-deploy-chat-bot'
+String botID             = 'telegramBotToken'
+Boolean statusNotif      = true
 
 
 properties([
@@ -45,7 +45,6 @@ pipeline {
         matrix_chain = "sora-${targetEnvironment}"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
         TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
-        TELEGRAM_BOT_ID = credentials("${botID}")
     }
 
     stages {
@@ -62,11 +61,6 @@ pipeline {
         stage('Deleting a project if needed') {
             when {
                 expression {params.deleteProject}
-            }
-            environment {
-                SUBQUERY_ORG =  'sora-xor'
-                matrix_chain = "sora-${targetEnvironment}"
-                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
             }
             steps {
                 script {
@@ -143,11 +137,12 @@ pipeline {
                 }
             }
         }
-        stage('Send Notification to telegram') {
-            steps { 
-                sh """
-                   curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_ID}/sendMessage -d chat_id=${TELEGRAM_CHAT_ID} -d text='${currentBuild.fullDisplayName} - ${currentBuild.currentResult}. Details ${BUILD_URL}'
-                   """
+        stage ('Send Notification about deploy') {
+            steps {
+                pushNotiTelegram(
+                  status: statusNotif,
+                  telegramChatId: "${TELEGRAM_CHAT_ID}"
+                ) 
             }
         }
     }
