@@ -15,6 +15,7 @@ String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
 
+
 properties([
     parameters( jobParams ),
     pipelineTriggers([upstream( jobList )])
@@ -60,11 +61,6 @@ pipeline {
             when {
                 expression {params.deleteProject}
             }
-            environment {
-                SUBQUERY_ORG =  'sora-xor'
-                matrix_chain = "sora-${targetEnvironment}"
-                SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
-            }
             steps {
                 script {
                     sh """
@@ -98,6 +94,7 @@ pipeline {
             steps {
                 script {
                     sh """
+                       apt-get update && apt-get install curl -y
                        npm install -g typescript
                        npm install tslib
                        npm link typescript
@@ -147,7 +144,6 @@ pipeline {
                 ) 
             }
         }
-    }
     }
     post {
         cleanup { cleanWs() }
