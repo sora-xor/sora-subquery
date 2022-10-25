@@ -12,8 +12,7 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
-String telegramChatId    = 'sora2-telegram-chat-id'
-String botID             = 'telegramBotToken'
+String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
 
 
