@@ -12,6 +12,8 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
+String telegramChatId    = 'telegram-deploy-chat-id'
+Boolean statusNotif      = true
 
 properties([
     parameters( jobParams ),
@@ -40,6 +42,7 @@ pipeline {
         SUBQUERY_ORG =  'sora-xor'
         matrix_chain = "sora-${targetEnvironment}"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
+        TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
     }
 
     stages {
@@ -136,6 +139,15 @@ pipeline {
                 }
             }
         }
+        stage ('Send Notification about deploy') {
+            steps {
+                pushNotiTelegram(
+                  status: statusNotif,
+                  telegramChatId: "${TELEGRAM_CHAT_ID}"
+                ) 
+            }
+        }
+    }
     }
     post {
         cleanup { cleanWs() }
