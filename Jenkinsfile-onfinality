@@ -1,4 +1,4 @@
-@Library('jenkins-library@feature/dops-2014/deploy_noti')
+@Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
 String envImageName      = 'node:14.16.1-buster-slim'
