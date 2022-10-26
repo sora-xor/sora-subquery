@@ -8,6 +8,7 @@ def pipeline = new org.js.AppPipeline(
     buildDockerImage:   'docker.soramitsu.co.jp/build-tools/node:14-ubuntu',
     sonarProjectName:   'sora-subquery',
     sonarProjectKey:    'jp.co.soramitsu:sora-subquery',
-    preBuildCmds:       ['yarn install', 'yarn codegen']
+    preBuildCmds:       ['yarn install', 'yarn codegen'],
+    dockerImageTags:    ['dev': 'dev']
 )
 pipeline.runPipeline()
