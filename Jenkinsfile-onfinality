@@ -7,7 +7,7 @@ String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
-    booleanParam(defaultValue: false, name: 'deleteProject'),
+    booleanParam(defaultValue: false, name: 'fullClean'),
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     ]
@@ -59,7 +59,7 @@ pipeline {
         }
         stage('Deleting a project if needed') {
             when {
-                expression {params.deleteProject}
+                expression {params.fullClean}
             }
             steps {
                 script {
@@ -74,7 +74,7 @@ pipeline {
         }
         stage('Creating a project if needed') {
             when { anyOf {
-                expression {params.deleteProject}
+                expression {params.fullClean}
                 expression {params.createProject}
                 }
             }
