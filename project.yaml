@@ -9,7 +9,7 @@ runner:
     name: '@subql/query'
     version: 1.5.0
 description: ''
-repository: 'https://github.com/sora-xor/sora-subquery'
+repository: https://github.com/sora-xor/sora-subquery
 schema:
   file: ./schema.graphql
 network:
@@ -30,12 +30,8 @@ dataSources:
           filter:
             module: assets
             method: register
-
-        # sync pools reserves & prices, create snapshots
         - handler: syncXYKPools
           kind: substrate/BlockHandler
-        # - handler: syncTBCPools
-        #   kind: substrate/BlockHandler
         - handler: handlerTransfers
           kind: substrate/CallHandler
           filter:

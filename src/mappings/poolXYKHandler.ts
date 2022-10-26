@@ -4,9 +4,9 @@ import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice, getAsset
 
 import BigNumber from "bignumber.js";
 
-import { XOR, VAL, PSWAP, DAI, ETH } from "..";
+import { XOR, VAL, PSWAP, DAI, ETH, XST } from "..";
 
-const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
+const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH, XST];
 
 const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[AssetSnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
 
