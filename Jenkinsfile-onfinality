@@ -34,13 +34,14 @@ pipeline {
         }
     }
     environment {
-        SUBQUERY_CLI_VERSION = '1.6.1'
+        SUBQUERY_CLI_VERSION = '1.7.0'
         SUBQUERY_INDEXER_VERSION = 'v1.9.1'
         SUBQUERY_NODE_VERSION = 'v1.5.0'
         SUBQUERY_CLI_VERSION_STAGING = '1.6.1'
         SUBQUERY_INDEXER_VERSION_STAGING = 'v1.9.1'
         SUBQUERY_NODE_VERSION_STAGING = 'v1.5.0'
         SUBQUERY_ORG =  'sora-xor'
+        SUBQUERY_PROJECT_DB = 'sora'
         matrix_chain = "sora-${targetEnvironment}"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
         TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
@@ -83,6 +84,7 @@ pipeline {
                     sh """
                     subql project:create-project \
                     --org=${SUBQUERY_ORG} \
+                    --dedicatedDB=${SUBQUERY_PROJECT_DB} \
                     --projectName=${matrix_chain} \
                     --gitRepo=https://github.com/sora-xor/sora-subquery
                     echo project ${matrix_chain} is created
@@ -105,7 +107,9 @@ pipeline {
                        --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
                        --queryVersion=${SUBQUERY_NODE_VERSION} \
                        --org=${SUBQUERY_ORG} \
-                       --dict=null \
+                       --indexerSubscription \
+                       --querySubscription \
+                       --dict=dict \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
                        --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
@@ -126,7 +130,9 @@ pipeline {
                        --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
                        --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
                        --org=${SUBQUERY_ORG} \
-                       --dict=null \
+                       --dict=dict \
+                       --indexerSubscription \
+                       --querySubscription \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
                        --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
