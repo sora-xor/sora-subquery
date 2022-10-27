@@ -657,7 +657,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 1
+    startBlock: 2500000
     mapping:
       handlers:
         # Get all assets on the first block being parsed and cache them
