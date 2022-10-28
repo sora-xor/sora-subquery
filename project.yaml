@@ -4,6 +4,7 @@ repository: 'https://github.com/sora-xor/sora-subquery'
 schema: ./schema.graphql
 network:
   endpoint: wss://ws.stage.sora2.soramitsu.co.jp/
+  dictionary: https://github.com/sora-xor/sora-subquery-dictionary
   types: {
     "AccountInfo": "AccountInfoWithDualRefCount",
     "Address": "AccountId",
