@@ -3,7 +3,7 @@ description: ''
 repository: 'https://github.com/sora-xor/sora-subquery'
 schema: ./schema.graphql
 network:
-  dictionary: https://github.com/sora-xor/sora-subquery-dictionary
+  dictionary: https://api.subquery.network/sq/subquery/dictionary-polkadot
   endpoint: wss://mof3.sora.org
   types: {
     "AccountInfo": "AccountInfoWithDualRefCount",
