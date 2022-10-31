@@ -5,7 +5,6 @@
     "Amount": "i128",
     "AmountOf": "Amount",
     "AssetId": "AssetId32",
-    "DispatchErrorModule": "DispatchErrorModuleU8",
     "AssetId32": "[u8; 32]",
     "AssetIdOf": "AssetId",
     "AssetInfo": {
