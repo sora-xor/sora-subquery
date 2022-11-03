@@ -1,17 +1,24 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
 import { XOR } from "..";
 
 export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-	logger.debug("Caught referral reserve extrinsic");
+    logger.debug("Caught referral reserve extrinsic");
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 
     let details = new Object();
 
-	if (record.execution.success) {
-        let referralReserveEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies');
-        const { event: { data: [, from, to, amount] } } = referralReserveEvent;
+    if (record.execution.success) {
+
+        let referralReserveEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'balances');
+
+        if (referralReserveEvent == undefined) {
+            logger.debug("No currencies.Transferred event is found")
+            return
+        }
+
+        const { event: { data: [from, to, amount] } } = referralReserveEvent;
 
         details = {
             from: from.toString(),
@@ -29,6 +36,7 @@ export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Pro
     record.data = details
 
     await record.save();
+    await updateHistoryElementAccounts(record);
 
     logger.debug(`===== Saved referral reserve with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }

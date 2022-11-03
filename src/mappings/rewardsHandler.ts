@@ -1,7 +1,5 @@
-import { SubstrateEvent, SubstrateExtrinsic } from "@subql/types";
-import { Amount, CurrencyIdOf } from "sora/api-interfaces";
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
-
+import { SubstrateExtrinsic } from "@subql/types";
+import { getAssetId, assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -14,11 +12,11 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
         let details = new Object();
         const rewards = extrinsic.events.reduce((buffer, e) => {
             if (e.event.method === 'Transferred' && e.event.section === 'currencies') {
-              const { event: { data: [assetId,,,amount] } } = e;
-              buffer.push({assetId: assetId.toString(), amount: amount.toString()});
+                const { event: { data: [assetId, , , amount] } } = e;
+                buffer.push({ assetId: getAssetId(assetId), amount: amount.toString() });
             }
             return buffer;
-         }, []);
+        }, []);
 
         details = rewards
         record.data = details
@@ -26,6 +24,7 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
     }
 
     await record.save();
+    await updateHistoryElementAccounts(record);
 
     logger.debug(`===== Saved reward claim extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

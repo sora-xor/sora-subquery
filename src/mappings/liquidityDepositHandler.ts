@@ -1,66 +1,44 @@
-import { SubstrateExtrinsic, SubstrateEvent } from '@subql/types';
-import { formatU128ToBalance, assignCommonHistoryElemInfo } from "./utils";
+import { SubstrateExtrinsic } from '@subql/types';
+import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId, updateHistoryElementAccounts } from "./utils";
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
 
     logger.debug("Caught liquidity adding extrinsic")
 
-    const record = assignCommonHistoryElemInfo(extrinsic)
+    const record = assignCommonHistoryElemInfo(extrinsic);
 
-    let details = new Object();
+    const { extrinsic: { args: [, assetAId, assetBId, assetADesired, assetBDesired] } } = extrinsic;
 
-    if (record.execution.success) {
+    const baseAssetId = getAssetId(assetAId);
+    const targetAssetId = getAssetId(assetBId);
 
-        let feeWithdrawaleventIndex = extrinsic.events.findIndex(e => e.event.method === 'FeeWithdrawn')
+    const details = {
+        type: "Deposit",
+        baseAssetId,
+        targetAssetId,
+        baseAssetAmount: formatU128ToBalance(assetADesired.toString(), baseAssetId),
+        targetAssetAmount: formatU128ToBalance(assetBDesired.toString(), targetAssetId)
+    };
 
-        let inputCurrencyTransferEvent = extrinsic.events.slice(0, feeWithdrawaleventIndex).find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
+    // base asset
+    const balancesTransferEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'balances');
+    // target asset
+    const tokensTransferEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'tokens');
 
-        if (inputCurrencyTransferEvent) {
+    if (balancesTransferEvent && tokensTransferEvent) {
+        // from, to, amount
+        const { event: { data: [, , inputAmount] } } = balancesTransferEvent;
+        // currencyId, from, to, amount
+        const { event: { data: [, , , outputAmount] } } = tokensTransferEvent;
 
-            const { event: { data: [inputAsset, , , inputTransferedAmount] } } = inputCurrencyTransferEvent;
-
-            let outputCurrencyTransferEvent = extrinsic.events.find(e => (e as SubstrateEvent).idx === (inputCurrencyTransferEvent as SubstrateEvent).idx + 1)
-            const { event: { data: [outputAsset, , , outputTransferedAmount] } } = outputCurrencyTransferEvent;
-
-            let baseAssetId = inputAsset.toString();
-            let targetAssetId = outputAsset.toString();
-
-            details = {
-                type: "Deposit",
-                baseAssetId: baseAssetId,
-                targetAssetId: targetAssetId,
-                baseAssetAmount: formatU128ToBalance(inputTransferedAmount.toString(), baseAssetId),
-                targetAssetAmount: formatU128ToBalance(outputTransferedAmount.toString(), targetAssetId)
-            }
-
-        }
-
-        else {
-            return
-        }
-
+        details.baseAssetAmount = formatU128ToBalance(inputAmount.toString(), baseAssetId);
+        details.targetAssetAmount = formatU128ToBalance(outputAmount.toString(), targetAssetId);
     }
 
-    else {
-
-        const { extrinsic: { args: [, assetAId, assetBId, assetADesired, assetBDesired] } } = extrinsic;
-
-        let baseAssetId = assetAId.toString();
-        let targetAssetId = assetBId.toString();
-
-        details = {
-            type: "Deposit",
-            baseAssetId: baseAssetId,
-            targetAssetId: targetAssetId,
-            baseAssetAmount: formatU128ToBalance(assetADesired.toString(), baseAssetId),
-            targetAssetAmount: formatU128ToBalance(assetBDesired.toString(), targetAssetId)
-        }
-
-    }
-
-    record.data = details
+    record.data = details as any;
 
     await record.save();
+    await updateHistoryElementAccounts(record);
 
     logger.debug(`===== Saved liquidity deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
