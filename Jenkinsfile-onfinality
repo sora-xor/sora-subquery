@@ -142,16 +142,13 @@ pipeline {
                 }
             }
         }
-        stage ('Send Notification about deploy') {
-            steps {
-                pushNotiTelegram(
-                  status: statusNotif,
-                  telegramChatId: "${TELEGRAM_CHAT_ID}"
-                ) 
-            }
-        }
-    }
     post {
+        always {
+            pushNotiTelegram(
+              status: statusNotif,
+              telegramChatId: "${TELEGRAM_CHAT_ID}"
+            ) 
+        }
         cleanup { cleanWs() }
     }
 }
