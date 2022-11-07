@@ -11,7 +11,7 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     ]
-String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
+String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
 
