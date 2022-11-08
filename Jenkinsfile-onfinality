@@ -3,7 +3,7 @@
 String agentLabel        = 'docker-build-agent'
 String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
-String targetEnvironment =  getEnvFromJobName()
+String targetEnvironment =  'stage'
 String jobList           = '../sora2-' + targetEnvironment
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
@@ -11,10 +11,12 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     ]
-String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
-
+String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
+String registry          = 'docker.soramitsu.co.jp'
+String dockerBuildToolsUserId = 'bot-build-tools-ro'
+Boolean disableSecretScanner  = false
 
 properties([
     parameters( jobParams ),
@@ -28,10 +30,7 @@ pipeline {
         disableConcurrentBuilds()
     }
     agent {
-        docker {
-            label agentLabel
-            image envImageName
-        }
+        label agentLabel
     }
     environment {
         SUBQUERY_CLI_VERSION = '1.7.0'
@@ -48,9 +47,20 @@ pipeline {
     }
 
     stages {
+        stage('Secret scanner') {
+            steps {
+                script {
+                    gitNotify('main-CI', 'PENDING', 'This commit is being built')
+                    docker.withRegistry('https://' + registry, dockerBuildToolsUserId) {
+                        secretScanner(disableSecretScanner, secretScannerExclusion)
+                    }
+                }
+            }
+        }
         stage('Validation before deployment') {
             steps {
                 script {
+                    docker.image("${envImageName}").inside() {
                     sh """
                        npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                        subql validate
@@ -152,10 +162,14 @@ pipeline {
         }
     }
     post {
+        always {
+            pushNotiTelegram(
+              status: statusNotif,
+              telegramChatId: "${TELEGRAM_CHAT_ID}"
+            ) 
+        }
         cleanup { cleanWs() }
     }
-<<<<<<< HEAD
+
 }
-=======
-}
->>>>>>> d326f3726460d8a8c217cda83b7cdd9a86041b42
+
