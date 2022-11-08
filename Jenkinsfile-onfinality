@@ -61,10 +61,12 @@ pipeline {
         stage('Validation before deployment') {
             steps {
                 script {
-                    sh """
-                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
-                       subql validate
-                    """
+                    docker.image("${envImageName}").inside() {
+                        sh """
+                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                            subql validate
+                        """
+                    }
                 }
             }
         }
