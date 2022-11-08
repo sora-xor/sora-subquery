@@ -4,7 +4,7 @@ String agentLabel        = 'docker-build-agent'
 String envImageName      = 'node:14.16.1-buster-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  'stage'
-String jobList           = '../sora2-' + targetEnvironment
+String jobList           = '../sora2-' + targetEnvironment + '1'
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
@@ -17,6 +17,7 @@ String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
 String registry          = 'docker.soramitsu.co.jp'
 String dockerBuildToolsUserId = 'bot-build-tools-ro'
 Boolean disableSecretScanner  = false
+
 
 properties([
     parameters( jobParams ),
@@ -60,14 +61,13 @@ pipeline {
         stage('Validation before deployment') {
             steps {
                 script {
-                    docker.image("${envImageName}").inside() {
                     sh """
                        npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                        subql validate
                     """
-                    }
                 }
             }
+        }
         stage('Deleting a project if needed') {
             when {
                 expression {params.fullClean}
@@ -87,8 +87,8 @@ pipeline {
             when { anyOf {
                 expression {params.fullClean}
                 expression {params.createProject}
+                }
             }
-        }
             steps {
                 script {
                     sh """
@@ -152,23 +152,22 @@ pipeline {
                 }
             }
         }
-        stage ('Send Notification about deploy') {
-            steps {
-                pushNotiTelegram(
-                  status: statusNotif,
-                  telegramChatId: "${TELEGRAM_CHAT_ID}"
-                )
-            }
-        }
+        // stage ('Send Notification about deploy') {
+        //     steps {
+        //         pushNotiTelegram(
+        //           status: statusNotif,
+        //           telegramChatId: "${TELEGRAM_CHAT_ID}"
+        //         ) 
+        //     }
+        // }
     }
     post {
         always {
             pushNotiTelegram(
               status: statusNotif,
               telegramChatId: "${TELEGRAM_CHAT_ID}"
-            )
+            ) 
         }
         cleanup { cleanWs() }
     }
-
 }
