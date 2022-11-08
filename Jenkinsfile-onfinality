@@ -65,9 +65,9 @@ pipeline {
                        npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                        subql validate
                     """
+                    }
                 }
             }
-        }
         stage('Deleting a project if needed') {
             when {
                 expression {params.fullClean}
@@ -87,8 +87,8 @@ pipeline {
             when { anyOf {
                 expression {params.fullClean}
                 expression {params.createProject}
-                }
             }
+        }
             steps {
                 script {
                     sh """
@@ -157,7 +157,7 @@ pipeline {
                 pushNotiTelegram(
                   status: statusNotif,
                   telegramChatId: "${TELEGRAM_CHAT_ID}"
-                ) 
+                )
             }
         }
     }
@@ -166,10 +166,9 @@ pipeline {
             pushNotiTelegram(
               status: statusNotif,
               telegramChatId: "${TELEGRAM_CHAT_ID}"
-            ) 
+            )
         }
         cleanup { cleanWs() }
     }
 
 }
-
