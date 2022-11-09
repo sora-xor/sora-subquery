@@ -10,7 +10,7 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     ]
-String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
+String endpoint          = 'mof3.sora.org'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
 String dockerBuildToolsUserId = 'bot-build-tools-ro'
@@ -122,7 +122,7 @@ pipeline {
                        --dict=dict \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
-                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                       --endpoint=wss://${endpoint}
                        echo "New deployment in production slot is executed"
                     """
                 }
@@ -145,7 +145,7 @@ pipeline {
                        --querySubscription \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
-                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                       --endpoint=wss://${endpoint} \
                        --type=stage
                        echo "New deployment in staging slot is executed"
                     """
