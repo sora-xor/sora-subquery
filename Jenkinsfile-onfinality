@@ -1,9 +1,9 @@
 @Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
-String envImageName      = 'node:14.16.1-buster-slim'
+String envImageName      = 'node:16.18.1-bullseye-slim'
 String subqueryToken     = 'subquery-token'
-String targetEnvironment =  'prod'
+String targetEnvironment =  'prod-test'
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
@@ -13,11 +13,6 @@ List   jobParams         = [
 String endpoint          = 'mof3.sora.org'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
-String dockerBuildToolsUserId = 'bot-build-tools-ro'
-Boolean disableSecretScanner  = false
-String secretScannerExclusion = '.*project.yaml'
-String registry          = 'docker.soramitsu.co.jp'
-
 
 properties([
     parameters( jobParams ),
@@ -30,10 +25,13 @@ pipeline {
         disableConcurrentBuilds()
     }
     agent {
-        label agentLabel
+        docker {
+            label agentLabel
+            image envImageName
+        }
     }
     environment {
-        SUBQUERY_CLI_VERSION = '1.7.0'
+        SUBQUERY_CLI_VERSION = '0.23.0'
         SUBQUERY_INDEXER_VERSION = 'v1.9.1'
         SUBQUERY_NODE_VERSION = 'v1.5.0'
         SUBQUERY_CLI_VERSION_STAGING = '1.6.1'
@@ -47,24 +45,13 @@ pipeline {
     }
 
     stages {
-        stage('Secret scanner') {
-            steps {
-                script {
-                    docker.withRegistry('https://' + registry, dockerBuildToolsUserId) {
-                        secretScanner(disableSecretScanner, secretScannerExclusion)
-                    }
-                }
-            }
-        }
         stage('Validation before deployment') {
             steps {
                 script {
-                    docker.image("${envImageName}").inside() {
-                        sh """
-                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
-                            subql validate
-                        """
-                    }
+                    sh """
+                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                       subql validate
+                    """
                 }
             }
         }
@@ -74,7 +61,7 @@ pipeline {
             }
             steps {
                 script {
-                sh """
+                    sh """
                     subql project:delete-project \
                     --org=${SUBQUERY_ORG} \
                     --projectName=${matrix_chain}
@@ -91,7 +78,7 @@ pipeline {
             }
             steps {
                 script {
-                sh """
+                    sh """
                     subql project:create-project \
                     --org=${SUBQUERY_ORG} \
                     --dedicatedDB=${SUBQUERY_PROJECT_DB} \
@@ -107,9 +94,6 @@ pipeline {
                 script {
                     sh """
                        apt-get update && apt-get install curl -y
-                       npm install -g typescript
-                       npm install tslib
-                       npm link typescript
                        yarn
                        yarn codegen
                        RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
@@ -122,7 +106,7 @@ pipeline {
                        --dict=dict \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
-                       --endpoint=wss://${endpoint}
+                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
                        echo "New deployment in production slot is executed"
                     """
                 }
@@ -145,7 +129,7 @@ pipeline {
                        --querySubscription \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
-                       --endpoint=wss://${endpoint} \
+                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
                        --type=stage
                        echo "New deployment in staging slot is executed"
                     """
