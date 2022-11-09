@@ -11,12 +11,13 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     ]
+String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
-String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
-String registry          = 'docker.soramitsu.co.jp'
 String dockerBuildToolsUserId = 'bot-build-tools-ro'
 Boolean disableSecretScanner  = false
+String secretScannerExclusion = '.*project.yaml'
+String registry          = 'docker.soramitsu.co.jp'
 
 
 properties([
@@ -51,7 +52,6 @@ pipeline {
         stage('Secret scanner') {
             steps {
                 script {
-                    gitNotify('main-CI', 'PENDING', 'This commit is being built')
                     docker.withRegistry('https://' + registry, dockerBuildToolsUserId) {
                         secretScanner(disableSecretScanner, secretScannerExclusion)
                     }
@@ -76,7 +76,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh """
+                sh """
                     subql project:delete-project \
                     --org=${SUBQUERY_ORG} \
                     --projectName=${matrix_chain}
@@ -93,7 +93,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh """
+                sh """
                     subql project:create-project \
                     --org=${SUBQUERY_ORG} \
                     --dedicatedDB=${SUBQUERY_PROJECT_DB} \
@@ -154,14 +154,6 @@ pipeline {
                 }
             }
         }
-        // stage ('Send Notification about deploy') {
-        //     steps {
-        //         pushNotiTelegram(
-        //           status: statusNotif,
-        //           telegramChatId: "${TELEGRAM_CHAT_ID}"
-        //         ) 
-        //     }
-        // }
     }
     post {
         always {
