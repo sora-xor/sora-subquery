@@ -2,6 +2,7 @@
   "types": {
     "AccountInfo": "AccountInfoWithDualRefCount",
     "Address": "AccountId",
+    "DispatchErrorModule": "DispatchErrorModuleU8",
     "Amount": "i128",
     "AmountOf": "Amount",
     "AssetId": "AssetId32",
