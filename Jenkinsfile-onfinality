@@ -1,22 +1,25 @@
 @Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
-String envImageName      = 'node:16.18.1-bullseye-slim'
+String envImageName      = 'node:16.18.1-bullseye-slim bash'
 String subqueryToken     = 'subquery-token'
+String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment + '1'
-String targetEnvironment =  'stage2'
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
+    booleanParam(defaultValue: false, name: 'prodSlot'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
 
+
 properties([
     parameters( jobParams ),
+    pipelineTriggers([upstream( jobList )])
 ])
 
 pipeline {
@@ -32,7 +35,7 @@ pipeline {
         }
     }
     environment {
-        SUBQUERY_CLI_VERSION = '0.23.0'
+        SUBQUERY_CLI_VERSION = '1.7.0'
         SUBQUERY_INDEXER_VERSION = 'v1.9.1'
         SUBQUERY_NODE_VERSION = 'v1.5.0'
         SUBQUERY_CLI_VERSION_STAGING = '1.6.1'
@@ -91,10 +94,16 @@ pipeline {
             }
         }
         stage('Install Dependencies & Deploy in production slot') {
+            when {
+                expression {params.prodSlot}
+            }
             steps {
                 script {
                     sh """
                        apt-get update && apt-get install curl -y
+                       npm install -g typescript
+                       npm install tslib
+                       npm link typescript
                        yarn
                        yarn codegen
                        RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
@@ -130,7 +139,7 @@ pipeline {
                        --querySubscription \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
-                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
                        --type=stage
                        echo "New deployment in staging slot is executed"
                     """
