@@ -129,6 +129,12 @@ pipeline {
             steps {
                 script {
                     sh """
+                       apt-get update && apt-get install curl -y
+                       npm install -g typescript
+                       npm install tslib
+                       npm link typescript
+                       yarn
+                       yarn codegen
                        RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                        subql deployment:deploy \
                        --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
