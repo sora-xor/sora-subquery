@@ -10,6 +10,7 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'fullClean'),
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
+    booleanParam(defaultValue: false, name: 'prodSlot'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 String telegramChatId    = 'telegram-deploy-chat-id'
@@ -93,6 +94,9 @@ pipeline {
             }
         }
         stage('Install Dependencies & Deploy in production slot') {
+            when {
+                expression {params.prodSlot}
+            }
             steps {
                 script {
                     sh """
@@ -135,23 +139,21 @@ pipeline {
                        --querySubscription \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
-                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
                        --type=stage
                        echo "New deployment in staging slot is executed"
                     """
                 }
             }
         }
-        stage ('Send Notification about deploy') {
-            steps {
-                pushNotiTelegram(
-                  status: statusNotif,
-                  telegramChatId: "${TELEGRAM_CHAT_ID}"
-                ) 
-            }
-        }
     }
     post {
+        always {
+            pushNotiTelegram(
+              status: statusNotif,
+              telegramChatId: "${TELEGRAM_CHAT_ID}"
+            ) 
+        }
         cleanup { cleanWs() }
     }
 }
