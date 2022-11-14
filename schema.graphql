@@ -38,7 +38,7 @@ type PoolXYK @entity {
   strategicBonusApy: String
   baseAssetReserves: String!
   targetAssetReserves: String!
-  multiplier: BigInt!
+  multiplier: Int!
 }
 
 type PoolTBC @entity {
