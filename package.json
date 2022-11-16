@@ -26,9 +26,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@polkadot/typegen": "8.9.1",
-    "@subql/cli": "1.4.0",
-    "@subql/node": "1.9.1",
-    "@subql/types": "1.4.0",
+    "@subql/cli": "latest",
+    "@subql/node": "latest",
+    "@subql/types": "latest",
     "read-yaml-file": "^2.1.0",
     "ts-node": "^8.6.2",
     "typescript": "^4.1.3",
