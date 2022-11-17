@@ -1,12 +1,10 @@
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK, Asset, AssetSnapshotType } from "../types";
-import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice, getAssetId, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK } from "./utils";
+import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice, getAssetId, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK, DOUBLE_PRICE_POOL } from "./utils";
 
 import BigNumber from "bignumber.js";
 
-import { XOR, VAL, PSWAP, DAI, ETH, XST } from "..";
-
-const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH, XST];
+import { XOR, PSWAP, DAI } from "./utils";
 
 const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[AssetSnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
 
@@ -49,7 +47,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
 
         pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAssetId);
         pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAssetId);
-        pool.multiplier = DOUBLE_PRICE_POOL.includes(targetAssetId) ? BigInt(2) : BigInt(1);
+        pool.multiplier = DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
         pool.priceUSD = '0';
         pool.strategicBonusApy = '0';
 
@@ -57,7 +55,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         assets.push(asset);
 
         totalXorInPools = totalXorInPools.plus(xorReserves);
-        totalXORWithDoublePools = totalXORWithDoublePools.plus(xorReserves.multipliedBy(Number(pool.multiplier)));
+        totalXORWithDoublePools = totalXORWithDoublePools.plus(xorReserves.multipliedBy(new BigNumber(pool.multiplier)));
 
         if (targetAssetId === DAI) {
             xorPriceInDAI = targetAssetReserves.div(xorReserves);
@@ -86,7 +84,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
                     (pswapPriceInDAI.multipliedBy(new BigNumber(2500000)))
                         .dividedBy(xorPriceInDAI.multipliedBy(totalXORWithDoublePools.dividedBy(Math.pow(10, 18)))))
                     .multipliedBy(new BigNumber(365 / 2)))
-                    .multipliedBy(Number(p.multiplier));
+                    .multipliedBy(new BigNumber((p.multiplier)));
 
                 p.strategicBonusApy = strategicBonusApy.toFixed(18);
             }
@@ -100,7 +98,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
 
         xorAsset.poolXYKId = xorPool.id;
 
-        xorPool.multiplier = BigInt(1);
+        xorPool.multiplier = 1;
         xorPool.baseAssetReserves = "0";
         xorPool.targetAssetReserves = formatU128ToBalance(totalXorInPools.toFixed(0), XOR);
         xorPool.priceUSD = xorPriceInDAI.toFixed(18);
