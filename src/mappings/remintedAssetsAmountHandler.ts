@@ -6,11 +6,12 @@ export async function handleRemintedAssetsAmount(event: SubstrateEvent): Promise
     logger.debug(`event reminted ${event.event.data}`);
     const { event: { data: [ currencyId, , balance ] } } = event;
 
-    let remintedAssetsAmount: RemintedAssetsAmount = new RemintedAssetsAmount(event.event.hash.toString());
-    remintedAssetsAmount.blockHeight = event.block.block.header.number.toBigInt();
-    remintedAssetsAmount.blockHash = event.block.block.header.hash.toString();
-    remintedAssetsAmount.currencyId = getAssetId(currencyId);
-    remintedAssetsAmount.balance = BigInt(balance.toString());
+    let record: RemintedAssetsAmount = new RemintedAssetsAmount(event.event.hash.toString());
+    record.blockHeight = event.block.block.header.number.toBigInt();
+    record.blockHash = event.block.block.header.hash.toString();
+    record.timestamp = parseInt(((event.block.timestamp).getTime() / 1000).toFixed(0));
+    record.currencyId = getAssetId(currencyId);
+    record.balance = BigInt(balance.toString());
 
-    await remintedAssetsAmount.save();
+    await record.save();
 }

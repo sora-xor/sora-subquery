@@ -85,6 +85,7 @@ type BurnedAssetsAmount @entity {
   id: ID!
   blockHeight: BigInt! @index
   blockHash: String!
+  timestamp: Int!
   currencyId: String!
   balance: BigInt!
 }
@@ -93,6 +94,7 @@ type RemintedAssetsAmount @entity {
   id: ID!
   blockHeight: BigInt! @index
   blockHash: String!
+  timestamp: Int!
   currencyId: String!
   balance: BigInt!
 }

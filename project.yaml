@@ -70,12 +70,12 @@ dataSources:
         - handler: handleBurnedAssetsAmount
           kind: substrate/EventHandler
           filter:
-            module: currencies
+            module: tokens
             method: Withdrawn
         - handler: handleRemintedAssetsAmount
           kind: substrate/EventHandler
           filter:
-            module: currencies
+            module: tokens
             method: Deposited
         - handler: handleClaimableReward
           kind: substrate/EventHandler
