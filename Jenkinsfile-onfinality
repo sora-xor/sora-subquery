@@ -15,7 +15,10 @@ List   jobParams         = [
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
-
+String registry               = 'docker.soramitsu.co.jp'
+String dockerBuildToolsUserId = 'bot-build-tools-ro'
+Boolean disableSecretScanner  = false
+String secretScannerExclusion = '.*project.yaml'
 
 properties([
     parameters( jobParams ),
@@ -28,12 +31,13 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
     }
+
     agent {
-        docker {
-            label agentLabel
-            image envImageName
-        }
+        label agentLabel
     }
+
+
+
     environment {
         SUBQUERY_CLI_VERSION = '1.8.0'
         SUBQUERY_INDEXER_VERSION = 'v1.14.1'
@@ -49,13 +53,24 @@ pipeline {
     }
 
     stages {
+        stage('Secret scanner') {
+            steps {
+                script {
+                    docker.withRegistry('https://' + registry, dockerBuildToolsUserId) {
+                        secretScanner(disableSecretScanner, secretScannerExclusion)
+                    }
+                }
+            }
+        }
         stage('Validation before deployment') {
             steps {
                 script {
-                    sh """
-                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
-                       subql validate
-                    """
+                    docker.image("${envImageName}").inside() {
+                        sh """
+                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                            subql validate
+                        """
+                    }
                 }
             }
         }
@@ -65,12 +80,15 @@ pipeline {
             }
             steps {
                 script {
-                    sh """
-                    subql project:delete-project \
-                    --org=${SUBQUERY_ORG} \
-                    --projectName=${matrix_chain}
-                    echo project ${matrix_chain} is deleted
-                """
+                    docker.image("${envImageName}").inside() {
+                        sh """
+                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                            subql project:delete-project \
+                            --org=${SUBQUERY_ORG} \
+                            --projectName=${matrix_chain}
+                            echo project ${matrix_chain} is deleted
+                        """
+                    }
                 }
             }
         }
@@ -82,14 +100,17 @@ pipeline {
             }
             steps {
                 script {
-                    sh """
-                    subql project:create-project \
-                    --org=${SUBQUERY_ORG} \
-                    --dedicatedDB=${SUBQUERY_PROJECT_DB} \
-                    --projectName=${matrix_chain} \
-                    --gitRepo=https://github.com/sora-xor/sora-subquery
-                    echo project ${matrix_chain} is created
-                """
+                    docker.image("${envImageName}").inside() {
+                        sh """
+                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                            subql project:create-project \
+                            --org=${SUBQUERY_ORG} \
+                            --dedicatedDB=${SUBQUERY_PROJECT_DB} \
+                            --projectName=${matrix_chain} \
+                            --gitRepo=https://github.com/sora-xor/sora-subquery
+                            echo project ${matrix_chain} is created
+                        """
+                    }
                 }
             }
         }
@@ -99,26 +120,29 @@ pipeline {
             }
             steps {
                 script {
-                    sh """
-                       apt-get update && apt-get install curl -y
-                       npm install -g typescript
-                       npm install tslib
-                       npm link typescript
-                       yarn
-                       yarn codegen
-                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
-                       subql deployment:deploy \
-                       --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
-                       --queryVersion=${SUBQUERY_NODE_VERSION} \
-                       --org=${SUBQUERY_ORG} \
-                       --indexerSubscription \
-                       --querySubscription \
-                       --dict=dict \
-                       --ipfsCID=\$RESULT \
-                       --projectName=${matrix_chain} \
-                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
-                       echo "New deployment in production slot is executed"
-                    """
+                    docker.image("${envImageName}").inside() {
+                        sh """
+                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                            apt-get update && apt-get install curl -y
+                            npm install -g typescript
+                            npm install tslib
+                            npm link typescript
+                            yarn
+                            yarn codegen
+                            RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
+                            subql deployment:deploy \
+                            --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
+                            --queryVersion=${SUBQUERY_NODE_VERSION} \
+                            --org=${SUBQUERY_ORG} \
+                            --indexerSubscription \
+                            --querySubscription \
+                            --dict=dict \
+                            --ipfsCID=\$RESULT \
+                            --projectName=${matrix_chain} \
+                            --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                            echo "New deployment in production slot is executed"
+                        """
+                    }
                 }
             }
         }
@@ -128,27 +152,30 @@ pipeline {
             }
             steps {
                 script {
-                    sh """
-                       apt-get update && apt-get install curl -y
-                       npm install -g typescript
-                       npm install tslib
-                       npm link typescript
-                       yarn
-                       yarn codegen
-                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
-                       subql deployment:deploy \
-                       --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
-                       --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
-                       --org=${SUBQUERY_ORG} \
-                       --dict=dict \
-                       --indexerSubscription \
-                       --querySubscription \
-                       --ipfsCID=\$RESULT \
-                       --projectName=${matrix_chain} \
-                       --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
-                       --type=stage
-                       echo "New deployment in staging slot is executed"
-                    """
+                    docker.image("${envImageName}").inside() {
+                        sh """
+                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                            apt-get update && apt-get install curl -y
+                            npm install -g typescript
+                            npm install tslib
+                            npm link typescript
+                            yarn
+                            yarn codegen
+                            RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
+                            subql deployment:deploy \
+                            --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
+                            --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
+                            --org=${SUBQUERY_ORG} \
+                            --dict=dict \
+                            --indexerSubscription \
+                            --querySubscription \
+                            --ipfsCID=\$RESULT \
+                            --projectName=${matrix_chain} \
+                            --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
+                            --type=stage
+                            echo "New deployment in staging slot is executed"
+                        """
+                    }
                 }
             }
         }
