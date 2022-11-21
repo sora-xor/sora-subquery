@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
 
+import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 import { XOR } from '../utils/consts';
 

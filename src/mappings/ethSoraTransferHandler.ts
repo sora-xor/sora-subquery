@@ -1,12 +1,11 @@
 
-import { SubstrateEvent } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
-
-import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { XOR } from '../utils/consts';
-
+import type { SubstrateEvent } from "@subql/types";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { Codec } from "@polkadot/types/types/codec";
+
+import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
+import { getAssetId, formatU128ToBalance } from '../utils/assets';
+import { XOR } from '../utils/consts';
 
 // Obtaining tokens for further transfer may be done by unlocking
 // Below Substrate 4: "Transferred" event or by minting "Deposited".

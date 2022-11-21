@@ -1,9 +1,9 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
-import { XOR } from '../utils/consts';
+import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
 import { getAssetId, formatU128ToBalance, updateAssetVolume } from '../utils/assets';
 import { PoolsPrices } from '../utils/pools';
+import { XOR } from '../utils/consts';
 
 import type { Vec } from "@polkadot/types";
 import type { Enum, Struct } from "@polkadot/types/codec";

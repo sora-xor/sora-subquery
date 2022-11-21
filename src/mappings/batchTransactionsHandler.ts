@@ -1,7 +1,8 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
+
+import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 import { PoolsPrices } from '../utils/pools';
 

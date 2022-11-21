@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
+import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
 
 export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logger.debug("Caught set referral extrinsic");

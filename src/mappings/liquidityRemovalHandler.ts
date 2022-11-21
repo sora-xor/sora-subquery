@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic, SubstrateEvent } from '@subql/types';
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
+import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 
 const saveDetails = (extrinsic: SubstrateExtrinsic, details: Object): Object => {
