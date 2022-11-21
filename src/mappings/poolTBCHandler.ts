@@ -2,8 +2,8 @@ import { FPNumber } from '@sora-substrate/math';
 import { tbcQuote } from '@sora-substrate/liquidity-proxy';
 import { SubstrateBlock } from "@subql/types";
 import { Asset, PoolTBC } from "../types";
-import { formatU128ToBalance, getOrCreateAssetEntity } from "./utils";
-import { getAssetId } from '../utils/assets';
+
+import { getAssetId, formatU128ToBalance, getOrCreateAssetEntity } from '../utils/assets';
 import { XOR, DAI, XSTUSD } from '../utils/consts';
 
 import type { QuotePayload } from '@sora-substrate/liquidity-proxy';

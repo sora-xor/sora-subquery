@@ -1,12 +1,13 @@
 import { SubstrateExtrinsic } from '@subql/types';
-import type { Vec } from "@polkadot/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo, updateAssetVolume, updateHistoryElementAccounts } from "./utils";
+
+import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
 import { XOR } from '../utils/consts';
-import { getAssetId } from '../utils/assets';
+import { getAssetId, formatU128ToBalance, updateAssetVolume } from '../utils/assets';
 import { PoolsPrices } from '../utils/pools';
 
-import { Enum, Struct } from "@polkadot/types/codec";
-import { Balance } from "@polkadot/types/interfaces/runtime"
+import type { Vec } from "@polkadot/types";
+import type { Enum, Struct } from "@polkadot/types/codec";
+import type { Balance } from "@polkadot/types/interfaces/runtime"
 
 interface SwapAmount extends Enum {
     readonly isWithDesiredInput: boolean;

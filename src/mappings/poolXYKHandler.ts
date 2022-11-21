@@ -2,9 +2,8 @@ import BigNumber from "bignumber.js";
 
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK, Asset, SnapshotType } from "../types";
-import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice } from "./utils";
 
-import { getAssetId } from '../utils/assets';
+import { getAssetId, formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice } from '../utils/assets';
 import { PoolsPrices } from '../utils/pools';
 import { XOR, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, SnapshotSecondsMap } from '../utils/consts';
 

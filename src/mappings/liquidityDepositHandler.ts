@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
-import { formatU128ToBalance, assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
-import { getAssetId } from '../utils/assets';
+import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
+import { getAssetId, formatU128ToBalance } from '../utils/assets';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
 
