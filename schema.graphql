@@ -1,3 +1,35 @@
+enum AssetSnapshotType {
+  DEFAULT
+  HOUR
+  DAY
+}
+
+enum NetworkSnapshotType {
+  HOUR
+  DAY
+}
+
+type Network @entity {
+  id: ID!
+  totalAccounts: Int!
+  totalTransactions: Int!
+  totalFees: BigInt!
+  bridgeIncomingTransactions: Int!
+  bridgeOutgoingTransactions: Int!
+}
+
+type NetworkSnapshot @entity {
+  id: ID!
+  type: NetworkSnapshotType!
+  accounts: Int!
+  transactions: Int!
+  fees: BigInt!
+  tvl: BigInt!
+  volumeUSD: BigInt!
+  bridgeIncomingTransactions: Int!
+  bridgeOutgoingTransactions: Int!
+}
+
 type Asset @entity {
   id: ID!
   poolXYK: PoolXYK
@@ -17,10 +49,10 @@ type AssetVolume @jsonField {
   amountUSD: String!
 }
 
-enum AssetSnapshotType {
-  DEFAULT
-  HOUR
-  DAY
+type AssetSupply @jsonField {
+  total: String!
+  mint: String!
+  burn: String!
 }
 
 type AssetSnapshot @entity {
@@ -30,6 +62,7 @@ type AssetSnapshot @entity {
   type: AssetSnapshotType!
   priceUSD: AssetPrice
   volume: AssetVolume
+  supply: AssetSupply
 }
 
 type PoolXYK @entity {
