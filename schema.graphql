@@ -1,10 +1,5 @@
-enum AssetSnapshotType {
+enum SnapshotType {
   DEFAULT
-  HOUR
-  DAY
-}
-
-enum NetworkSnapshotType {
   HOUR
   DAY
 }
@@ -20,7 +15,7 @@ type Network @entity {
 
 type NetworkSnapshot @entity {
   id: ID!
-  type: NetworkSnapshotType!
+  type: SnapshotType!
   accounts: Int!
   transactions: Int!
   fees: BigInt!
@@ -59,7 +54,7 @@ type AssetSnapshot @entity {
   id: ID!
   asset: Asset! @index #relation to Asset
   timestamp: Int!
-  type: AssetSnapshotType!
+  type: SnapshotType!
   priceUSD: AssetPrice
   volume: AssetVolume
   supply: AssetSupply

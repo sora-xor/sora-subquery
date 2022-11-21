@@ -1,6 +1,6 @@
 import { SubstrateEvent } from "@subql/types";
 import { RemintedAssetsAmount } from "../types";
-import { getAssetId } from "./utils";
+import { getAssetId } from '../utils/assets';
 
 export async function handleRemintedAssetsAmount(event: SubstrateEvent): Promise<void> {
     logger.debug(`event reminted ${event.event.data}`);

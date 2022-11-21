@@ -1,6 +1,6 @@
 import { SubstrateEvent } from "@subql/types";
 import { ClaimableReward } from "../types";
-import { getAssetId } from "./utils";
+import { getAssetId } from '../utils/assets';
 
 const lpFeesAccount: string = 'cnTQ1kbv7PBNNQrEb1tZpmK7ftiv4yCCpUQy1J2y7Y54Taiaw';
 const tbcRewardsAccount: string = 'cnTQ1kbv7PBNNQrEb1tZpmK7easBTbiFMQUUwfLf9LX66ND8u';

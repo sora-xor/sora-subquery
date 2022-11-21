@@ -1,12 +1,14 @@
-import { SubstrateBlock } from "@subql/types";
-import { PoolXYK, Asset, AssetSnapshotType } from "../types";
-import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice, getAssetId, PoolsPrices, SnapshotSecondsMap, SECONDS_IN_BLOCK, DOUBLE_PRICE_POOL } from "./utils";
-
 import BigNumber from "bignumber.js";
 
-import { XOR, PSWAP, DAI } from "./utils";
+import { SubstrateBlock } from "@subql/types";
+import { PoolXYK, Asset, SnapshotType } from "../types";
+import { formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice } from "./utils";
 
-const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[AssetSnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
+import { getAssetId } from '../utils/assets';
+import { PoolsPrices } from '../utils/pools';
+import { XOR, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, SnapshotSecondsMap } from '../utils/consts';
+
+const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
 
 export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     const blockNumber = block.block.header.number.toNumber();

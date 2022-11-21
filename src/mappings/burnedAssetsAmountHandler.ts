@@ -1,6 +1,6 @@
 import { SubstrateEvent } from "@subql/types";
 import { BurnedAssetsAmount } from "../types";
-import { getAssetId } from "./utils";
+import { getAssetId } from '../utils/assets';
 
 export async function handleBurnedAssetsAmount(event: SubstrateEvent): Promise<void> {
     logger.debug(`event burned ${event.event.data}`);

@@ -1,6 +1,10 @@
 
 import { SubstrateEvent } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo, updateHistoryElementAccounts, getAssetId, XOR } from "./utils";
+import { formatU128ToBalance, assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
+
+import { getAssetId } from '../utils/assets';
+import { XOR } from '../utils/consts';
+
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { Codec } from "@polkadot/types/types/codec";
 

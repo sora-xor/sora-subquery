@@ -1,5 +1,6 @@
 import { SubstrateBlock } from "@subql/types";
-import { assetPrecisions, getAssetId } from "./utils";
+
+import { assetPrecisions, getAssetId } from '../utils/assets';
 
 let isFirstBlockIndexed = true;
 

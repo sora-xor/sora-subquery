@@ -1,7 +1,10 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import type { Vec } from "@polkadot/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo, PoolsPrices, updateAssetVolume, getAssetId, updateHistoryElementAccounts } from "./utils";
-import { XOR } from '..';
+import { formatU128ToBalance, assignCommonHistoryElemInfo, updateAssetVolume, updateHistoryElementAccounts } from "./utils";
+import { XOR } from '../utils/consts';
+import { getAssetId } from '../utils/assets';
+import { PoolsPrices } from '../utils/pools';
+
 import { Enum, Struct } from "@polkadot/types/codec";
 import { Balance } from "@polkadot/types/interfaces/runtime"
 

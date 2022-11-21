@@ -1,7 +1,9 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
-import { assignCommonHistoryElemInfo, formatU128ToBalance, PoolsPrices, getAssetId, updateHistoryElementAccounts } from "./utils";
+import { assignCommonHistoryElemInfo, formatU128ToBalance, updateHistoryElementAccounts } from "./utils";
+import { getAssetId } from '../utils/assets';
+import { PoolsPrices } from '../utils/pools';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
