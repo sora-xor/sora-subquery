@@ -3,7 +3,7 @@ description: ''
 repository: 'https://github.com/sora-xor/sora-subquery'
 schema: ./schema.graphql
 network:
-  endpoint: wss://ws.stage.sora2.soramitsu.co.jp/
+  endpoint: 'wss://mof2.sora.org'
   types: {
     "AccountInfo": "AccountInfoWithDualRefCount",
     "Address": "AccountId",
@@ -657,7 +657,7 @@ network:
 dataSources:
   - name: main
     kind: substrate/Runtime
-    startBlock: 1
+    startBlock: 8035602
     mapping:
       handlers:
         # Get all assets on the first block being parsed and cache them
