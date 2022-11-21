@@ -1,6 +1,6 @@
-import {SubstrateBlock} from "@subql/types";
-import {Pool, PoolXYKEntity} from "../types";
-import {formatU128ToBalance} from "./utils";
+import { SubstrateBlock } from "@subql/types";
+import { Pool, PoolXYKEntity } from "../types";
+import { formatU128ToBalance } from "./utils";
 import BigNumber from "bignumber.js";
 
 import { XOR } from "..";
@@ -9,7 +9,8 @@ const VAL: string = '0x020004000000000000000000000000000000000000000000000000000
 const PSWAP: string = '0x0200050000000000000000000000000000000000000000000000000000000000';
 const DAI: string = '0x0200060000000000000000000000000000000000000000000000000000000000';
 const ETH: string = '0x0200070000000000000000000000000000000000000000000000000000000000';
-const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH];
+const XST: string = '0x0200090000000000000000000000000000000000000000000000000000000000';
+const DOUBLE_PRICE_POOL: Array<String> = [VAL, PSWAP, DAI, ETH, XST];
 const FIVE_MINUTES_IN_BLOCKS = 50;
 
 export async function handleXYKPools(block: SubstrateBlock): Promise<void> {
