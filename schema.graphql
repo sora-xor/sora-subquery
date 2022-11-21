@@ -4,22 +4,23 @@ enum SnapshotType {
   DAY
 }
 
-type Network @entity {
+type NetworkStats @entity {
   id: ID!
+  totalFees: BigInt!
   totalAccounts: Int!
   totalTransactions: Int!
-  totalFees: BigInt!
-  bridgeIncomingTransactions: Int!
-  bridgeOutgoingTransactions: Int!
+  totalBridgeIncomingTransactions: Int!
+  totalBridgeOutgoingTransactions: Int!
 }
 
 type NetworkSnapshot @entity {
   id: ID!
   type: SnapshotType!
+  timestamp: Int!
   accounts: Int!
   transactions: Int!
   fees: BigInt!
-  tvl: BigInt!
+  tvlUSD: BigInt!
   volumeUSD: BigInt!
   bridgeIncomingTransactions: Int!
   bridgeOutgoingTransactions: Int!

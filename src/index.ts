@@ -20,4 +20,4 @@ export * from "./mappings/referralUnreserveHandler";
 export * from "./mappings/referrerRewardHandler";
 export * from "./mappings/getAllAssetsInfos";
 export * from "./mappings/demeterFarmingPlatformHandlers";
-export * from "./mappings/utils";
+export * from "./mappings/networkStatsHandler";

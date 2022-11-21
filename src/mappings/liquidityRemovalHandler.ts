@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic, SubstrateEvent } from '@subql/types';
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 
 const saveDetails = (extrinsic: SubstrateExtrinsic, details: Object): Object => {
@@ -77,7 +77,7 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
     record.data = details
 
     await record.save();
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

@@ -30,6 +30,8 @@ dataSources:
           filter:
             module: assets
             method: register
+        - handler: createNetworkSnapshots
+          kind: substrate/BlockHandler
         - handler: syncXYKPools
           kind: substrate/BlockHandler
         - handler: handlerTransfers

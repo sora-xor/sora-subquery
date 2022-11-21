@@ -3,8 +3,9 @@ import type { SubstrateEvent } from "@subql/types";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { Codec } from "@polkadot/types/types/codec";
 
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
+import { updateBridgeIncomingTransactionsStats } from '../utils/network';
 import { XOR } from '../utils/consts';
 
 // Obtaining tokens for further transfer may be done by unlocking
@@ -62,7 +63,8 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
     record.data = entity
 
     await record.save();
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
+    await updateBridgeIncomingTransactionsStats(record.timestamp, Number(record.blockHeight.toString()));
 
     logger.debug(`===== Saved ETH->SORA transfer extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

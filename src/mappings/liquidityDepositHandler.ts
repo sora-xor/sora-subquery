@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic } from '@subql/types';
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -39,7 +39,7 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
     record.data = details as any;
 
     await record.save();
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved liquidity deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

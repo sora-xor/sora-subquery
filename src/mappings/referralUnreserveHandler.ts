@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { formatU128ToBalance } from "../utils/assets";
 import { XOR } from "../utils/consts";
 
@@ -30,7 +30,7 @@ export async function referralUnreserveHandler(extrinsic: SubstrateExtrinsic): P
     record.data = details
 
     await record.save();
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved referral unreserve with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }

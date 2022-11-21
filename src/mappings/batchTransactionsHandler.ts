@@ -2,7 +2,7 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 import { PoolsPrices } from '../utils/pools';
 
@@ -89,7 +89,7 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
     record.data = entities as Object
 
     await record.save()
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
 

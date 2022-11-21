@@ -3,6 +3,7 @@ import type { SubstrateExtrinsic } from "@subql/types";
 import { HistoryElement } from "../types";
 import { formatU128ToBalance } from './assets';
 import { getOrCreateAccountEntity } from './account';
+import { updateTransactionsStats } from './network';
 import { XOR } from './consts';
 
 const INCOMING_TRANSFER_METHODS = ['transfer', 'swapTransfer'];
@@ -67,8 +68,10 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
   return record
 }
 
-export const updateHistoryElementAccounts = async (history: HistoryElement) => {
+export const updateHistoryElementStats = async (history: HistoryElement) => {
   const addresses = [history.address.toString()];
+  const timestamp = history.timestamp;
+  const blockNumber = Number(history.blockHeight.toString());
 
   if (
       INCOMING_TRANSFER_METHODS.includes(history.method.toString()) &&
@@ -78,9 +81,12 @@ export const updateHistoryElementAccounts = async (history: HistoryElement) => {
       addresses.push((history.data['to'] as string).toString());
   }
 
+  // update accounts data
   for (const address of addresses) {
-      const account = await getOrCreateAccountEntity(address);
+      const account = await getOrCreateAccountEntity(address, timestamp, blockNumber);
       account.latestHistoryElementId = history.id.toString();
       await account.save();
   }
+
+  await updateTransactionsStats(timestamp, blockNumber);
 }

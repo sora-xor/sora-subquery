@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "../utils/history";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 
 export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -38,7 +38,7 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
         record.data = details
 
         await record.save();
-        await updateHistoryElementAccounts(record);
+        await updateHistoryElementStats(record);
 
         logger.debug(`===== Saved iroha migration with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
