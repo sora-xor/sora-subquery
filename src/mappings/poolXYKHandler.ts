@@ -30,6 +30,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     let pswapPriceInDAI = new BigNumber(0);
 
     for (const baseAsset of BASE_ASSETS) {
+        const isXorPools = baseAsset === XOR;
         const pools: Array<PoolXYK> = [];
 
         let baseAssetInPools = new BigNumber(0);
@@ -51,7 +52,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
             pool.targetAsset = targetAssetId;
             pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAsset);
             pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAssetId);
-            pool.multiplier = baseAsset === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
+            pool.multiplier = isXorPools && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
             pool.priceUSD = '0';
             pool.strategicBonusApy = '0';
 
@@ -113,7 +114,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         await Promise.all(pools.map(pool => pool.save()));
 
         // update price samples
-        if (baseAsset === XOR) {
+        if (isXorPools) {
             for (const pool of pools) {
                 await updateAssetPrice(pool.targetAsset, pool.priceUSD, blockTimestamp, blockNumber);
             }
