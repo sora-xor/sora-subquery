@@ -1,7 +1,8 @@
 import BigNumber from "bignumber.js";
 
-import { Asset, SnapshotType, AssetSnapshot, PoolXYK } from "../types";
+import { Asset, SnapshotType, AssetSnapshot } from "../types";
 import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XSTUSD, DAI } from './consts';
+import { updateVolumeStats } from '../utils/network';
 
 export let assetPrecisions = new Map<string, number>();
 
@@ -107,17 +108,19 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
 
   const assetPrice = [XSTUSD, DAI].includes(assetId)
       ? new BigNumber(1)
-      : new BigNumber((await PoolXYK.get(assetId))?.priceUSD ?? 0);
+      : new BigNumber((await Asset.get(assetId))?.priceUSD ?? 0);
+
+  const volume = new BigNumber(amount);
+  const volumeUSD = volume.multipliedBy(assetPrice);
 
   for (const type of Object.values(SnapshotType)) {
       const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
-
-      const volume = new BigNumber(amount);
-      const volumeUSD = volume.multipliedBy(assetPrice);
 
       snapshot.volume.amount = new BigNumber(snapshot.volume.amount).plus(volume).toString();
       snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toString();
 
       await snapshot.save();
   }
+
+  await updateVolumeStats(volumeUSD, blockTimestamp, blockNumber);
 };

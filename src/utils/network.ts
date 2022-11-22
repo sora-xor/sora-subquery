@@ -1,5 +1,7 @@
+import BigNumber from "bignumber.js";
+
 import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
-import { SnapshotSecondsMap, SECONDS_IN_BLOCK } from './consts';
+import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XOR, XSTUSD } from './consts';
 
 export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY];
 
@@ -28,6 +30,7 @@ export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: num
       xor: '0',
       xstusd: '0'
     };
+    snapshot.liquidityUSD = '0';
     snapshot.volumeUSD = BigInt(0);
     snapshot.bridgeIncomingTransactions = 0;
     snapshot.bridgeOutgoingTransactions = 0;
@@ -126,6 +129,30 @@ export const updateFeesStats = async (fee: bigint, blockTimestamp: number, block
     const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
 
     snapshot.fees = snapshot.fees + fee;
+
+    await snapshot.save();
+  }
+};
+
+export const updateLiquidityStats = async (liquidities: Record<string, BigNumber>, liquiditiesUSD: BigNumber, blockTimestamp: number, blockNumber: number) => {
+  for (const type of NetworkSnapshots) {
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+
+    snapshot.liquidities = {
+      xor: liquidities[XOR].toString(),
+      xstusd: liquidities[XSTUSD].toString(),
+    };
+    snapshot.liquiditiesUSD = liquiditiesUSD.toString();
+
+    await snapshot.save();
+  }
+};
+
+export const updateVolumeStats = async (volumeUSD: BigNumber, blockTimestamp: number, blockNumber: number) => {
+  for (const type of NetworkSnapshots) {
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+
+    snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toString();
 
     await snapshot.save();
   }

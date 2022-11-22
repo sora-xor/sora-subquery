@@ -4,8 +4,9 @@ import { SubstrateBlock } from "@subql/types";
 import { PoolXYK, SnapshotType } from "../types";
 
 import { getAssetId, formatU128ToBalance, updateAssetPrice } from '../utils/assets';
+import { updateLiquidityStats } from '../utils/network';
 import { PoolsPrices } from '../utils/pools';
-import { XOR, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, BASE_ASSETS, SnapshotSecondsMap } from '../utils/consts';
+import { XOR, XSTUSD, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, BASE_ASSETS, SnapshotSecondsMap } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
 const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
@@ -28,6 +29,11 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     const blockTimestamp: number = formatDateTimestamp(block.timestamp);
 
     let pswapPriceInDAI = new BigNumber(0);
+    let liquiditiesUSD = new BigNumber(0);
+    let liquidityLocked = {
+        [XOR]: new BigNumber(0),
+        [XSTUSD]: new BigNumber(0),
+    };
 
     for (const baseAsset of BASE_ASSETS) {
         const isXorPools = baseAsset === XOR;
@@ -70,8 +76,10 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         if (!baseAssetPriceInDAI.isZero()) {
             // update pools prices
             pools.forEach(p => {
-                const daiPrice = new BigNumber(p.baseAssetReserves)
-                    .dividedBy(new BigNumber(p.targetAssetReserves))
+                const baseAssetReserves = new BigNumber(p.baseAssetReserves);
+                const targetAssetReserves = new BigNumber(p.targetAssetReserves);
+                const daiPrice = baseAssetReserves
+                    .dividedBy(targetAssetReserves)
                     .multipliedBy(baseAssetPriceInDAI);
 
                 p.priceUSD = daiPrice.toFixed(18);
@@ -111,6 +119,10 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
             pools.push(basePool);
         }
 
+        // update liquidities data
+        liquidityLocked[baseAsset] = baseAssetInPools;
+        liquiditiesUSD = liquiditiesUSD.plus(baseAssetInPools.multipliedBy(baseAssetPriceInDAI));
+
         await Promise.all(pools.map(pool => pool.save()));
 
         // update price samples
@@ -120,6 +132,9 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
             }
         }
     }
+
+    // update network liquidity locked
+    await updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp, blockNumber);
 
     PoolsPrices.set(false);
 }

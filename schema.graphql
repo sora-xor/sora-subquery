@@ -26,7 +26,8 @@ type NetworkSnapshot @entity {
   transactions: Int!
   fees: BigInt!
   liquidity: LockedLiquidity!
-  volumeUSD: BigInt!
+  liquidityUSD: String!
+  volumeUSD: String!
   bridgeIncomingTransactions: Int!
   bridgeOutgoingTransactions: Int!
 }
