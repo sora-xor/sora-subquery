@@ -1,9 +1,9 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateBlock } from "@subql/types";
-import { PoolXYK, Asset, SnapshotType } from "../types";
+import { PoolXYK, SnapshotType } from "../types";
 
-import { getAssetId, formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice } from '../utils/assets';
+import { getAssetId, formatU128ToBalance, updateAssetPrice } from '../utils/assets';
 import { PoolsPrices } from '../utils/pools';
 import { XOR, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, BASE_ASSETS, SnapshotSecondsMap } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
@@ -27,104 +27,97 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
 
     const blockTimestamp: number = formatDateTimestamp(block.timestamp);
 
-    const pools: Array<PoolXYK> = [];
-    const assets: Array<Asset> = [];
-
-    let totalXorInPools = new BigNumber(0);
-    let totalXORWithDoublePools = new BigNumber(0);
-    let xorPriceInDAI = new BigNumber(0);
     let pswapPriceInDAI = new BigNumber(0);
 
-    const reserves = await getReserves(XOR);
+    for (const baseAsset of BASE_ASSETS) {
+        const pools: Array<PoolXYK> = [];
 
-    for (const [{ args: [baseAsset, targetAsset] }, value] of reserves) {
-        const baseAssetId = getAssetId(baseAsset);
-        const targetAssetId = getAssetId(targetAsset);
-        const xorReserves: BigNumber = new BigNumber(value[0].toBigInt());
-        const targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
+        let baseAssetInPools = new BigNumber(0);
+        let baseAssetWithDoublePools = new BigNumber(0);
+        let baseAssetPriceInDAI = new BigNumber(0);
 
-        const asset = await getOrCreateAssetEntity(targetAssetId);
+        const reserves = await getReserves(baseAsset);
 
-        const poolId = `${baseAssetId}-${targetAssetId}`;
-        const pool = (await PoolXYK.get(poolId)) || new PoolXYK(poolId);
+        if (!reserves) continue;
 
-        asset.poolXYKId = pool.id;
+        for (const [{ args: [, targetAsset] }, value] of reserves) {
+            const targetAssetId = getAssetId(targetAsset);
+            const baseAssetReserves: BigNumber = new BigNumber(value[0].toBigInt());
+            const targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
+            const poolId = `${baseAsset}-${targetAssetId}`;
+            const pool = (await PoolXYK.get(poolId)) || new PoolXYK(poolId);
 
-        pool.baseAsset = baseAssetId;
-        pool.targetAsset = targetAssetId;
-        pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAssetId);
-        pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAssetId);
-        pool.multiplier = DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
-        pool.priceUSD = '0';
-        pool.strategicBonusApy = '0';
+            pool.baseAsset = baseAsset;
+            pool.targetAsset = targetAssetId;
+            pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAsset);
+            pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAssetId);
+            pool.multiplier = baseAsset === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
+            pool.priceUSD = '0';
+            pool.strategicBonusApy = '0';
 
-        pools.push(pool);
-        assets.push(asset);
+            pools.push(pool);
 
-        totalXorInPools = totalXorInPools.plus(xorReserves);
-        totalXORWithDoublePools = totalXORWithDoublePools.plus(xorReserves.multipliedBy(new BigNumber(pool.multiplier)));
+            baseAssetInPools = baseAssetInPools.plus(baseAssetReserves);
+            baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReserves.multipliedBy(new BigNumber(pool.multiplier)));
 
-        if (targetAssetId === DAI) {
-            xorPriceInDAI = targetAssetReserves.div(xorReserves);
-        }
-    }
-
-    // Update pools priceUSD & strategicBonusApy
-    if (!xorPriceInDAI.isZero()) {
-        const pswapPool = pools.find(p => p.id === PSWAP);
-
-        if (pswapPool) {
-            pswapPriceInDAI = new BigNumber(pswapPool.baseAssetReserves)
-                .div(new BigNumber(pswapPool.targetAssetReserves))
-                .multipliedBy(xorPriceInDAI)
+            if (targetAssetId === DAI) {
+                baseAssetPriceInDAI = targetAssetReserves.div(baseAssetReserves);
+            }
         }
 
-        pools.forEach(p => {
-            const daiPrice = new BigNumber(p.baseAssetReserves)
-                .dividedBy(new BigNumber(p.targetAssetReserves))
-                .multipliedBy(xorPriceInDAI);
+        // If base asset has price in DAI
+        if (!baseAssetPriceInDAI.isZero()) {
+            // update pools prices
+            pools.forEach(p => {
+                const daiPrice = new BigNumber(p.baseAssetReserves)
+                    .dividedBy(new BigNumber(p.targetAssetReserves))
+                    .multipliedBy(baseAssetPriceInDAI);
 
-            p.priceUSD = daiPrice.toFixed(18);
+                p.priceUSD = daiPrice.toFixed(18);
+
+                // update pswap price (scope)
+                if (p.targetAsset === PSWAP && pswapPriceInDAI.isZero()) {
+                    pswapPriceInDAI = daiPrice;
+                }
+            });
 
             if (!pswapPriceInDAI.isZero()) {
-                const strategicBonusApy = ((
-                    (pswapPriceInDAI.multipliedBy(new BigNumber(2500000)))
-                        .dividedBy(xorPriceInDAI.multipliedBy(totalXORWithDoublePools.dividedBy(Math.pow(10, 18)))))
-                    .multipliedBy(new BigNumber(365 / 2)))
-                    .multipliedBy(new BigNumber((p.multiplier)));
-
-                p.strategicBonusApy = strategicBonusApy.toFixed(18);
+                pools.forEach(p => {
+                    const strategicBonusApy = ((
+                        (pswapPriceInDAI.multipliedBy(new BigNumber(2500000)))
+                            .dividedBy(baseAssetPriceInDAI.multipliedBy(baseAssetWithDoublePools.dividedBy(Math.pow(10, 18)))))
+                        .multipliedBy(new BigNumber(365 / 2)))
+                        .multipliedBy(new BigNumber((p.multiplier)));
+        
+                    p.strategicBonusApy = strategicBonusApy.toFixed(18);
+                });
             }
-        });
-    }
+        }
 
-    //If pools exists, add fake XOR Pool in order to add fiat price for it
-    if (pools.length > 0) {
-        const xorAsset = await getOrCreateAssetEntity(XOR);
+        //If pools exists, add fake XOR Pool in order to add fiat price for it
+        if (pools.length > 0) {
+            const basePoolId = `${baseAsset}-${baseAsset}`;
+            const basePool: PoolXYK = (await PoolXYK.get(basePoolId)) || new PoolXYK(basePoolId);
 
-        const xorPoolId = `${XOR}-${XOR}`;
-        const xorPool: PoolXYK = (await PoolXYK.get(xorPoolId)) || new PoolXYK(xorPoolId);
+            basePool.baseAsset = baseAsset;
+            basePool.targetAsset = baseAsset;
+            basePool.multiplier = 1;
+            basePool.baseAssetReserves = "0";
+            basePool.targetAssetReserves = formatU128ToBalance(baseAssetInPools.toFixed(0), baseAsset);
+            basePool.priceUSD = baseAssetPriceInDAI.toFixed(18);
+            basePool.strategicBonusApy = "0";
 
-        xorAsset.poolXYKId = xorPool.id;
+            pools.push(basePool);
+        }
 
-        xorPool.baseAsset = XOR;
-        xorPool.targetAsset = XOR;
-        xorPool.multiplier = 1;
-        xorPool.baseAssetReserves = "0";
-        xorPool.targetAssetReserves = formatU128ToBalance(totalXorInPools.toFixed(0), XOR);
-        xorPool.priceUSD = xorPriceInDAI.toFixed(18);
-        xorPool.strategicBonusApy = "0";
+        await Promise.all(pools.map(pool => pool.save()));
 
-        assets.push(xorAsset);
-        pools.push(xorPool);
-    }
-
-    await Promise.all(pools.map(pool => pool.save()));
-    await Promise.all(assets.map(asset => asset.save()));
-
-    // update price samples
-    for (const pool of pools) {
-        await updateAssetPrice(pool.id.toString(), pool.priceUSD, blockTimestamp, blockNumber);
+        // update price samples
+        if (baseAsset === XOR) {
+            for (const pool of pools) {
+                await updateAssetPrice(pool.targetAsset, pool.priceUSD, blockTimestamp, blockNumber);
+            }
+        }
     }
 
     PoolsPrices.set(false);
