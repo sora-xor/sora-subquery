@@ -5,6 +5,7 @@ import { formatU128ToBalance } from './assets';
 import { getOrCreateAccountEntity } from './account';
 import { updateTransactionsStats } from './network';
 import { XOR } from './consts';
+import { formatDateTimestamp } from './index';
 
 const INCOMING_TRANSFER_METHODS = ['transfer', 'swapTransfer'];
 
@@ -30,7 +31,7 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
   record.method = extrinsic.extrinsic.method.method
   record.address = extrinsic.extrinsic.signer.toString()
   record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic), XOR)
-  record.timestamp = parseInt(((extrinsic.block.timestamp).getTime() / 1000).toFixed(0))
+  record.timestamp = formatDateTimestamp(extrinsic.block.timestamp)
 
   let failedEvent = extrinsic.events.find(e => e.event.method === 'ExtrinsicFailed');
 

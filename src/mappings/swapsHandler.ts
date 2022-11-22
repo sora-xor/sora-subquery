@@ -4,6 +4,7 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils
 import { getAssetId, formatU128ToBalance, updateAssetVolume } from '../utils/assets';
 import { PoolsPrices } from '../utils/pools';
 import { XOR } from '../utils/consts';
+import { formatDateTimestamp } from '../utils';
 
 import type { Vec } from "@polkadot/types";
 import type { Enum, Struct } from "@polkadot/types/codec";
@@ -54,7 +55,7 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
     const blockNumber = extrinsic.block.block.header.number.toNumber();
-    const blockTimestamp: number = parseInt(((extrinsic.block.timestamp).getTime() / 1000).toFixed(0));
+    const blockTimestamp = formatDateTimestamp(extrinsic.block.timestamp);
     const record = assignCommonHistoryElemInfo(extrinsic)
 
     const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = extrinsic.extrinsic.args.slice().reverse();

@@ -1,8 +1,9 @@
-import { SubstrateBlock } from "@subql/types";
+import { SubstrateBlock, SubstrateEvent } from "@subql/types";
 import { SnapshotType } from "../types";
 
-import { getNetworkSnapshot, NetworkSnapshots } from '../utils/network';
+import { getNetworkSnapshot, NetworkSnapshots, updateFeesStats } from '../utils/network';
 import { SnapshotSecondsMap, SECONDS_IN_BLOCK } from '../utils/consts';
+import { formatDateTimestamp } from '../utils';
 
 // Hourly interval
 const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.HOUR] / SECONDS_IN_BLOCK;
@@ -13,7 +14,7 @@ export async function createNetworkSnapshots(block: SubstrateBlock): Promise<voi
 
   if (!shouldSync) return;
 
-  const blockTimestamp = parseInt(((block.timestamp).getTime() / 1000).toFixed(0));
+  const blockTimestamp = formatDateTimestamp(block.timestamp);
 
   // create new snapshots for HOUR & DAY intervals
   for (const type of NetworkSnapshots) {
@@ -21,4 +22,13 @@ export async function createNetworkSnapshots(block: SubstrateBlock): Promise<voi
 
     await networkSnapshot.save();
   }
+}
+
+export async function handleNetworkFee(event: SubstrateEvent): Promise<void> {
+  const { event: { data: [account, fee] } } = event;
+  const blockNumber = event.block.block.header.number.toNumber();
+  const blockTimestamp = formatDateTimestamp(event.block.timestamp);
+  const formattedFee = BigInt(fee.toString());
+
+  await updateFeesStats(formattedFee, blockTimestamp, blockNumber);
 }

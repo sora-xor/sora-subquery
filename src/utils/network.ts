@@ -41,8 +41,8 @@ export const getNetworkStats = async (): Promise<NetworkStats> => {
     entity.totalFees = BigInt(0);
     entity.totalAccounts = 0;
     entity.totalTransactions = 0;
-    entity.bridgeIncomingTransactions = 0;
-    entity.bridgeOutgoingTransactions = 0;
+    entity.totalBridgeIncomingTransactions = 0;
+    entity.totalBridgeOutgoingTransactions = 0;
   }
 
   return entity;
@@ -83,7 +83,7 @@ export const updateTransactionsStats = async (blockTimestamp: number, blockNumbe
 export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: number, blockNumber: number): Promise<void> => {
   const stats = await getNetworkStats();
 
-  stats.bridgeIncomingTransactions = stats.bridgeIncomingTransactions + 1;
+  stats.totalBridgeIncomingTransactions = stats.totalBridgeIncomingTransactions + 1;
 
   await stats.save();
 
@@ -99,7 +99,7 @@ export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: numb
 export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: number, blockNumber: number): Promise<void> => {
   const stats = await getNetworkStats();
 
-  stats.bridgeOutgoingTransactions = stats.bridgeOutgoingTransactions + 1;
+  stats.totalBridgeOutgoingTransactions = stats.totalBridgeOutgoingTransactions + 1;
 
   await stats.save();
 
@@ -107,6 +107,22 @@ export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: numb
     const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
 
     snapshot.bridgeOutgoingTransactions = snapshot.bridgeOutgoingTransactions + 1;
+
+    await snapshot.save();
+  }
+};
+
+export const updateFeesStats = async (fee: bigint, blockTimestamp: number, blockNumber: number): Promise<void> => {
+  const stats = await getNetworkStats();
+
+  stats.totalFees = stats.totalFees + fee;
+
+  await stats.save();
+
+  for (const type of NetworkSnapshots) {
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+
+    snapshot.fees = snapshot.fees + fee;
 
     await snapshot.save();
   }
