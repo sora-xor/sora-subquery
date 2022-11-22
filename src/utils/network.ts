@@ -24,7 +24,10 @@ export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: num
     snapshot.accounts = 0;
     snapshot.transactions = 0;
     snapshot.fees = BigInt(0);
-    snapshot.tvlUSD = BigInt(0);
+    snapshot.liquidity = {
+      xor: '0',
+      xstusd: '0'
+    };
     snapshot.volumeUSD = BigInt(0);
     snapshot.bridgeIncomingTransactions = 0;
     snapshot.bridgeOutgoingTransactions = 0;

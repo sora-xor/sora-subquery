@@ -5,10 +5,19 @@ import { PoolXYK, Asset, SnapshotType } from "../types";
 
 import { getAssetId, formatU128ToBalance, getOrCreateAssetEntity, updateAssetPrice } from '../utils/assets';
 import { PoolsPrices } from '../utils/pools';
-import { XOR, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, SnapshotSecondsMap } from '../utils/consts';
+import { XOR, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, BASE_ASSETS, SnapshotSecondsMap } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
 const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
+
+const getReserves = async (baseAssetId: string) => {
+    try {
+        return await api.query.poolXYK.reserves.entries(baseAssetId);
+    } catch (e) {
+        logger.error("Error getting reserves", e);
+        return null;
+    }
+};
 
 export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     const blockNumber = block.block.header.number.toNumber();
@@ -26,15 +35,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     let xorPriceInDAI = new BigNumber(0);
     let pswapPriceInDAI = new BigNumber(0);
 
-    //todo rework to liquidity proxy quote
-    let reserves;
-
-    try {
-        reserves = await api.query.poolXYK.reserves.entries(XOR)
-    } catch (e) {
-        logger.error("Error getting reserves", e);
-        return;
-    }
+    const reserves = await getReserves(XOR);
 
     for (const [{ args: [baseAsset, targetAsset] }, value] of reserves) {
         const baseAssetId = getAssetId(baseAsset);
@@ -43,10 +44,14 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         const targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
 
         const asset = await getOrCreateAssetEntity(targetAssetId);
-        const pool = (await PoolXYK.get(asset.id.toString())) || new PoolXYK(asset.id.toString());
+
+        const poolId = `${baseAssetId}-${targetAssetId}`;
+        const pool = (await PoolXYK.get(poolId)) || new PoolXYK(poolId);
 
         asset.poolXYKId = pool.id;
 
+        pool.baseAsset = baseAssetId;
+        pool.targetAsset = targetAssetId;
         pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAssetId);
         pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAssetId);
         pool.multiplier = DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
@@ -96,10 +101,14 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     //If pools exists, add fake XOR Pool in order to add fiat price for it
     if (pools.length > 0) {
         const xorAsset = await getOrCreateAssetEntity(XOR);
-        const xorPool: PoolXYK = (await PoolXYK.get(xorAsset.id.toString())) || new PoolXYK(xorAsset.id.toString());
+
+        const xorPoolId = `${XOR}-${XOR}`;
+        const xorPool: PoolXYK = (await PoolXYK.get(xorPoolId)) || new PoolXYK(xorPoolId);
 
         xorAsset.poolXYKId = xorPool.id;
 
+        xorPool.baseAsset = XOR;
+        xorPool.targetAsset = XOR;
         xorPool.multiplier = 1;
         xorPool.baseAssetReserves = "0";
         xorPool.targetAssetReserves = formatU128ToBalance(totalXorInPools.toFixed(0), XOR);

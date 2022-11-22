@@ -13,6 +13,11 @@ type NetworkStats @entity {
   totalBridgeOutgoingTransactions: Int!
 }
 
+type LockedLiquidity @jsonField {
+  xor: String!
+  xstusd: String!
+}
+
 type NetworkSnapshot @entity {
   id: ID!
   type: SnapshotType!
@@ -20,7 +25,7 @@ type NetworkSnapshot @entity {
   accounts: Int!
   transactions: Int!
   fees: BigInt!
-  tvlUSD: BigInt!
+  liquidity: LockedLiquidity!
   volumeUSD: BigInt!
   bridgeIncomingTransactions: Int!
   bridgeOutgoingTransactions: Int!
@@ -63,11 +68,13 @@ type AssetSnapshot @entity {
 
 type PoolXYK @entity {
   id: ID!
-  priceUSD: String
-  strategicBonusApy: String
+  baseAsset: String!
+  targetAsset: String!
   baseAssetReserves: String!
   targetAssetReserves: String!
   multiplier: Int!
+  priceUSD: String
+  strategicBonusApy: String
 }
 
 type PoolTBC @entity {
