@@ -9,6 +9,9 @@ export const PSWAP: string = '0x020005000000000000000000000000000000000000000000
 export const DAI: string = '0x0200060000000000000000000000000000000000000000000000000000000000';
 export const ETH: string = '0x0200070000000000000000000000000000000000000000000000000000000000';
 export const XSTUSD: string = '0x0200080000000000000000000000000000000000000000000000000000000000';
+export const XST: string = '0x0200090000000000000000000000000000000000000000000000000000000000';
+
+export const DOUBLE_PRICE_POOL = [VAL, PSWAP, DAI, ETH, XST];
 
 export const SECONDS_IN_BLOCK = 6;
 
@@ -188,26 +191,19 @@ const getAssetSnapshot = async (assetId: string, type: AssetSnapshotType, blockT
         };
 
         // find prev snapshot, to get it's "close" price, and set it as "open" price for new snapshot
-        let prevSnapshotIndex = shapshotIndex - 1;
+        const prevSnapshotIndex = shapshotIndex - 1;
+        const prevSnapshotId = getAssetSnapshotId(assetId, type, prevSnapshotIndex);
+        const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
 
-        while (prevSnapshotIndex >= 0) {
-            const prevSnapshotId = getAssetSnapshotId(assetId, type, prevSnapshotIndex);
-            const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
+        if (prevSnapshot?.priceUSD) {
+            const snapshotOpenPrice = prevSnapshot?.priceUSD?.close;
 
-            if (prevSnapshot?.priceUSD) {
-                const snapshotOpenPrice = prevSnapshot?.priceUSD?.close;
-
-                snapshot.priceUSD = {
-                    open: snapshotOpenPrice,
-                    close: snapshotOpenPrice,
-                    high: snapshotOpenPrice,
-                    low: snapshotOpenPrice,
-                };
-
-                break;
-            }
-
-            prevSnapshotIndex = prevSnapshotIndex - 1;
+            snapshot.priceUSD = {
+                open: snapshotOpenPrice,
+                close: snapshotOpenPrice,
+                high: snapshotOpenPrice,
+                low: snapshotOpenPrice,
+            };
         }
     }
 
@@ -215,6 +211,7 @@ const getAssetSnapshot = async (assetId: string, type: AssetSnapshotType, blockT
 };
 
 export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
+    logger.debug(`updateAssetPrice: ${assetId}; price: ${price}; blockNumber: ${blockNumber};`)
     await getOrCreateAssetEntity(assetId);
 
     for (const type of Object.values(AssetSnapshotType)) {
