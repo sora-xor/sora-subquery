@@ -117,24 +117,6 @@ type HistoryElementDetails @jsonField {
   data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
 }
 
-type BurnedAssetsAmount @entity {
-  id: ID!
-  blockHeight: BigInt! @index
-  blockHash: String!
-  timestamp: Int!
-  currencyId: String!
-  balance: BigInt!
-}
-
-type RemintedAssetsAmount @entity {
-  id: ID!
-  blockHeight: BigInt! @index
-  blockHash: String!
-  timestamp: Int!
-  currencyId: String!
-  balance: BigInt!
-}
-
 type ClaimableReward @entity {
   id: ID!
   blockHeight: BigInt! @index

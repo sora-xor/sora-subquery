@@ -57,28 +57,35 @@ const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimest
           high: '0',
           low: '0',
       };
+      snapshot.supply = {
+        total: BigInt(0),
+        mint: BigInt(0),
+        burn: BigInt(0),
+      };
 
-      // find prev snapshot, to get it's "close" price, and set it as "open" price for new snapshot
-      let prevSnapshotIndex = shapshotIndex - 1;
+      // Find prev snapshot:
+      // 1) to get it's "close" price, and set it as "open" price for new snapshot
+      // 2) to set total supply
+      const prevSnapshotIndex = shapshotIndex - 1;
+      const prevSnapshotId = getAssetSnapshotId(assetId, type, prevSnapshotIndex);
+      const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
 
-      while (prevSnapshotIndex >= 0) {
-          const prevSnapshotId = getAssetSnapshotId(assetId, type, prevSnapshotIndex);
-          const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
+      if (prevSnapshot) {
+        if (prevSnapshot.priceUSD) {
+          const snapshotOpenPrice = prevSnapshot.priceUSD.close;
 
-          if (prevSnapshot?.priceUSD) {
-              const snapshotOpenPrice = prevSnapshot?.priceUSD?.close;
+          snapshot.priceUSD = {
+              open: snapshotOpenPrice,
+              close: snapshotOpenPrice,
+              high: snapshotOpenPrice,
+              low: snapshotOpenPrice,
+          };
+        }
+        if (prevSnapshot.supply) {
+          const total = prevSnapshot.supply.total;
 
-              snapshot.priceUSD = {
-                  open: snapshotOpenPrice,
-                  close: snapshotOpenPrice,
-                  high: snapshotOpenPrice,
-                  low: snapshotOpenPrice,
-              };
-
-              break;
-          }
-
-          prevSnapshotIndex = prevSnapshotIndex - 1;
+          snapshot.supply.total = total;
+        }
       }
   }
 
@@ -124,3 +131,33 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
 
   await updateVolumeStats(volumeUSD, blockTimestamp, blockNumber);
 };
+
+export const updateAssetMintedAmount = async (assetId: string, amount: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
+  await getOrCreateAssetEntity(assetId);
+
+  const value = new BigNumber(amount);
+
+  for (const type of Object.values(SnapshotType)) {
+    const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
+
+    snapshot.supply.mint = new BigNumber(snapshot.supply.mint).plus(value).toString();
+    snapshot.supply.total = new BigNumber(snapshot.supply.total).plus(value).toString();
+
+    await snapshot.save();
+  }
+}
+
+export const updateAssetBurnedAmount = async (assetId: string, amount: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
+  await getOrCreateAssetEntity(assetId);
+
+  const value = new BigNumber(amount);
+
+  for (const type of Object.values(SnapshotType)) {
+    const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
+
+    snapshot.supply.burn = new BigNumber(snapshot.supply.burn).plus(value).toString();
+    snapshot.supply.total = new BigNumber(snapshot.supply.total).minus(value).toString();
+
+    await snapshot.save();
+  }
+}

@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { assetPrecisions, getAssetId } from '../utils/assets';
+import { assetPrecisions, getAssetId, getOrCreateAssetEntity } from '../utils/assets';
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -26,6 +26,7 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
             assetPrecisions.set(assetId, precision.toNumber());
         }
 
+        await getOrCreateAssetEntity(assetId);
     }
 
     else {
