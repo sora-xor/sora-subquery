@@ -121,9 +121,6 @@ export async function syncTBCPools(block: SubstrateBlock) {
     payload.issuances[collateralAssetId] = await getAssetIssuance(collateralAssetId);
 
     const asset = await getOrCreateAssetEntity(collateralAssetId);
-
-    asset.poolTBCId = asset.id;
-
     const pool = (await PoolTBC.get(asset.id)) || new PoolTBC(asset.id);
 
     if (collateralAssetId === DAI) {
@@ -148,9 +145,6 @@ export async function syncTBCPools(block: SubstrateBlock) {
 
   //Add fake XOR Pool in order to add fiat price for it
   const xorAsset = await getOrCreateAssetEntity(XOR);
-
-  xorAsset.poolTBCId = xorAsset.id;
-
   const xorPool = (await PoolTBC.get(xorAsset.id)) || new PoolTBC(xorAsset.id);
 
   xorPool.collateralReserves = '0';

@@ -31,8 +31,8 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     let pswapPriceInDAI = new BigNumber(0);
     let liquiditiesUSD = new BigNumber(0);
     let liquidityLocked = {
-        [XOR]: new BigNumber(0),
-        [XSTUSD]: new BigNumber(0),
+        [XOR]: '0',
+        [XSTUSD]: '0',
     };
 
     for (const baseAsset of BASE_ASSETS) {
@@ -94,7 +94,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
                 pools.forEach(p => {
                     const strategicBonusApy = ((
                         (pswapPriceInDAI.multipliedBy(new BigNumber(2500000)))
-                            .dividedBy(baseAssetPriceInDAI.multipliedBy(baseAssetWithDoublePools.dividedBy(Math.pow(10, 18)))))
+                        .dividedBy(baseAssetPriceInDAI.multipliedBy(baseAssetWithDoublePools.dividedBy(Math.pow(10, 18)))))
                         .multipliedBy(new BigNumber(365 / 2)))
                         .multipliedBy(new BigNumber((p.multiplier)));
         
@@ -102,6 +102,8 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
                 });
             }
         }
+
+        const baseAssetInPoolsFormatted = formatU128ToBalance(baseAssetInPools.toFixed(0), baseAsset);
 
         //If pools exists, add fake XOR Pool in order to add fiat price for it
         if (pools.length > 0) {
@@ -112,7 +114,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
             basePool.targetAsset = baseAsset;
             basePool.multiplier = 1;
             basePool.baseAssetReserves = "0";
-            basePool.targetAssetReserves = formatU128ToBalance(baseAssetInPools.toFixed(0), baseAsset);
+            basePool.targetAssetReserves = baseAssetInPoolsFormatted;
             basePool.priceUSD = baseAssetPriceInDAI.toFixed(18);
             basePool.strategicBonusApy = "0";
 
@@ -120,8 +122,12 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         }
 
         // update liquidities data
-        liquidityLocked[baseAsset] = baseAssetInPools;
-        liquiditiesUSD = liquiditiesUSD.plus(baseAssetInPools.multipliedBy(baseAssetPriceInDAI));
+        liquidityLocked[baseAsset] = baseAssetInPoolsFormatted;
+        liquiditiesUSD = liquiditiesUSD.plus(
+            new BigNumber(baseAssetInPoolsFormatted)
+                .multipliedBy(baseAssetPriceInDAI)
+                .multipliedBy(new BigNumber(2))
+        );
 
         await Promise.all(pools.map(pool => pool.save()));
 

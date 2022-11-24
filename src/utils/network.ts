@@ -5,7 +5,18 @@ import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XOR, XSTUSD } from './consts';
 
 export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY];
 
-const NetworkStatsId = 'network-stats';
+// getters & setter for flag, should we sync network stats
+export const NetworkStatsSync = {
+  flag: true,
+  get() {
+      return this.flag;
+  },
+  set(flag: boolean) {
+      this.flag = flag;
+  },
+};
+
+const NetworkStatsId = '0';
 
 const getNetworkSnapshotId = (type: SnapshotType, index: number) => [type, index].join('-');
 
@@ -31,7 +42,7 @@ export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: num
       xstusd: '0'
     };
     snapshot.liquidityUSD = '0';
-    snapshot.volumeUSD = BigInt(0);
+    snapshot.volumeUSD = '0';
     snapshot.bridgeIncomingTransactions = 0;
     snapshot.bridgeOutgoingTransactions = 0;
   }
@@ -134,15 +145,15 @@ export const updateFeesStats = async (fee: bigint, blockTimestamp: number, block
   }
 };
 
-export const updateLiquidityStats = async (liquidities: Record<string, BigNumber>, liquiditiesUSD: BigNumber, blockTimestamp: number, blockNumber: number) => {
+export const updateLiquidityStats = async (liquidities: Record<string, string>, liquiditiesUSD: BigNumber, blockTimestamp: number, blockNumber: number) => {
   for (const type of NetworkSnapshots) {
     const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
 
-    snapshot.liquidities = {
-      xor: liquidities[XOR].toString(),
-      xstusd: liquidities[XSTUSD].toString(),
+    snapshot.liquidity = {
+      xor: liquidities[XOR],
+      xstusd: liquidities[XSTUSD]
     };
-    snapshot.liquiditiesUSD = liquiditiesUSD.toString();
+    snapshot.liquidityUSD = liquiditiesUSD.toFixed(2);
 
     await snapshot.save();
   }
@@ -152,7 +163,7 @@ export const updateVolumeStats = async (volumeUSD: BigNumber, blockTimestamp: nu
   for (const type of NetworkSnapshots) {
     const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
 
-    snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toString();
+    snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toFixed(2);
 
     await snapshot.save();
   }
