@@ -58,9 +58,9 @@ const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimest
           low: '0',
       };
       snapshot.supply = {
-        total: BigInt(0),
-        mint: BigInt(0),
-        burn: BigInt(0),
+        total: '0',
+        mint: '0',
+        burn: '0',
       };
 
       // Find prev snapshot:
