@@ -11,8 +11,8 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     booleanParam(defaultValue: false, name: 'prodSlot'),
     ]
-String endpoint          = 'mof2.sora.org'
-Boolean statusNotif      = true
+String endpoint               = 'mof2.sora.org'
+Boolean statusNotif           = true
 String registry               = 'docker.soramitsu.co.jp'
 String dockerBuildToolsUserId = 'bot-build-tools-ro'
 Boolean disableSecretScanner  = false
@@ -170,7 +170,7 @@ pipeline {
             pushNotiTelegram(
               status: statusNotif,
               telegramChatId: "${TELEGRAM_CHAT_ID}"
-            ) 
+            )
         }
         cleanup { cleanWs() }
     }
