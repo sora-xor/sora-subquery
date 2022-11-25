@@ -1,10 +1,10 @@
 @Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
-String envImageName      = 'node:14.16.1-buster-slim'
+String envImageName      = 'node:16.18.1-bullseye-slim'
 String subqueryToken     = 'subquery-token'
-String targetEnvironment =  getEnvFromJobName()
-String jobList           = '../sora2-' + targetEnvironment
+String targetEnvironment =  'prod-sub4'
+String jobList           = 'prod-sub4'
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
@@ -12,8 +12,7 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     booleanParam(defaultValue: false, name: 'prodSlot'),
     ]
-String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
-String telegramChatId    = 'telegram-deploy-chat-id'
+String endpoint          = 'mof2.sora.org'
 Boolean statusNotif      = true
 String registry               = 'docker.soramitsu.co.jp'
 String dockerBuildToolsUserId = 'bot-build-tools-ro'
@@ -31,25 +30,19 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
     }
-
     agent {
         label agentLabel
     }
-
-
-
     environment {
-        SUBQUERY_CLI_VERSION = '1.8.0'
-        SUBQUERY_INDEXER_VERSION = 'v1.14.1'
+        SUBQUERY_CLI_VERSION = '1.6.1'
+        SUBQUERY_INDEXER_VERSION = 'v1.9.1'
         SUBQUERY_NODE_VERSION = 'v1.5.0'
-        SUBQUERY_CLI_VERSION_STAGING = '1.8.0'
-        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.14.1'
+        SUBQUERY_CLI_VERSION_STAGING = '1.6.1'
+        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.9.1'
         SUBQUERY_NODE_VERSION_STAGING = 'v1.5.0'
         SUBQUERY_ORG =  'sora-xor'
-        SUBQUERY_PROJECT_DB = 'sora'
         matrix_chain = "sora-${targetEnvironment}"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
-        TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
     }
 
     stages {
@@ -124,9 +117,6 @@ pipeline {
                         sh """
                             npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                             apt-get update && apt-get install curl -y
-                            npm install -g typescript
-                            npm install tslib
-                            npm link typescript
                             yarn
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
@@ -139,7 +129,7 @@ pipeline {
                             --dict=dict \
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
-                            --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
+                            --endpoint=wss://${endpoint}
                             echo "New deployment in production slot is executed"
                         """
                     }
@@ -154,11 +144,8 @@ pipeline {
                 script {
                     docker.image("${envImageName}").inside() {
                         sh """
-                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}    
+                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                             apt-get update && apt-get install curl -y
-                            npm install -g typescript
-                            npm install tslib
-                            npm link typescript
                             yarn
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
@@ -171,7 +158,7 @@ pipeline {
                             --querySubscription \
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
-                            --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
+                            --endpoint=wss://${endpoint} \
                             --type=stage
                             echo "New deployment in staging slot is executed"
                         """
