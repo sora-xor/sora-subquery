@@ -4,7 +4,6 @@ String agentLabel        = 'docker-build-agent'
 String envImageName      = 'node:16.18.1-bullseye-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  'prod-sub4'
-String jobList           = 'prod-sub4'
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
@@ -20,8 +19,7 @@ Boolean disableSecretScanner  = false
 String secretScannerExclusion = '.*project.yaml'
 
 properties([
-    parameters( jobParams ),
-    pipelineTriggers([upstream( jobList )])
+    parameters( jobParams )
 ])
 
 pipeline {
