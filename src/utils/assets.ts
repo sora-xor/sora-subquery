@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
-import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XSTUSD, DAI } from './consts';
+import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XOR, XSTUSD, DAI } from './consts';
 import { updateVolumeStats } from '../utils/network';
 
 export let assetPrecisions = new Map<string, number>();
@@ -18,6 +18,19 @@ export const formatU128ToBalance = (u128: string, assetId: string): string => {
 export const getAssetId = (asset: any): string => {
   return (asset?.code?.code ?? asset?.code ?? asset).toHuman();
 };
+
+const getAssetSupply = async (assetId: string): Promise<bigint> => {
+  try {
+    const supply = assetId === XOR
+      ? await api.query.balances.totalIssuance()
+      : await api.query.tokens.totalIssuance(assetId);
+
+    return BigInt(supply.toString());
+  } catch (error) {
+    logger.error(error);
+    return BigInt(0);
+  }
+}
 
 export const getOrCreateAssetEntity = async (assetId: string) => {
   let asset = await Asset.get(assetId);
@@ -47,6 +60,9 @@ const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimest
       snapshot.assetId = assetId;
       snapshot.timestamp = timestamp;
       snapshot.type = type;
+      snapshot.supply = BigInt(0);
+      snapshot.mint = BigInt(0);
+      snapshot.burn = BigInt(0);
       snapshot.volume = {
           amount: '0',
           amountUSD: '0'
@@ -57,15 +73,11 @@ const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimest
           high: '0',
           low: '0',
       };
-      snapshot.supply = {
-        total: '0',
-        mint: '0',
-        burn: '0',
-      };
+
+      snapshot.supply = await getAssetSupply(assetId);
 
       // Find prev snapshot:
       // 1) to get it's "close" price, and set it as "open" price for new snapshot
-      // 2) to set total supply
       const prevSnapshotIndex = shapshotIndex - 1;
       const prevSnapshotId = getAssetSnapshotId(assetId, type, prevSnapshotIndex);
       const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
@@ -80,11 +92,6 @@ const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimest
               high: snapshotOpenPrice,
               low: snapshotOpenPrice,
           };
-        }
-        if (prevSnapshot.supply) {
-          const total = prevSnapshot.supply.total;
-
-          snapshot.supply.total = total;
         }
       }
   }
@@ -132,31 +139,25 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
   await updateVolumeStats(volumeUSD, blockTimestamp, blockNumber);
 };
 
-export const updateAssetMintedAmount = async (assetId: string, amount: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateAssetMintedAmount = async (assetId: string, amount: bigint, blockTimestamp: number, blockNumber: number): Promise<void> => {
   await getOrCreateAssetEntity(assetId);
-
-  const value = new BigNumber(amount);
 
   for (const type of Object.values(SnapshotType)) {
     const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
-    snapshot.supply.mint = new BigNumber(snapshot.supply.mint).plus(value).toString();
-    snapshot.supply.total = new BigNumber(snapshot.supply.total).plus(value).toString();
+    snapshot.mint = snapshot.mint + amount;
 
     await snapshot.save();
   }
 }
 
-export const updateAssetBurnedAmount = async (assetId: string, amount: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateAssetBurnedAmount = async (assetId: string, amount: bigint, blockTimestamp: number, blockNumber: number): Promise<void> => {
   await getOrCreateAssetEntity(assetId);
-
-  const value = new BigNumber(amount);
 
   for (const type of Object.values(SnapshotType)) {
     const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
-    snapshot.supply.burn = new BigNumber(snapshot.supply.burn).plus(value).toString();
-    snapshot.supply.total = new BigNumber(snapshot.supply.total).minus(value).toString();
+    snapshot.burn = snapshot.burn + amount;
 
     await snapshot.save();
   }

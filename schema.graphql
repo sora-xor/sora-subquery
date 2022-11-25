@@ -50,12 +50,6 @@ type AssetVolume @jsonField {
   amountUSD: String!
 }
 
-type AssetSupply @jsonField {
-  total: String!
-  mint: String!
-  burn: String!
-}
-
 type AssetSnapshot @entity {
   id: ID!
   asset: Asset! @index #relation to Asset
@@ -63,7 +57,9 @@ type AssetSnapshot @entity {
   type: SnapshotType!
   priceUSD: AssetPrice
   volume: AssetVolume
-  supply: AssetSupply
+  supply: BigInt!
+  mint: BigInt!
+  burn: BigInt!
 }
 
 type PoolXYK @entity {

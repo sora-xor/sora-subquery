@@ -7,7 +7,7 @@ export async function handleBurnedAssetsAmount(event: SubstrateEvent): Promise<v
     const { event: { data: [ currencyId, , balance ] } } = event;
 
     const assetId = getAssetId(currencyId);
-    const amount = formatU128ToBalance(balance.toString(), assetId);
+    const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
     const blockNumber = event.block.block.header.number.toNumber();
 
@@ -19,7 +19,7 @@ export async function handleRemintedAssetsAmount(event: SubstrateEvent): Promise
     const { event: { data: [ currencyId, , balance ] } } = event;
 
     const assetId = getAssetId(currencyId);
-    const amount = formatU128ToBalance(balance.toString(), assetId);
+    const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
     const blockNumber = event.block.block.header.number.toNumber();
 
