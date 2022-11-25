@@ -172,7 +172,7 @@ pipeline {
             pushNotiTelegram(
               status: statusNotif,
               telegramChatId: "${TELEGRAM_CHAT_ID}"
-            )
+            ) 
         }
         cleanup { cleanWs() }
     }
