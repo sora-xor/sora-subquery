@@ -19,4 +19,5 @@ export const SnapshotSecondsMap = {
   [SnapshotType.DEFAULT]: 300, // 5 min
   [SnapshotType.HOUR]: 3_600, // hour
   [SnapshotType.DAY]: 86_400, // day
+  [SnapshotType.MONTH]: 2_592_000, // month
 };

@@ -2,6 +2,7 @@ enum SnapshotType {
   DEFAULT
   HOUR
   DAY
+  MONTH
 }
 
 type NetworkStats @entity {

@@ -4,6 +4,8 @@ import { Asset, SnapshotType, AssetSnapshot } from "../types";
 import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XOR, XSTUSD, DAI } from './consts';
 import { updateVolumeStats } from '../utils/network';
 
+export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
+
 export let assetPrecisions = new Map<string, number>();
 
 export const formatU128ToBalance = (u128: string, assetId: string): string => {
@@ -106,7 +108,7 @@ export const updateAssetPrice = async (assetId: string, price: string, blockTime
 
   await asset.save();
 
-  for (const type of Object.values(SnapshotType)) {
+  for (const type of AssetSnapshots) {
       const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
       snapshot.priceUSD.close = price;
@@ -127,7 +129,7 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
   const volume = new BigNumber(amount);
   const volumeUSD = volume.multipliedBy(assetPrice);
 
-  for (const type of Object.values(SnapshotType)) {
+  for (const type of AssetSnapshots) {
       const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
       snapshot.volume.amount = new BigNumber(snapshot.volume.amount).plus(volume).toString();
@@ -142,7 +144,7 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
 export const updateAssetMintedAmount = async (assetId: string, amount: bigint, blockTimestamp: number, blockNumber: number): Promise<void> => {
   await getOrCreateAssetEntity(assetId);
 
-  for (const type of Object.values(SnapshotType)) {
+  for (const type of AssetSnapshots) {
     const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
     snapshot.mint = snapshot.mint + amount;
@@ -154,7 +156,7 @@ export const updateAssetMintedAmount = async (assetId: string, amount: bigint, b
 export const updateAssetBurnedAmount = async (assetId: string, amount: bigint, blockTimestamp: number, blockNumber: number): Promise<void> => {
   await getOrCreateAssetEntity(assetId);
 
-  for (const type of Object.values(SnapshotType)) {
+  for (const type of AssetSnapshots) {
     const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
     snapshot.burn = snapshot.burn + amount;

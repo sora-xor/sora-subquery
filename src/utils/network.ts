@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
 import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XOR, XSTUSD } from './consts';
 
-export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY];
+export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
 
 // getters & setter for flag, should we sync network stats
 export const NetworkStatsSync = {
