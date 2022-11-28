@@ -28,13 +28,12 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
     }
-
     agent {
-        label agentLabel
+        docker {
+            label agentLabel
+            image envImageName
+        }
     }
-
-
-
     environment {
         SUBQUERY_CLI_VERSION = '1.8.0'
         SUBQUERY_INDEXER_VERSION = 'v1.14.1'
@@ -50,24 +49,13 @@ pipeline {
     }
 
     stages {
-        stage('Secret scanner') {
-            steps {
-                script {
-                    docker.withRegistry('https://' + registry, dockerBuildToolsUserId) {
-                        secretScanner(disableSecretScanner, secretScannerExclusion)
-                    }
-                }
-            }
-        }
         stage('Validation before deployment') {
             steps {
                 script {
-                    docker.image("${envImageName}").inside() {
-                        sh """
-                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
-                            subql validate
-                        """
-                    }
+                    sh """
+                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+                       subql validate
+                    """
                 }
             }
         }
@@ -77,15 +65,12 @@ pipeline {
             }
             steps {
                 script {
-                    docker.image("${envImageName}").inside() {
-                        sh """
-                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
-                            subql project:delete-project \
-                            --org=${SUBQUERY_ORG} \
-                            --projectName=${matrix_chain}
-                            echo project ${matrix_chain} is deleted
-                        """
-                    }
+                    sh """
+                    subql project:delete-project \
+                    --org=${SUBQUERY_ORG} \
+                    --projectName=${matrix_chain}
+                    echo project ${matrix_chain} is deleted
+                """
                 }
             }
         }
