@@ -191,26 +191,19 @@ const getAssetSnapshot = async (assetId: string, type: AssetSnapshotType, blockT
         };
 
         // find prev snapshot, to get it's "close" price, and set it as "open" price for new snapshot
-        let prevSnapshotIndex = shapshotIndex - 1;
+        const prevSnapshotIndex = shapshotIndex - 1;
+        const prevSnapshotId = getAssetSnapshotId(assetId, type, prevSnapshotIndex);
+        const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
 
-        while (prevSnapshotIndex >= 0) {
-            const prevSnapshotId = getAssetSnapshotId(assetId, type, prevSnapshotIndex);
-            const prevSnapshot = await AssetSnapshot.get(prevSnapshotId);
+        if (prevSnapshot?.priceUSD) {
+            const snapshotOpenPrice = prevSnapshot?.priceUSD?.close;
 
-            if (prevSnapshot?.priceUSD) {
-                const snapshotOpenPrice = prevSnapshot?.priceUSD?.close;
-
-                snapshot.priceUSD = {
-                    open: snapshotOpenPrice,
-                    close: snapshotOpenPrice,
-                    high: snapshotOpenPrice,
-                    low: snapshotOpenPrice,
-                };
-
-                break;
-            }
-
-            prevSnapshotIndex = prevSnapshotIndex - 1;
+            snapshot.priceUSD = {
+                open: snapshotOpenPrice,
+                close: snapshotOpenPrice,
+                high: snapshotOpenPrice,
+                low: snapshotOpenPrice,
+            };
         }
     }
 
