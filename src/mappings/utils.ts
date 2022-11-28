@@ -211,7 +211,6 @@ const getAssetSnapshot = async (assetId: string, type: AssetSnapshotType, blockT
 };
 
 export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
-    logger.debug(`updateAssetPrice: ${assetId}; price: ${price}; blockNumber: ${blockNumber};`)
     await getOrCreateAssetEntity(assetId);
 
     for (const type of Object.values(AssetSnapshotType)) {
