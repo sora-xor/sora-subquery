@@ -87,21 +87,22 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
-  const { extrinsic: { args: [assetId, rewardAssetId, isFarm] } } = extrinsic;
+  const { extrinsic: { args: [poolAssetId, rewardAssetId, isFarm] } } = extrinsic;
 
   const details: any = {};
+  const rewardAsset = getAssetId(rewardAssetId);
 
   // reward asset id
-  details.assetId = getAssetId(rewardAssetId);
+  details.assetId = rewardAsset;
   // reward for farming or staking
   details.isFarm = isFarm.toHuman();
 
-  const event = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies');
+  const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'RewardWithdrawn');
 
   if (event) {
-    const { event: { data: [currencyId, from, to, amount] } } = event;
+    const { event: { data: [who, amount, poolAssetId, rewardAssetId, isFarm] } } = event;
 
-    details.amount = formatU128ToBalance(amount.toString(), getAssetId(rewardAssetId));
+    details.amount = formatU128ToBalance(amount.toString(), rewardAsset);
   } else {
     details.amount = '0';
   }
