@@ -49,9 +49,9 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
             const [amountA, , , assetA] = baseAssetTransfer.event.data.slice().reverse();
             const [amountB, , , assetB] = targetAssetTransfer.event.data.slice().reverse();
 
-            const baseAssetId = getAssetId(assetA || XOR);
+            const baseAssetId = assetA ? getAssetId(assetA) : XOR;
             const baseAssetAmount = formatU128ToBalance(amountA.toString(), baseAssetId);
-            const targetAssetId = getAssetId(assetB || XOR);
+            const targetAssetId = assetB ? getAssetId(assetB) : XOR;
             const targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
 
             details = {
