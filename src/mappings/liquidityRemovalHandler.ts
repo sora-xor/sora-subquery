@@ -1,6 +1,7 @@
-import { SubstrateExtrinsic, SubstrateEvent } from '@subql/types';
+import { SubstrateExtrinsic } from '@subql/types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
+import { XOR } from '../utils/consts';
 
 const saveDetails = (extrinsic: SubstrateExtrinsic, details: Object): Object => {
     const { extrinsic: { args: [, assetAId, assetBId, , assetAMin, assetBMin] } } = extrinsic;
@@ -32,36 +33,31 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
     if (record.execution.success) {
 
-        let assetATransferEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
+        const transfers = extrinsic.events.filter(e =>
+            e.event.method === 'Transfer' && e.event.section === 'balances' ||
+            e.event.method === 'Transfer' && e.event.section === 'tokens'
+        );
 
-        if (assetATransferEvent !== undefined) {
+        if (transfers.length === 2) {
+            const [baseAssetTransfer, targetAssetTransfer] = transfers;
 
-            const { event: { data: [inputAsset, , , inputTransferedAmount] } } = assetATransferEvent;
+            const [amountA, , , assetA] = baseAssetTransfer.event.data.slice().reverse();
+            const [amountB, , , assetB] = targetAssetTransfer.event.data.slice().reverse();
 
-            let AssetBTransferEvent = extrinsic.events.find(e => (e as SubstrateEvent).idx === (assetATransferEvent as SubstrateEvent).idx + 1)
-            const { event: { data: [outputAsset, , , outputTransferedAmount] } } = AssetBTransferEvent;
+            const baseAssetId = assetA ? getAssetId(assetA) : XOR;
+            const baseAssetAmount = formatU128ToBalance(amountA.toString(), baseAssetId);
+            const targetAssetId = assetB ? getAssetId(assetB) : XOR;
+            const targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
 
-            if (AssetBTransferEvent.event.method === 'Transferred' && AssetBTransferEvent.event.section === 'currencies') {
-
-                let baseAssetId = getAssetId(inputAsset);
-                let targetAssetId = getAssetId(outputAsset.toString);
-
-                details = {
-                    type: "Removal",
-                    baseAssetId: baseAssetId,
-                    targetAssetId: targetAssetId,
-                    baseAssetAmount: formatU128ToBalance(inputTransferedAmount.toString(), baseAssetId),
-                    targetAssetAmount: formatU128ToBalance(outputTransferedAmount.toString(), targetAssetId)
-
-                }
-
-                record.data = details
+            details = {
+                type: "Removal",
+                baseAssetId,
+                targetAssetId,
+                baseAssetAmount,
+                targetAssetAmount
             }
 
-            else {
-                details = saveDetails(extrinsic, details)
-            }
-
+            record.data = details
         }
 
         else {

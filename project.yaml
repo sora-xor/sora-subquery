@@ -4,7 +4,7 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 1.9.1
+    version: 1.14.1
   query:
     name: '@subql/query'
     version: 1.5.0
@@ -13,7 +13,7 @@ repository: https://github.com/sora-xor/sora-subquery
 schema:
   file: ./schema.graphql
 network:
-  chainId: '0x1c0b4d71c22a158889ea9ab1ec143767d7aadc0231855dece05064eae610c30b'
+  chainId: '0xd3fbb5d7d58591f1297676c0ebfa920ced209bc58d1e20bdbf9917648fa68b1d'
   endpoint: wss://ws.framenode-1.s1.dev.sora2.soramitsu.co.jp
   chaintypes:
     file: ./types.json
