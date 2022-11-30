@@ -13,7 +13,7 @@ repository: https://github.com/sora-xor/sora-subquery
 schema:
   file: ./schema.graphql
 network:
-  chainId: '0xd3fbb5d7d58591f1297676c0ebfa920ced209bc58d1e20bdbf9917648fa68b1d'
+  chainId: '0x7cb8c8a737f177d493cebc438217809d45d0b22c28095360cfec3ca6aab0a411'
   endpoint: wss://ws.framenode-1.s1.dev.sora2.soramitsu.co.jp
   chaintypes:
     file: ./types.json
