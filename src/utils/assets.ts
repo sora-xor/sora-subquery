@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
-import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XOR, XSTUSD, DAI } from './consts';
+import { SnapshotSecondsMap, XOR, XSTUSD, DAI } from './consts';
 import { updateVolumeStats } from '../utils/network';
 
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
@@ -49,15 +49,14 @@ const getAssetSnapshotId = (assetId: string, type: SnapshotType, index: number) 
 
 const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimestamp: number, blockNumber: number): Promise<AssetSnapshot> => {
   const seconds = SnapshotSecondsMap[type];
-  const interval = Math.floor(seconds / SECONDS_IN_BLOCK);
-  const index =  Math.floor(blockTimestamp / seconds);
-  const timestamp = index * seconds; // rounded snapshot timestamp
-  const shapshotIndex = Math.floor(blockNumber / interval); // rounded snapshot index (from 0)
+  const shapshotIndex = Math.floor(blockTimestamp / seconds); // rounded snapshot index (from 0)
   const id = getAssetSnapshotId(assetId, type, shapshotIndex);
 
   let snapshot = await AssetSnapshot.get(id);
 
   if (!snapshot) {
+      const timestamp = shapshotIndex * seconds; // rounded snapshot timestamp
+
       snapshot = new AssetSnapshot(id);
       snapshot.assetId = assetId;
       snapshot.timestamp = timestamp;
@@ -133,7 +132,7 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
       const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
 
       snapshot.volume.amount = new BigNumber(snapshot.volume.amount).plus(volume).toString();
-      snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toString();
+      snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toFixed(2);
 
       await snapshot.save();
   }

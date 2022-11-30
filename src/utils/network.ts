@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
-import { SnapshotSecondsMap, SECONDS_IN_BLOCK, XOR, XSTUSD } from './consts';
+import { SnapshotSecondsMap, XOR, XSTUSD } from './consts';
 
 export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
 
@@ -22,15 +22,14 @@ const getNetworkSnapshotId = (type: SnapshotType, index: number) => [type, index
 
 export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: number, blockNumber: number): Promise<NetworkSnapshot> => {
   const seconds = SnapshotSecondsMap[type];
-  const interval = Math.floor(seconds / SECONDS_IN_BLOCK);
-  const index =  Math.floor(blockTimestamp / seconds);
-  const timestamp = index * seconds; // rounded snapshot timestamp
-  const shapshotIndex = Math.floor(blockNumber / interval); // rounded snapshot index (from 0)
+  const shapshotIndex =  Math.floor(blockTimestamp / seconds);
   const id = getNetworkSnapshotId(type, shapshotIndex);
 
   let snapshot = await NetworkSnapshot.get(id);
 
   if (!snapshot) {
+    const timestamp = shapshotIndex * seconds; // rounded snapshot timestamp
+
     snapshot = new NetworkSnapshot(id);
     snapshot.type = type;
     snapshot.timestamp = timestamp;
