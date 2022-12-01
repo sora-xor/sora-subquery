@@ -1,37 +1,28 @@
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../types";
 
-import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { getAllReserves, getPoolAccountId } from '../utils/pools';
-import { XOR, DOUBLE_PRICE_POOL, BASE_ASSETS } from '../utils/consts';
+import { getAssetId } from '../utils/assets';
+import { getAllReserves, getOrCreatePoolXYKEntity } from '../utils/pools';
+import { BASE_ASSETS } from '../utils/consts';
 
 let isFirstBlockIndexed = false;
 
 export async function initializePools(block: SubstrateBlock): Promise<void> {
     if (isFirstBlockIndexed) return;
 
-    for (const baseAsset of BASE_ASSETS) {
+    for (const baseAssetId of BASE_ASSETS) {
         const pools: Array<PoolXYK> = [];
 
-        const reserves = await getAllReserves(baseAsset);
+        const reserves = await getAllReserves(baseAssetId);
 
         if (!reserves) continue;
 
         for (const [{ args: [, targetAsset] }, value] of reserves) {
             const targetAssetId = getAssetId(targetAsset);
-            const poolId = await getPoolAccountId(baseAsset, targetAssetId);
+            const pool = await getOrCreatePoolXYKEntity(baseAssetId, targetAssetId);
 
-            if (!poolId) continue;
-
-            const pool = (await PoolXYK.get(poolId)) || new PoolXYK(poolId);
-
-            pool.baseAsset = baseAsset;
-            pool.targetAsset = targetAssetId;
-            pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAsset);
-            pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAssetId);
-            pool.multiplier = baseAsset === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
-            pool.priceUSD = '0';
-            pool.strategicBonusApy = '0';
+            pool.baseAssetReserves = value[0].toBigInt();
+            pool.targetAssetReserves = value[1].toBigInt()
 
             pools.push(pool);
         }

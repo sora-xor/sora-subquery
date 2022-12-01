@@ -5,7 +5,7 @@ import { PoolXYK, SnapshotType } from "../types";
 
 import { getAssetId, formatU128ToBalance, updateAssetPrice } from '../utils/assets';
 import { updateLiquidityStats } from '../utils/network';
-import { getAllReserves } from '../utils/pools';
+import { getAllReserves, getOrCreatePoolXYKEntity } from '../utils/pools';
 import { XOR, XSTUSD, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, BASE_ASSETS, SnapshotSecondsMap } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
@@ -26,7 +26,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         [XSTUSD]: '0',
     };
 
-    for (const baseAsset of BASE_ASSETS) {
+    for (const baseAssetId of BASE_ASSETS) {
         const isXorPools = baseAsset === XOR;
         const pools: Array<PoolXYK> = [];
 
@@ -34,41 +34,36 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         let baseAssetWithDoublePools = new BigNumber(0);
         let baseAssetPriceInDAI = new BigNumber(0);
 
-        const reserves = await getAllReserves(baseAsset);
+        const reserves = await getAllReserves(baseAssetId);
 
         if (!reserves) continue;
 
         for (const [{ args: [, targetAsset] }, value] of reserves) {
             const targetAssetId = getAssetId(targetAsset);
-            const baseAssetReserves: BigNumber = new BigNumber(value[0].toBigInt());
-            const targetAssetReserves: BigNumber = new BigNumber(value[1].toBigInt());
-            const poolId = `${baseAsset}-${targetAssetId}`;
-            const pool = (await PoolXYK.get(poolId)) || new PoolXYK(poolId);
+            const pool = await getOrCreatePoolXYKEntity(baseAssetId, targetAssetId);
 
-            pool.baseAsset = baseAsset;
-            pool.targetAsset = targetAssetId;
-            pool.baseAssetReserves = formatU128ToBalance(value[0].toString(), baseAsset);
-            pool.targetAssetReserves = formatU128ToBalance(value[1].toString(), targetAssetId);
-            pool.multiplier = isXorPools && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
-            pool.priceUSD = '0';
-            pool.strategicBonusApy = '0';
+            pool.baseAssetReserves = BigInt(value[0].toString());
+            pool.targetAssetReserves = BigInt(value[1].toString());
 
             pools.push(pool);
 
-            baseAssetInPools = baseAssetInPools.plus(baseAssetReserves);
-            baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReserves.multipliedBy(new BigNumber(pool.multiplier)));
+            const baseAssetReservesBN = new BigNumber(value[0].toString());
+            const targetAssetReservesBN = new BigNumber(value[1].toString());
+
+            baseAssetInPools = baseAssetInPools.plus(baseAssetReservesBN);
+            baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReservesBN.multipliedBy(new BigNumber(pool.multiplier)));
 
             if (targetAssetId === DAI) {
-                baseAssetPriceInDAI = targetAssetReserves.div(baseAssetReserves);
+                baseAssetPriceInDAI = targetAssetReservesBN.div(baseAssetReservesBN);
             }
         }
 
         // If base asset has price in DAI
-        if (!baseAssetPriceInDAI.isZero()) {
+        if (!baseAssetPriceInDAI) {
             // update pools prices
             pools.forEach(p => {
-                const baseAssetReserves = new BigNumber(p.baseAssetReserves);
-                const targetAssetReserves = new BigNumber(p.targetAssetReserves);
+                const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
+                const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
                 const daiPrice = baseAssetReserves
                     .dividedBy(targetAssetReserves)
                     .multipliedBy(baseAssetPriceInDAI);
@@ -94,10 +89,10 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
             }
         }
 
-        const baseAssetInPoolsFormatted = formatU128ToBalance(baseAssetInPools.toFixed(0), baseAsset);
+        const baseAssetInPoolsFormatted = formatU128ToBalance(baseAssetInPools.toFixed(0), baseAssetId);
 
         // update liquidities data
-        liquidityLocked[baseAsset] = baseAssetInPoolsFormatted;
+        liquidityLocked[baseAssetId] = baseAssetInPoolsFormatted;
         liquiditiesUSD = liquiditiesUSD.plus(
             new BigNumber(baseAssetInPoolsFormatted)
                 .multipliedBy(baseAssetPriceInDAI)

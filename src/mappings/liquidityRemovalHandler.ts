@@ -1,12 +1,9 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import BigNumber from "bignumber.js";
-
-import { PoolXYK } from '../types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 import { isAssetTransferEvent } from '../utils/events';
-import { getPoolAccountId } from '../utils/pools';
+import { getOrCreatePoolXYKEntity } from '../utils/pools';
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -39,6 +36,14 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
             details.baseAssetAmount = formatU128ToBalance(amountA.toString(), baseAssetId);
             details.targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
+
+            // update pool reserves
+            const pool = await getOrCreatePoolXYKEntity(baseAssetId, targetAssetId);
+
+            pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amountA.toString());
+            pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amountB.toString());
+
+            await pool.save();
         }
     }
 
@@ -48,22 +53,4 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
     await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
-
-    if (record.execution.success) {
-        const poolId = await getPoolAccountId(details.baseAssetId, targetAssetId);
-
-        if (!poolId) return;
-
-        const pool = await PoolXYK.get(poolId);
-
-        if (!pool) {
-            logger.error(`Cannot get pool with id: ${poolId}`);
-            return;
-        }
-
-        pool.baseAssetReserves = new BigNumber(pool.baseAssetReserves).minus(new BigNumber(details.baseAssetAmount)).toString();
-        pool.targetAssetReserves = new BigNumber(pool.targetAssetReserves).minus(new BigNumber(details.targetAssetAmount)).toString();
-
-        await pool.save();
-    }
 }

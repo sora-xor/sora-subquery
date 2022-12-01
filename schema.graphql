@@ -67,8 +67,8 @@ type PoolXYK @entity {
   id: ID!
   baseAsset: String!
   targetAsset: String!
-  baseAssetReserves: String!
-  targetAssetReserves: String!
+  baseAssetReserves: BigInt!
+  targetAssetReserves: BigInt!
   multiplier: Int!
   priceUSD: String
   strategicBonusApy: String

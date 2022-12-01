@@ -1,6 +1,8 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
+import { PoolXYK } from '../types';
 import { isAssetTransferEvent, getTransferEventData } from './events';
+import { XOR, DOUBLE_PRICE_POOL } from './consts';
 
 // getters & setter for flag, should we sync poolXYK reserves
 // and then calc asset prices
@@ -54,6 +56,29 @@ export const getPoolAccountId = async (baseAssetId: string, targetAssetId: strin
   }
 }
 
+export const getOrCreatePoolXYKEntity = async (baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> => {
+  const poolId = await getPoolAccountId(baseAssetId, targetAssetId);
+
+  if (!poolId) return null;
+
+  let pool = await PoolXYK.get(poolId);
+
+  if (!pool) {
+      pool = new PoolXYK(poolId);
+      pool.baseAsset = baseAssetId;
+      pool.targetAsset = targetAssetId;
+      pool.baseAssetReserves = BigInt(0);
+      pool.targetAssetReserves = BigInt(0);
+      pool.multiplier = baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
+      pool.priceUSD = '0';
+      pool.strategicBonusApy = '0';
+
+      await pool.save();
+  }
+
+  return pool;
+};
+
 const handlePoolTransfersEvents = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
   const transfers = extrinsic.events.filter(e => isAssetTransferEvent(e));
 
@@ -61,7 +86,11 @@ const handlePoolTransfersEvents = async (extrinsic: SubstrateExtrinsic): Promise
     const { assetId, from, to, amount } = getTransferEventData(transfer);
 
     if (poolAccountsMap.has(from)) {
+      const pool = await PoolXYK.get(from);
 
+      if (pool.baseAsset === assetId) {
+        pool.baseAssetReserves = 
+      }
     }
 
     if (poolAccountsMap.has(to)) {
