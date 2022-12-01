@@ -74,12 +74,6 @@ type PoolXYK @entity {
   strategicBonusApy: String
 }
 
-type PoolTBC @entity {
-  id: ID!
-  priceUSD: String
-  collateralReserves: String!
-}
-
 type Account @entity {
   id: ID!
   latestHistoryElement: HistoryElement
@@ -112,15 +106,6 @@ type Error @jsonField {
 
 type HistoryElementDetails @jsonField {
   data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
-}
-
-type ClaimableReward @entity {
-  id: ID!
-  blockHeight: BigInt! @index
-  blockHash: String!
-  from: String!
-  currencyId: String!
-  balance: BigInt!
 }
 
 type ReferrerReward @entity {

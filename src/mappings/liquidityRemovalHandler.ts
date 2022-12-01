@@ -1,27 +1,12 @@
 import { SubstrateExtrinsic } from '@subql/types';
+
+import BigNumber from "bignumber.js";
+
+import { PoolXYK } from '../types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { XOR } from '../utils/consts';
-
-const saveDetails = (extrinsic: SubstrateExtrinsic, details: Object): Object => {
-    const { extrinsic: { args: [, assetAId, assetBId, , assetAMin, assetBMin] } } = extrinsic;
-
-    // TODO change the amount from min to real?
-
-    let baseAssetId = getAssetId(assetAId);
-    let targetAssetId = getAssetId(assetBId);
-
-    details = {
-        type: "Removal",
-        baseAssetId: baseAssetId,
-        targetAssetId: targetAssetId,
-        baseAssetAmount: formatU128ToBalance(assetAMin.toString(), baseAssetId),
-        targetAssetAmount: formatU128ToBalance(assetBMin.toString(), targetAssetId)
-    }
-
-    return details
-
-}
+import { isAssetTransferEvent } from '../utils/events';
+import { getPoolAccountId } from '../utils/pools';
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -29,52 +14,56 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
-    let details = new Object();
+    const { extrinsic: { args: [dexId, assetAId, assetBId, poolTokensDesired, outputAMin, outputBMin] } } = extrinsic;
+
+    const baseAssetId = getAssetId(assetAId);
+    const targetAssetId = getAssetId(assetBId);
+
+    const details = {
+        type: "Removal",
+        baseAssetId,
+        targetAssetId,
+        baseAssetAmount: formatU128ToBalance(outputAMin.toString(), baseAssetId),
+        targetAssetAmount: formatU128ToBalance(outputBMin.toString(), targetAssetId)
+    };
 
     if (record.execution.success) {
 
-        const transfers = extrinsic.events.filter(e =>
-            e.event.method === 'Transfer' && e.event.section === 'balances' ||
-            e.event.method === 'Transfer' && e.event.section === 'tokens'
-        );
+        const transfers = extrinsic.events.filter(e => isAssetTransferEvent(e));
 
         if (transfers.length === 2) {
             const [baseAssetTransfer, targetAssetTransfer] = transfers;
 
-            const [amountA, , , assetA] = baseAssetTransfer.event.data.slice().reverse();
-            const [amountB, , , assetB] = targetAssetTransfer.event.data.slice().reverse();
+            const [amountA] = baseAssetTransfer.event.data.slice().reverse();
+            const [amountB] = targetAssetTransfer.event.data.slice().reverse();
 
-            const baseAssetId = assetA ? getAssetId(assetA) : XOR;
-            const baseAssetAmount = formatU128ToBalance(amountA.toString(), baseAssetId);
-            const targetAssetId = assetB ? getAssetId(assetB) : XOR;
-            const targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
-
-            details = {
-                type: "Removal",
-                baseAssetId,
-                targetAssetId,
-                baseAssetAmount,
-                targetAssetAmount
-            }
-
-            record.data = details
+            details.baseAssetAmount = formatU128ToBalance(amountA.toString(), baseAssetId);
+            details.targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
         }
-
-        else {
-            details = saveDetails(extrinsic, details)
-        }
-
     }
 
-    else {
-        details = saveDetails(extrinsic, details)
-    }
-
-    record.data = details
+    record.data = details as any;
 
     await record.save();
     await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
+    if (record.execution.success) {
+        const poolId = await getPoolAccountId(details.baseAssetId, targetAssetId);
+
+        if (!poolId) return;
+
+        const pool = await PoolXYK.get(poolId);
+
+        if (!pool) {
+            logger.error(`Cannot get pool with id: ${poolId}`);
+            return;
+        }
+
+        pool.baseAssetReserves = new BigNumber(pool.baseAssetReserves).minus(new BigNumber(details.baseAssetAmount)).toString();
+        pool.targetAssetReserves = new BigNumber(pool.targetAssetReserves).minus(new BigNumber(details.targetAssetAmount)).toString();
+
+        await pool.save();
+    }
 }

@@ -2,9 +2,11 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
 
+import { PoolXYK } from '../types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { PoolsPrices } from '../utils/pools';
+import { getPoolAccountId } from '../utils/pools';
+import { XOR, DOUBLE_PRICE_POOL } from '../utils/consts';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -93,8 +95,26 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
 
     logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
 
+    // If deposit liqudiity call exists, create new Pool
+    const depositLiquidity: any = entities.find((entity: any) => entity.method === 'depositLiquidity');
 
-    if (calls.some(call => call.method === 'initializePool')) {
-        PoolsPrices.set(true);
+    if (depositLiquidity) {
+        const baseAsset = depositLiquidity.data.input_asset_a;
+        const targetAsset = depositLiquidity.data.input_asset_b;
+        const poolId = await getPoolAccountId(baseAsset, targetAsset);
+
+        if (!poolId) return;
+
+        const pool = (await PoolXYK.get(poolId)) || new PoolXYK(poolId);
+
+        pool.baseAsset = baseAsset;
+        pool.targetAsset = targetAsset;
+        pool.baseAssetReserves = depositLiquidity.data.input_a_desired;
+        pool.targetAssetReserves = depositLiquidity.data.input_b_desired;
+        pool.multiplier = baseAsset === XOR && DOUBLE_PRICE_POOL.includes(targetAsset) ? 2 : 1;
+        pool.priceUSD = '0';
+        pool.strategicBonusApy = '0';
+
+        await pool.save();
     }
 }

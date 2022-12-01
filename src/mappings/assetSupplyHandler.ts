@@ -1,5 +1,5 @@
 import { SubstrateEvent } from "@subql/types";
-import { getAssetId, updateAssetMintedAmount, updateAssetBurnedAmount, formatU128ToBalance } from '../utils/assets';
+import { getAssetId, updateAssetMintedAmount, updateAssetBurnedAmount } from '../utils/assets';
 import { formatDateTimestamp } from '../utils';
 
 export async function handleBurnedAssetsAmount(event: SubstrateEvent): Promise<void> {

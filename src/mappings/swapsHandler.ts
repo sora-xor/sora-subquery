@@ -1,8 +1,10 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
+import { PoolXYK } from "../types";
+
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance, updateAssetVolume } from '../utils/assets';
-import { PoolsPrices } from '../utils/pools';
+import { getPoolAccountId } from '../utils/pools';
 import { XOR } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
@@ -94,7 +96,6 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
     if (record.execution.success) {
         await updateAssetVolume(baseAssetId, details.baseAssetAmount, blockTimestamp, blockNumber);
         await updateAssetVolume(targetAssetId, details.targetAssetAmount, blockTimestamp, blockNumber);
-        PoolsPrices.set(true);
     }
 }
 

@@ -4,7 +4,7 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 1.14.1
+    version: 1.9.1
   query:
     name: '@subql/query'
     version: 1.5.0
@@ -13,17 +13,19 @@ repository: https://github.com/sora-xor/sora-subquery
 schema:
   file: ./schema.graphql
 network:
-  chainId: '0xd3fbb5d7d58591f1297676c0ebfa920ced209bc58d1e20bdbf9917648fa68b1d'
-  endpoint: wss://ws.framenode-1.s1.dev.sora2.soramitsu.co.jp
+  chainId: '0x7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5'
+  endpoint: wss://mof2.sora.org
   chaintypes:
     file: ./types.json
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 1
+    startBlock: 8035052
     mapping:
       file: ./dist/index.js
       handlers:
-        - handler: getAllAssetsInfos
+        - handler: initializeAssets
+          kind: substrate/BlockHandler
+        - handler: initializePools
           kind: substrate/BlockHandler
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
@@ -84,11 +86,6 @@ dataSources:
           filter:
             module: xorFee
             method: FeeWithdrawn
-        - handler: handleClaimableReward
-          kind: substrate/EventHandler
-          filter:
-            module: currencies
-            method: Transferred
         - handler: soraEthTransferHandler
           kind: substrate/CallHandler
           filter:
