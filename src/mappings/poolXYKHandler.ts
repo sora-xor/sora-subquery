@@ -6,7 +6,7 @@ import { PoolXYK, SnapshotType } from "../types";
 import { getAssetId, formatU128ToBalance, updateAssetPrice } from '../utils/assets';
 import { updateLiquidityStats } from '../utils/network';
 import { getAllReserves, getOrCreatePoolXYKEntity } from '../utils/pools';
-import { XOR, XSTUSD, PSWAP, DAI, DOUBLE_PRICE_POOL, SECONDS_IN_BLOCK, BASE_ASSETS, SnapshotSecondsMap } from '../utils/consts';
+import { XOR, XSTUSD, PSWAP, DAI, SECONDS_IN_BLOCK, BASE_ASSETS, SnapshotSecondsMap } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
 const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
@@ -27,7 +27,7 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
     };
 
     for (const baseAssetId of BASE_ASSETS) {
-        const isXorPools = baseAsset === XOR;
+        const isXorPools = baseAssetId === XOR;
         const pools: Array<PoolXYK> = [];
 
         let baseAssetInPools = new BigNumber(0);

@@ -79,7 +79,7 @@ export const getOrCreatePoolXYKEntity = async (baseAssetId: string, targetAssetI
   return pool;
 };
 
-const handlePoolTransfersEvents = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
+export const handlePoolTransferEvents = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
   const transfers = extrinsic.events.filter(e => isAssetTransferEvent(e));
 
   for (const transfer of transfers) {
@@ -89,12 +89,24 @@ const handlePoolTransfersEvents = async (extrinsic: SubstrateExtrinsic): Promise
       const pool = await PoolXYK.get(from);
 
       if (pool.baseAsset === assetId) {
-        pool.baseAssetReserves = 
+        pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount.toString());
+      } else if (pool.targetAsset === assetId) {
+        pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount.toString());
       }
+
+      await pool.save();
     }
 
     if (poolAccountsMap.has(to)) {
-      
+      const pool = await PoolXYK.get(from);
+
+      if (pool.baseAsset === assetId) {
+        pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount.toString());
+      } else if (pool.targetAsset === assetId) {
+        pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount.toString());
+      }
+
+      await pool.save();
     }
   }
 };

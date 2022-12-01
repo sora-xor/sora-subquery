@@ -1,10 +1,8 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { PoolXYK } from "../types";
-
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance, updateAssetVolume } from '../utils/assets';
-import { getPoolAccountId } from '../utils/pools';
+import { handlePoolTransferEvents } from '../utils/pools';
 import { XOR } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
@@ -91,6 +89,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 
     await record.save();
     await updateHistoryElementStats(record);
+    await handlePoolTransferEvents(extrinsic);
 
     // update assets volume
     if (record.execution.success) {

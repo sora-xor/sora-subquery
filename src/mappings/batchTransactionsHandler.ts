@@ -2,11 +2,9 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
 
-import { PoolXYK } from '../types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { getPoolAccountId, getOrCreatePoolXYKEntity } from '../utils/pools';
-import { XOR, DOUBLE_PRICE_POOL } from '../utils/consts';
+import { getOrCreatePoolXYKEntity, handlePoolTransferEvents } from '../utils/pools';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -87,7 +85,6 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         calls.map((call, idx) => extractCalls(call, idx, record.blockHeight.toString(), entities))
     );
 
-
     record.data = entities as Object
 
     await record.save()
@@ -102,5 +99,5 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         await getOrCreatePoolXYKEntity(initializePool.data.asset_a, initializePool.data.asset_b);
     }
 
-    // TODO: add event parser
+    await handlePoolTransferEvents(extrinsic);
 }
