@@ -18,7 +18,7 @@ export async function createNetworkSnapshots(block: SubstrateBlock): Promise<voi
 
   // create new snapshots for HOUR & DAY intervals
   for (const type of NetworkSnapshots) {
-    const networkSnapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+    const networkSnapshot = await getNetworkSnapshot(type, blockTimestamp);
 
     await networkSnapshot.save();
   }
@@ -28,9 +28,8 @@ export async function createNetworkSnapshots(block: SubstrateBlock): Promise<voi
 
 export async function handleNetworkFee(event: SubstrateEvent): Promise<void> {
   const { event: { data: [account, fee] } } = event;
-  const blockNumber = event.block.block.header.number.toNumber();
   const blockTimestamp = formatDateTimestamp(event.block.timestamp);
   const formattedFee = BigInt(fee.toString());
 
-  await updateFeesStats(formattedFee, blockTimestamp, blockNumber);
+  await updateFeesStats(formattedFee, blockTimestamp);
 }

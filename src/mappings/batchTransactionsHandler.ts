@@ -4,7 +4,7 @@ import { AnyTuple, CallBase } from '@polkadot/types/types';
 
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { getOrCreatePoolXYKEntity, handlePoolTransferEvents } from '../utils/pools';
+import { getOrCreatePoolXYKEntity } from '../utils/pools';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -92,12 +92,12 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
 
     logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
 
-    // If initialize pool call exists, create new Pool
-    const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
+    if (record.execution.success) {
+        // If initialize pool call exists, create new Pool
+        const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
 
-    if (initializePool) {
-        await getOrCreatePoolXYKEntity(initializePool.data.asset_a, initializePool.data.asset_b);
+        if (initializePool) {
+            await getOrCreatePoolXYKEntity(initializePool.data.asset_a, initializePool.data.asset_b);
+        }
     }
-
-    await handlePoolTransferEvents(extrinsic);
 }

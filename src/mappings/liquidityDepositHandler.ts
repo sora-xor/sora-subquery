@@ -1,15 +1,11 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import BigNumber from "bignumber.js";
-
-import { PoolXYK } from '../types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { getOrCreatePoolXYKEntity, handlePoolTransferEvents } from '../utils/pools';
+import { getOrCreatePoolXYKEntity } from '../utils/pools';
 import { isAssetTransferEvent } from '../utils/events';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
-
     logger.debug("Caught liquidity adding extrinsic")
 
     const record = assignCommonHistoryElemInfo(extrinsic);
@@ -46,6 +42,5 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
     logger.debug(`===== Saved liquidity deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
     await getOrCreatePoolXYKEntity(baseAssetId, targetAssetId);
-    await handlePoolTransferEvents(extrinsic);
     await updateHistoryElementStats(record);
 }

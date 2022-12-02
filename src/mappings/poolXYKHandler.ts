@@ -1,23 +1,23 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateBlock } from "@subql/types";
-import { PoolXYK, SnapshotType } from "../types";
+import { PoolXYK } from "../types";
 
-import { getAssetId, formatU128ToBalance, updateAssetPrice } from '../utils/assets';
+import { formatU128ToBalance, updateAssetPrice } from '../utils/assets';
 import { updateLiquidityStats } from '../utils/network';
-import { getAllReserves, getOrCreatePoolXYKEntity } from '../utils/pools';
-import { XOR, XSTUSD, PSWAP, DAI, SECONDS_IN_BLOCK, BASE_ASSETS, SnapshotSecondsMap } from '../utils/consts';
+import { poolAccounts, handleBlockTransferEvents } from '../utils/pools';
+import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
-const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
-
-export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
+export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> {
     const blockNumber = block.block.header.number.toNumber();
-    const shouldSync = blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
-
-    if (!shouldSync) return;
-
     const blockTimestamp: number = formatDateTimestamp(block.timestamp);
+
+    handleBlockTransferEvents(block);
+
+    return;
+
+    logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities`);
 
     let pswapPriceInDAI = new BigNumber(0);
     let liquiditiesUSD = new BigNumber(0);
@@ -30,32 +30,30 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         const isXorPools = baseAssetId === XOR;
         const pools: Array<PoolXYK> = [];
 
+        const poolsMap = poolAccounts.getMap(baseAssetId);
+
+        if (!poolsMap) continue;
+
         let baseAssetInPools = new BigNumber(0);
         let baseAssetWithDoublePools = new BigNumber(0);
         let baseAssetPriceInDAI = new BigNumber(0);
 
-        const reserves = await getAllReserves(baseAssetId);
+        for (const poolId of poolsMap.values()) {
+            const pool = await PoolXYK.get(poolId);
 
-        if (!reserves) continue;
+            if (!pool) continue;
 
-        for (const [{ args: [, targetAsset] }, value] of reserves) {
-            const targetAssetId = getAssetId(targetAsset);
-            const pool = await getOrCreatePoolXYKEntity(baseAssetId, targetAssetId);
-
-            pool.baseAssetReserves = BigInt(value[0].toString());
-            pool.targetAssetReserves = BigInt(value[1].toString());
-
-            pools.push(pool);
-
-            const baseAssetReservesBN = new BigNumber(value[0].toString());
-            const targetAssetReservesBN = new BigNumber(value[1].toString());
+            const baseAssetReservesBN = new BigNumber(pool.baseAssetReserves.toString());
+            const targetAssetReservesBN = new BigNumber(pool.targetAssetReserves.toString());
 
             baseAssetInPools = baseAssetInPools.plus(baseAssetReservesBN);
             baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReservesBN.multipliedBy(new BigNumber(pool.multiplier)));
 
-            if (targetAssetId === DAI) {
+            if (pool.targetAsset === DAI) {
                 baseAssetPriceInDAI = targetAssetReservesBN.div(baseAssetReservesBN);
             }
+
+            pools.push(pool);
         }
 
         // If base asset has price in DAI
@@ -104,11 +102,11 @@ export async function syncXYKPools(block: SubstrateBlock): Promise<void> {
         // update price samples
         if (isXorPools) {
             for (const pool of pools) {
-                await updateAssetPrice(pool.targetAsset, pool.priceUSD, blockTimestamp, blockNumber);
+                await updateAssetPrice(pool.targetAsset, pool.priceUSD, blockTimestamp);
             }
         }
     }
 
     // update network liquidity locked
-    await updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp, blockNumber);
+    await updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp);
 }

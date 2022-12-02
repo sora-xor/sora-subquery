@@ -5,9 +5,11 @@ import { assetPrecisions, getAssetId, getOrCreateAssetEntity } from '../utils/as
 let isFirstBlockIndexed = false;
 
 export async function initializeAssets(block: SubstrateBlock): Promise<void> {
-    if (isFirstBlockIndexed) {
-        return;
-    }
+    if (isFirstBlockIndexed) return;
+
+    const blockNumber = block.block.header.number.toNumber();
+
+    logger.debug(`[${blockNumber}]: Initialize Asset entities`);
 
     let initialAssets = await api.query.assets.assetInfos.entries();
 

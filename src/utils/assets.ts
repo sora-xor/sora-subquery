@@ -47,7 +47,7 @@ export const getOrCreateAssetEntity = async (assetId: string) => {
 
 const getAssetSnapshotId = (assetId: string, type: SnapshotType, index: number) => [assetId, type, index].join('-');
 
-const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimestamp: number, blockNumber: number): Promise<AssetSnapshot> => {
+const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimestamp: number): Promise<AssetSnapshot> => {
   const seconds = SnapshotSecondsMap[type];
   const shapshotIndex = Math.floor(blockTimestamp / seconds); // rounded snapshot index (from 0)
   const id = getAssetSnapshotId(assetId, type, shapshotIndex);
@@ -100,7 +100,7 @@ const getAssetSnapshot = async (assetId: string, type: SnapshotType, blockTimest
   return snapshot;
 };
 
-export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateAssetPrice = async (assetId: string, price: string, blockTimestamp: number): Promise<void> => {
   const asset = await getOrCreateAssetEntity(assetId);
 
   asset.priceUSD = price;
@@ -108,7 +108,7 @@ export const updateAssetPrice = async (assetId: string, price: string, blockTime
   await asset.save();
 
   for (const type of AssetSnapshots) {
-      const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
+      const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp);
 
       snapshot.priceUSD.close = price;
       snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), new BigNumber(price)).toString();
@@ -129,7 +129,7 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
   const volumeUSD = volume.multipliedBy(assetPrice);
 
   for (const type of AssetSnapshots) {
-      const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
+      const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp);
 
       snapshot.volume.amount = new BigNumber(snapshot.volume.amount).plus(volume).toString();
       snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toFixed(2);
@@ -137,14 +137,14 @@ export const updateAssetVolume = async (assetId: string, amount: string, blockTi
       await snapshot.save();
   }
 
-  await updateVolumeStats(volumeUSD, blockTimestamp, blockNumber);
+  await updateVolumeStats(volumeUSD, blockTimestamp);
 };
 
-export const updateAssetMintedAmount = async (assetId: string, amount: bigint, blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateAssetMintedAmount = async (assetId: string, amount: bigint, blockTimestamp: number): Promise<void> => {
   await getOrCreateAssetEntity(assetId);
 
   for (const type of AssetSnapshots) {
-    const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
+    const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp);
 
     snapshot.mint = snapshot.mint + amount;
 
@@ -152,11 +152,11 @@ export const updateAssetMintedAmount = async (assetId: string, amount: bigint, b
   }
 }
 
-export const updateAssetBurnedAmount = async (assetId: string, amount: bigint, blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateAssetBurnedAmount = async (assetId: string, amount: bigint, blockTimestamp: number): Promise<void> => {
   await getOrCreateAssetEntity(assetId);
 
   for (const type of AssetSnapshots) {
-    const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp, blockNumber);
+    const snapshot = await getAssetSnapshot(assetId, type, blockTimestamp);
 
     snapshot.burn = snapshot.burn + amount;
 

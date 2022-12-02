@@ -1,4 +1,4 @@
-import { SubstrateExtrinsic } from '@subql/types';
+import { SubstrateBlock } from '@subql/types';
 
 import { PoolXYK } from '../types';
 import { isAssetTransferEvent, getTransferEventData } from './events';
@@ -16,14 +16,44 @@ export const PoolsPrices = {
   },
 };
 
-const encodeKey = (baseAssetId: string, targetAssetId: string) => [baseAssetId, targetAssetId].join(';');
-const decodeKey = (key: string) => key.split(';');
-const poolAssetsMap = new Map<string, string>();
-const poolAccountsMap = new Map<string, string>();
+class PoolAccountsStorage {
+  private storage: Map<string, Map<string, string>>;
+  private accountIds: string[];
+
+  constructor() {
+    this.storage = new Map();
+    this.accountIds = [];
+  }
+
+  add(baseAssetId: string, targetAssetId: string, poolAccountId: string): void {
+    if (!this.storage.has(baseAssetId)) {
+      this.storage.set(baseAssetId, new Map());
+    }
+    this.storage.get(baseAssetId).set(targetAssetId, poolAccountId);
+    this.accountIds = [...new Set([...this.accountIds, poolAccountId])];
+  }
+
+  getMap(baseAssetId: string) {
+    return this.storage.get(baseAssetId);
+  }
+
+  get(baseAssetId: string, targetAssetId: string): string | undefined {
+    return this.getMap(baseAssetId)?.get(targetAssetId);
+  }
+
+  has(poolAccountId: string): boolean {
+    return this.accountIds.includes(poolAccountId);
+  }
+};
+
+export const poolAccounts = new PoolAccountsStorage();
 
 export const getAllReserves = async (baseAssetId: string) => {
   try {
-    return await api.query.poolXYK.reserves.entries(baseAssetId);
+    logger.debug(`[${baseAssetId}] Pools XYK Reserves request...`);
+    const reserves = await api.query.poolXYK.reserves.entries(baseAssetId);
+    logger.debug(`[${baseAssetId}] Pools XYK Reserves request completed.`);
+    return reserves;
   } catch (e) {
     logger.error("Error getting reserves");
     logger.error(e);
@@ -33,20 +63,21 @@ export const getAllReserves = async (baseAssetId: string) => {
 
 export const getPoolAccountId = async (baseAssetId: string, targetAssetId: string): Promise<string | null> => {
   try {
-    const key = encodeKey(baseAssetId, targetAssetId);
+    const savedId = poolAccounts.get(baseAssetId, targetAssetId);
 
-    if (poolAssetsMap.has(key)) {
-      return poolAssetsMap.get(key);
-    }
+    if (savedId) return savedId;
+
+    logger.debug('Pool properties request...');
 
     const props = (await api.query.poolXYK.properties(baseAssetId, targetAssetId)).toJSON() as any;
+
+    logger.debug('Pool properties request completed');
 
     if (!Array.isArray(props)) return null;
 
     const poolAccountId = props[0];
 
-    poolAssetsMap.set(key, poolAccountId);
-    poolAccountsMap.set(poolAccountId, key);
+    poolAccounts.add(baseAssetId, targetAssetId, poolAccountId);
 
     return poolAccountId;
   } catch (e) {
@@ -59,7 +90,10 @@ export const getPoolAccountId = async (baseAssetId: string, targetAssetId: strin
 export const getOrCreatePoolXYKEntity = async (baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> => {
   const poolId = await getPoolAccountId(baseAssetId, targetAssetId);
 
-  if (!poolId) return null;
+  if (!poolId) {
+    logger.error(`Cannot find pool id ${baseAssetId}:${targetAssetId}`);
+    return null;
+  }
 
   let pool = await PoolXYK.get(poolId);
 
@@ -74,18 +108,22 @@ export const getOrCreatePoolXYKEntity = async (baseAssetId: string, targetAssetI
       pool.strategicBonusApy = '0';
 
       await pool.save();
+
+      logger.debug(`[${poolId}] Created Pool XYK`);
   }
 
   return pool;
 };
 
-export const handlePoolTransferEvents = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
-  const transfers = extrinsic.events.filter(e => isAssetTransferEvent(e));
+export const handleBlockTransferEvents = async (block: SubstrateBlock): Promise<void> => {
+  const blockNumber = block.block.header.number.toNumber();
+  const transfers = block.events.filter(e => isAssetTransferEvent(e));
 
   for (const transfer of transfers) {
     const { assetId, from, to, amount } = getTransferEventData(transfer);
 
-    if (poolAccountsMap.has(from)) {
+    if (poolAccounts.has(from)) {
+      logger.debug(`[${blockNumber}][${from}] Handle pool withdraw`);
       const pool = await PoolXYK.get(from);
 
       if (pool.baseAsset === assetId) {
@@ -97,8 +135,9 @@ export const handlePoolTransferEvents = async (extrinsic: SubstrateExtrinsic): P
       await pool.save();
     }
 
-    if (poolAccountsMap.has(to)) {
-      const pool = await PoolXYK.get(from);
+    if (poolAccounts.has(to)) {
+      logger.debug(`[${blockNumber}][${to}] Handle pool deposit`);
+      const pool = await PoolXYK.get(to);
 
       if (pool.baseAsset === assetId) {
         pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount.toString());

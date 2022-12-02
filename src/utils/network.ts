@@ -20,7 +20,7 @@ const NetworkStatsId = '0';
 
 const getNetworkSnapshotId = (type: SnapshotType, index: number) => [type, index].join('-');
 
-export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: number, blockNumber: number): Promise<NetworkSnapshot> => {
+export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: number): Promise<NetworkSnapshot> => {
   const seconds = SnapshotSecondsMap[type];
   const shapshotIndex =  Math.floor(blockTimestamp / seconds);
   const id = getNetworkSnapshotId(type, shapshotIndex);
@@ -64,7 +64,7 @@ export const getNetworkStats = async (): Promise<NetworkStats> => {
   return entity;
 };
 
-export const updateAccountsStats = async (blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateAccountsStats = async (blockTimestamp: number): Promise<void> => {
   const stats = await getNetworkStats();
 
   stats.totalAccounts = stats.totalAccounts + 1;
@@ -72,7 +72,7 @@ export const updateAccountsStats = async (blockTimestamp: number, blockNumber: n
   await stats.save();
 
   for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
 
     snapshot.accounts = snapshot.accounts + 1;
 
@@ -80,7 +80,7 @@ export const updateAccountsStats = async (blockTimestamp: number, blockNumber: n
   }
 };
 
-export const updateTransactionsStats = async (blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateTransactionsStats = async (blockTimestamp: number): Promise<void> => {
   const stats = await getNetworkStats();
 
   stats.totalTransactions = stats.totalTransactions + 1;
@@ -88,7 +88,7 @@ export const updateTransactionsStats = async (blockTimestamp: number, blockNumbe
   await stats.save();
 
   for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
 
     snapshot.transactions = snapshot.transactions + 1;
 
@@ -96,7 +96,7 @@ export const updateTransactionsStats = async (blockTimestamp: number, blockNumbe
   }
 };
 
-export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: number): Promise<void> => {
   const stats = await getNetworkStats();
 
   stats.totalBridgeIncomingTransactions = stats.totalBridgeIncomingTransactions + 1;
@@ -104,7 +104,7 @@ export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: numb
   await stats.save();
 
   for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
 
     snapshot.bridgeIncomingTransactions = snapshot.bridgeIncomingTransactions + 1;
 
@@ -112,7 +112,7 @@ export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: numb
   }
 };
 
-export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: number): Promise<void> => {
   const stats = await getNetworkStats();
 
   stats.totalBridgeOutgoingTransactions = stats.totalBridgeOutgoingTransactions + 1;
@@ -120,7 +120,7 @@ export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: numb
   await stats.save();
 
   for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
 
     snapshot.bridgeOutgoingTransactions = snapshot.bridgeOutgoingTransactions + 1;
 
@@ -128,7 +128,7 @@ export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: numb
   }
 };
 
-export const updateFeesStats = async (fee: bigint, blockTimestamp: number, blockNumber: number): Promise<void> => {
+export const updateFeesStats = async (fee: bigint, blockTimestamp: number): Promise<void> => {
   const stats = await getNetworkStats();
 
   stats.totalFees = stats.totalFees + fee;
@@ -136,7 +136,7 @@ export const updateFeesStats = async (fee: bigint, blockTimestamp: number, block
   await stats.save();
 
   for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
 
     snapshot.fees = snapshot.fees + fee;
 
@@ -144,9 +144,9 @@ export const updateFeesStats = async (fee: bigint, blockTimestamp: number, block
   }
 };
 
-export const updateLiquidityStats = async (liquidities: Record<string, string>, liquiditiesUSD: BigNumber, blockTimestamp: number, blockNumber: number) => {
+export const updateLiquidityStats = async (liquidities: Record<string, string>, liquiditiesUSD: BigNumber, blockTimestamp: number) => {
   for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
 
     snapshot.liquidity = {
       xor: liquidities[XOR],
@@ -158,9 +158,9 @@ export const updateLiquidityStats = async (liquidities: Record<string, string>, 
   }
 };
 
-export const updateVolumeStats = async (volumeUSD: BigNumber, blockTimestamp: number, blockNumber: number) => {
+export const updateVolumeStats = async (volumeUSD: BigNumber, blockTimestamp: number) => {
   for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp, blockNumber);
+    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
 
     snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toFixed(2);
 

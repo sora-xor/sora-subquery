@@ -41,7 +41,7 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
 
     await record.save();
     await updateHistoryElementStats(record);
-    await updateBridgeOutgoingTransactionsStats(record.timestamp, Number(record.blockHeight.toString()));
+    await updateBridgeOutgoingTransactionsStats(record.timestamp);
 
     logger.debug(`===== Saved SORA->ETH transfer extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

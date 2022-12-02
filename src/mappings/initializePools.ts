@@ -10,6 +10,10 @@ let isFirstBlockIndexed = false;
 export async function initializePools(block: SubstrateBlock): Promise<void> {
     if (isFirstBlockIndexed) return;
 
+    const blockNumber = block.block.header.number.toNumber();
+
+    logger.debug(`[${blockNumber}]: Initialize Pool XYK entities`);
+
     for (const baseAssetId of BASE_ASSETS) {
         const pools: Array<PoolXYK> = [];
 

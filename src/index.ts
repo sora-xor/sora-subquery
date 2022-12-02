@@ -2,7 +2,6 @@
 export * from "./mappings/initializeAssets";
 export * from "./mappings/initializePools";
 export * from './mappings/poolXYKHandler';
-export * from './mappings/poolTBCHandler';
 export * from './mappings/swapsHandler';
 export * from './mappings/transfersHandler';
 export * from './mappings/liquidityDepositHandler';

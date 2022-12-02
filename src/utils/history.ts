@@ -72,7 +72,6 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
 export const updateHistoryElementStats = async (history: HistoryElement) => {
   const addresses = [history.address.toString()];
   const timestamp = history.timestamp;
-  const blockNumber = Number(history.blockHeight.toString());
 
   if (
       INCOMING_TRANSFER_METHODS.includes(history.method.toString()) &&
@@ -84,10 +83,10 @@ export const updateHistoryElementStats = async (history: HistoryElement) => {
 
   // update accounts data
   for (const address of addresses) {
-      const account = await getOrCreateAccountEntity(address, timestamp, blockNumber);
+      const account = await getOrCreateAccountEntity(address, timestamp);
       account.latestHistoryElementId = history.id.toString();
       await account.save();
   }
 
-  await updateTransactionsStats(timestamp, blockNumber);
+  await updateTransactionsStats(timestamp);
 }

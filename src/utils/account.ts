@@ -2,13 +2,13 @@ import { Account } from "../types";
 
 import { updateAccountsStats } from './network';
 
-export const getOrCreateAccountEntity = async (accountAddress: string, timestamp: number, blockNumber: number) => {
+export const getOrCreateAccountEntity = async (accountAddress: string, timestamp: number) => {
   let account = await Account.get(accountAddress);
 
   if (!account) {
       account = new Account(accountAddress);
       await account.save();
-      await updateAccountsStats(timestamp, blockNumber);
+      await updateAccountsStats(timestamp);
   }
 
   return account;
