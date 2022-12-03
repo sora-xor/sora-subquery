@@ -1,23 +1,30 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateBlock } from "@subql/types";
-import { PoolXYK } from "../types";
+import { PoolXYK, SnapshotType } from "../types";
 
-import { formatU128ToBalance, updateAssetPrice } from '../utils/assets';
+import { formatU128ToBalance, updateAssetPrice, updateAssetSnapshotsPrice } from '../utils/assets';
 import { updateLiquidityStats } from '../utils/network';
-import { poolAccounts, handleBlockTransferEvents } from '../utils/pools';
-import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS } from '../utils/consts';
+import { poolAccounts, handleBlockTransferEvents, PoolsPrices } from '../utils/pools';
+import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS, SnapshotSecondsMap, SECONDS_IN_BLOCK } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
+
+const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
 
 export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> {
     const blockNumber = block.block.header.number.toNumber();
-    const blockTimestamp: number = formatDateTimestamp(block.timestamp);
 
     handleBlockTransferEvents(block);
 
-    return;
+    const isNewInterval = blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
+    const isNewReserves = PoolsPrices.get();
+    const shouldSync = isNewReserves || isNewInterval;
 
-    logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities`);
+    if (!shouldSync) return;
+
+    logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities; isNewInterval: ${isNewInterval}; isNewReserves: ${isNewReserves}`);
+
+    const blockTimestamp: number = formatDateTimestamp(block.timestamp);
 
     let pswapPriceInDAI = new BigNumber(0);
     let liquiditiesUSD = new BigNumber(0);
@@ -57,7 +64,7 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
         }
 
         // If base asset has price in DAI
-        if (!baseAssetPriceInDAI) {
+        if (!baseAssetPriceInDAI.isZero()) {
             // update pools prices
             pools.forEach(p => {
                 const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
@@ -102,11 +109,14 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
         // update price samples
         if (isXorPools) {
             for (const pool of pools) {
-                await updateAssetPrice(pool.targetAsset, pool.priceUSD, blockTimestamp);
+                await updateAssetPrice(pool.targetAsset, pool.priceUSD);
+                await updateAssetSnapshotsPrice(pool.targetAsset, pool.priceUSD, blockTimestamp);
             }
         }
     }
 
     // update network liquidity locked
     await updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp);
+
+    PoolsPrices.set(false);
 }

@@ -1,5 +1,5 @@
 import { SubstrateEvent } from "@subql/types";
-import { getAssetId, updateAssetMintedAmount, updateAssetBurnedAmount } from '../utils/assets';
+import { getAssetId, updateAssetSnapshotsMintedAmount, updateAssetSnapshotsBurnedAmount } from '../utils/assets';
 import { formatDateTimestamp } from '../utils';
 
 export async function handleBurnedAssetsAmount(event: SubstrateEvent): Promise<void> {
@@ -9,7 +9,7 @@ export async function handleBurnedAssetsAmount(event: SubstrateEvent): Promise<v
     const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
-    await updateAssetBurnedAmount(assetId, amount, blockTimestamp);
+    await updateAssetSnapshotsBurnedAmount(assetId, amount, blockTimestamp);
 }
 
 export async function handleRemintedAssetsAmount(event: SubstrateEvent): Promise<void> {
@@ -19,5 +19,5 @@ export async function handleRemintedAssetsAmount(event: SubstrateEvent): Promise
     const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
-    await updateAssetMintedAmount(assetId, amount, blockTimestamp);
+    await updateAssetSnapshotsMintedAmount(assetId, amount, blockTimestamp);
 }

@@ -7,7 +7,7 @@ import { XOR, DOUBLE_PRICE_POOL } from './consts';
 // getters & setter for flag, should we sync poolXYK reserves
 // and then calc asset prices
 export const PoolsPrices = {
-  flag: true,
+  flag: false,
   get() {
     return this.flag;
   },
@@ -118,13 +118,14 @@ export const getOrCreatePoolXYKEntity = async (baseAssetId: string, targetAssetI
 export const handleBlockTransferEvents = async (block: SubstrateBlock): Promise<void> => {
   const blockNumber = block.block.header.number.toNumber();
   const transfers = block.events.filter(e => isAssetTransferEvent(e));
+  const buffer: Record<string, PoolXYK> = {};
 
   for (const transfer of transfers) {
     const { assetId, from, to, amount } = getTransferEventData(transfer);
 
     if (poolAccounts.has(from)) {
       logger.debug(`[${blockNumber}][${from}] Handle pool withdraw`);
-      const pool = await PoolXYK.get(from);
+      const pool = buffer[from] || await PoolXYK.get(from);
 
       if (pool.baseAsset === assetId) {
         pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount.toString());
@@ -132,12 +133,12 @@ export const handleBlockTransferEvents = async (block: SubstrateBlock): Promise<
         pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount.toString());
       }
 
-      await pool.save();
+      buffer[from] = pool;
     }
 
     if (poolAccounts.has(to)) {
       logger.debug(`[${blockNumber}][${to}] Handle pool deposit`);
-      const pool = await PoolXYK.get(to);
+      const pool = buffer[to] || await PoolXYK.get(to);
 
       if (pool.baseAsset === assetId) {
         pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount.toString());
@@ -145,7 +146,14 @@ export const handleBlockTransferEvents = async (block: SubstrateBlock): Promise<
         pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount.toString());
       }
 
-      await pool.save();
+      buffer[to] = pool;
     }
+  }
+
+  const needUpdate = Object.values(buffer);
+
+  if (needUpdate.length) {
+    PoolsPrices.set(true);
+    await Promise.all(needUpdate.map(pool => pool.save()));
   }
 };
