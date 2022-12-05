@@ -1,6 +1,6 @@
 import { SubstrateBlock } from "@subql/types";
 
-import { assetPrecisions, getAssetId, getOrCreateAssetEntity } from '../utils/assets';
+import { assetPrecisions, getAssetId, assetStorage } from '../utils/assets';
 
 let isFirstBlockIndexed = false;
 
@@ -18,7 +18,7 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
         assetPrecisions.set(asset, value[2].toNumber());
 
-        await getOrCreateAssetEntity(asset);
+        await assetStorage.getAsset(asset);
     }
 
     isFirstBlockIndexed = true;

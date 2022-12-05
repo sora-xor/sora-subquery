@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { getAssetId, formatU128ToBalance, updateAssetSnapshotsVolume } from '../utils/assets';
+import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../utils/assets';
 import { XOR } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
@@ -91,8 +91,8 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 
     // update assets volume
     if (record.execution.success) {
-        await updateAssetSnapshotsVolume(baseAssetId, details.baseAssetAmount, blockTimestamp, blockNumber);
-        await updateAssetSnapshotsVolume(targetAssetId, details.targetAssetAmount, blockTimestamp, blockNumber);
+        await assetSnapshotsStorage.updateVolume(baseAssetId, details.baseAssetAmount, blockTimestamp);
+        await assetSnapshotsStorage.updateVolume(targetAssetId, details.targetAssetAmount, blockTimestamp);
     }
 }
 

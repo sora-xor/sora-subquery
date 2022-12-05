@@ -35,7 +35,7 @@ type NetworkSnapshot @entity {
 
 type Asset @entity {
   id: ID!
-  priceUSD: String
+  priceUSD: String!
   data: [AssetSnapshot!]! @derivedFrom(field: "asset")
 }
 

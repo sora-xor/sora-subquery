@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK, SnapshotType } from "../types";
 
-import { formatU128ToBalance, updateAssetPrice, updateAssetSnapshotsPrice } from '../utils/assets';
+import { formatU128ToBalance, assetStorage, assetSnapshotsStorage } from '../utils/assets';
 import { updateLiquidityStats } from '../utils/network';
 import { poolAccounts, handleBlockTransferEvents, PoolsPrices } from '../utils/pools';
 import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS, SnapshotSecondsMap, SECONDS_IN_BLOCK } from '../utils/consts';
@@ -12,15 +12,18 @@ import { formatDateTimestamp } from '../utils';
 const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
 
 export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> {
-    const blockNumber = block.block.header.number.toNumber();
-
     handleBlockTransferEvents(block);
 
+    const blockNumber = block.block.header.number.toNumber();
     const isNewInterval = blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
     const isNewReserves = PoolsPrices.get();
     const shouldSync = isNewReserves || isNewInterval;
 
     if (!shouldSync) return;
+
+    if (isNewInterval) {
+        await assetSnapshotsStorage.syncAndClear();
+    }
 
     logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities; isNewInterval: ${isNewInterval}; isNewReserves: ${isNewReserves}`);
 
@@ -109,8 +112,8 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
         // update price samples
         if (isXorPools) {
             for (const pool of pools) {
-                await updateAssetPrice(pool.targetAsset, pool.priceUSD);
-                await updateAssetSnapshotsPrice(pool.targetAsset, pool.priceUSD, blockTimestamp);
+                await assetStorage.updatePrice(pool.targetAsset, pool.priceUSD);
+                await assetSnapshotsStorage.updatePrice(pool.targetAsset, pool.priceUSD, blockTimestamp);
             }
         }
     }
