@@ -1,7 +1,7 @@
 import { SubstrateBlock, SubstrateEvent } from "@subql/types";
 import { SnapshotType } from "../types";
 
-import { getNetworkSnapshot, NetworkSnapshots, updateFeesStats, NetworkStatsSync } from '../utils/network';
+import { getNetworkSnapshot, NetworkSnapshots, updateFeesStats } from '../utils/network';
 import { SnapshotSecondsMap, SECONDS_IN_BLOCK } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
@@ -10,7 +10,7 @@ const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.HOUR] / SECONDS_I
 
 export async function createNetworkSnapshots(block: SubstrateBlock): Promise<void> {
   const blockNumber = block.block.header.number.toNumber();
-  const shouldSync = NetworkStatsSync.get() || blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
+  const shouldSync = blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
 
   if (!shouldSync) return;
 
@@ -22,8 +22,6 @@ export async function createNetworkSnapshots(block: SubstrateBlock): Promise<voi
 
     await networkSnapshot.save();
   }
-
-  NetworkStatsSync.set(false);
 }
 
 export async function handleNetworkFee(event: SubstrateEvent): Promise<void> {

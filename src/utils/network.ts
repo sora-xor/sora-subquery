@@ -5,22 +5,13 @@ import { SnapshotSecondsMap, XOR, XSTUSD } from './consts';
 
 export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
 
-// getters & setter for flag, should we sync network stats
-export const NetworkStatsSync = {
-  flag: true,
-  get() {
-      return this.flag;
-  },
-  set(flag: boolean) {
-      this.flag = flag;
-  },
-};
-
 const NetworkStatsId = '0';
 
 const getNetworkSnapshotId = (type: SnapshotType, index: number) => [type, index].join('-');
 
 export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: number): Promise<NetworkSnapshot> => {
+  logger.debug('getNetworkSnapshot');
+
   const seconds = SnapshotSecondsMap[type];
   const shapshotIndex =  Math.floor(blockTimestamp / seconds);
   const id = getNetworkSnapshotId(type, shapshotIndex);
@@ -50,6 +41,8 @@ export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: num
 };
 
 export const getNetworkStats = async (): Promise<NetworkStats> => {
+  logger.debug('getNetworkStats');
+
   let entity = await NetworkStats.get(NetworkStatsId);
 
   if (!entity) {
@@ -65,6 +58,8 @@ export const getNetworkStats = async (): Promise<NetworkStats> => {
 };
 
 export const updateAccountsStats = async (blockTimestamp: number): Promise<void> => {
+  logger.debug('updateAccountsStats');
+
   const stats = await getNetworkStats();
   const snapshots = [];
 
@@ -84,6 +79,8 @@ export const updateAccountsStats = async (blockTimestamp: number): Promise<void>
 };
 
 export const updateTransactionsStats = async (blockTimestamp: number): Promise<void> => {
+  logger.debug('updateTransactionsStats');
+
   const stats = await getNetworkStats();
   const snapshots = [];
 
@@ -103,6 +100,8 @@ export const updateTransactionsStats = async (blockTimestamp: number): Promise<v
 };
 
 export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: number): Promise<void> => {
+  logger.debug('updateBridgeIncomingTransactionsStats');
+
   const stats = await getNetworkStats();
   const snapshots = [];
 
@@ -122,6 +121,8 @@ export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: numb
 };
 
 export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: number): Promise<void> => {
+  logger.debug('updateBridgeOutgoingTransactionsStats');
+
   const stats = await getNetworkStats();
   const snapshots = [];
 
@@ -141,6 +142,8 @@ export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: numb
 };
 
 export const updateFeesStats = async (fee: bigint, blockTimestamp: number): Promise<void> => {
+  logger.debug('updateFeesStats');
+
   const stats = await getNetworkStats();
   const snapshots = [];
 
@@ -160,6 +163,8 @@ export const updateFeesStats = async (fee: bigint, blockTimestamp: number): Prom
 };
 
 export const updateLiquidityStats = async (liquidities: Record<string, string>, liquiditiesUSD: BigNumber, blockTimestamp: number) => {
+  logger.debug('updateLiquidityStats');
+
   const snapshots = [];
 
   for (const type of NetworkSnapshots) {
@@ -178,6 +183,8 @@ export const updateLiquidityStats = async (liquidities: Record<string, string>, 
 };
 
 export const updateVolumeStats = async (volumeUSD: BigNumber, blockTimestamp: number) => {
+  logger.debug('updateVolumeStats');
+
   const snapshots = [];
 
   for (const type of NetworkSnapshots) {
