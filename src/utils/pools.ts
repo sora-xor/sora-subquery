@@ -104,6 +104,14 @@ class PoolsStorage {
     return this.storage.get(poolId) ?? null;
   }
 
+  async sync(): Promise<void> {
+    logger.debug('[PoolsStorage] sync');
+
+    for (const pool of this.storage.values()) {
+      await pool.save();
+    }
+  }
+
   async getPool(baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> {
     const poolId = await poolAccounts.getPoolAccountId(baseAssetId, targetAssetId);
 
@@ -155,8 +163,8 @@ export const handleBlockTransferEvents = async (block: SubstrateBlock): Promise<
       } else if (pool.targetAsset === assetId) {
         pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount.toString());
       }
+
       PoolsPrices.set(true);
-      await pool.save();
     }
 
     if (poolAccounts.has(to)) {
@@ -168,8 +176,8 @@ export const handleBlockTransferEvents = async (block: SubstrateBlock): Promise<
       } else if (pool.targetAsset === assetId) {
         pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount.toString());
       }
+
       PoolsPrices.set(true);
-      await pool.save();
     }
   }
 };

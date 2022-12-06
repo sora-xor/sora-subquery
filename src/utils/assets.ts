@@ -85,8 +85,8 @@ class AssetSnapshotsStorage {
     return [assetId, type, index].join('-');
   }
 
-  async syncAndClear(): Promise<void> {
-    logger.debug('[AssetSnapshotsStorage] syncAndClear');
+  async sync(): Promise<void> {
+    logger.debug('[AssetSnapshotsStorage] sync');
 
     for (const snapshot of this.storage.values()) {
       await snapshot.save()

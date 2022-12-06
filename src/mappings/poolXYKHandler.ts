@@ -5,7 +5,7 @@ import { PoolXYK, SnapshotType } from "../types";
 
 import { formatU128ToBalance, assetStorage, assetSnapshotsStorage } from '../utils/assets';
 import { updateLiquidityStats } from '../utils/network';
-import { poolAccounts, handleBlockTransferEvents, PoolsPrices } from '../utils/pools';
+import { poolAccounts, handleBlockTransferEvents, PoolsPrices, poolsStorage } from '../utils/pools';
 import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS, SnapshotSecondsMap, SECONDS_IN_BLOCK } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
@@ -20,10 +20,6 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
     const shouldSync = isNewReserves || isNewInterval;
 
     if (!shouldSync) return;
-
-    if (isNewInterval) {
-        await assetSnapshotsStorage.syncAndClear();
-    }
 
     logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities; isNewInterval: ${isNewInterval}; isNewReserves: ${isNewReserves}`);
 
@@ -49,7 +45,7 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
         let baseAssetPriceInDAI = new BigNumber(0);
 
         for (const poolId of poolsMap.values()) {
-            const pool = await PoolXYK.get(poolId);
+            const pool = poolsStorage.getPoolById(poolId);
 
             if (!pool) continue;
 
@@ -107,8 +103,6 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
                 .multipliedBy(new BigNumber(2))
         );
 
-        await Promise.all(pools.map(pool => pool.save()));
-
         // update price samples
         if (isXorPools) {
             for (const pool of pools) {
@@ -118,8 +112,11 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
         }
     }
 
-    // update network liquidity locked
-    await updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp);
+    if (isNewInterval) {
+        await poolsStorage.sync();
+        await assetSnapshotsStorage.sync();
+        await updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp);
+    }
 
     PoolsPrices.set(false);
 }
