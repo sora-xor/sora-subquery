@@ -3,7 +3,7 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
 import { isAssetTransferEvent } from '../utils/events';
-import { getOrCreatePoolXYKEntity } from '../utils/pools';
+import { poolsStorage } from '../utils/pools';
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -45,6 +45,6 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
     logger.debug(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
-    await getOrCreatePoolXYKEntity(baseAssetId, targetAssetId);
+    await poolsStorage.getPool(baseAssetId, targetAssetId);
     await updateHistoryElementStats(record);
 }

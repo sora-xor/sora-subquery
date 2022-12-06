@@ -4,7 +4,7 @@ import { AnyTuple, CallBase } from '@polkadot/types/types';
 
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { getOrCreatePoolXYKEntity } from '../utils/pools';
+import { poolsStorage } from '../utils/pools';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -97,7 +97,7 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
 
         if (initializePool) {
-            await getOrCreatePoolXYKEntity(initializePool.data.asset_a, initializePool.data.asset_b);
+            await poolsStorage.getPool(initializePool.data.asset_a, initializePool.data.asset_b);
         }
     }
 }

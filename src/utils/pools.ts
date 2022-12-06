@@ -16,6 +16,37 @@ export const PoolsPrices = {
   },
 };
 
+export const getAllReserves = async (baseAssetId: string) => {
+  try {
+    logger.debug(`[${baseAssetId}] Pools XYK Reserves request...`);
+    const reserves = await api.query.poolXYK.reserves.entries(baseAssetId);
+    logger.debug(`[${baseAssetId}] Pools XYK Reserves request completed.`);
+    return reserves;
+  } catch (e) {
+    logger.error("Error getting reserves");
+    logger.error(e);
+    return null;
+  }
+};
+
+export const getPoolProperties = async (baseAssetId: string, targetAssetId: string): Promise<string | null> => {
+  try {
+    logger.debug(`[${baseAssetId};${targetAssetId}] Pool properties request...`);
+    const props = (await api.query.poolXYK.properties(baseAssetId, targetAssetId)).toJSON() as any;
+    logger.debug(`[${baseAssetId};${targetAssetId}] Pool properties request completed`);
+
+    if (!Array.isArray(props)) return null;
+
+    const poolAccountId = props[0];
+
+    return poolAccountId;
+  } catch (error) {
+    logger.error("Error getting pool properties");
+    logger.error(error);
+    return null;
+  }
+}
+
 class PoolAccountsStorage {
   private storage: Map<string, Map<string, string>>;
   private accountIds: string[];
@@ -33,71 +64,58 @@ class PoolAccountsStorage {
     this.accountIds = [...new Set([...this.accountIds, poolAccountId])];
   }
 
-  getMap(baseAssetId: string) {
-    return this.storage.get(baseAssetId);
-  }
-
   get(baseAssetId: string, targetAssetId: string): string | undefined {
     return this.getMap(baseAssetId)?.get(targetAssetId);
+  }
+
+  getMap(baseAssetId: string) {
+    return this.storage.get(baseAssetId);
   }
 
   has(poolAccountId: string): boolean {
     return this.accountIds.includes(poolAccountId);
   }
-};
 
-export const poolAccounts = new PoolAccountsStorage();
+  async getPoolAccountId (baseAssetId: string, targetAssetId: string): Promise<string | null> {
+    const id = this.get(baseAssetId, targetAssetId);
 
-export const getAllReserves = async (baseAssetId: string) => {
-  try {
-    logger.debug(`[${baseAssetId}] Pools XYK Reserves request...`);
-    const reserves = await api.query.poolXYK.reserves.entries(baseAssetId);
-    logger.debug(`[${baseAssetId}] Pools XYK Reserves request completed.`);
-    return reserves;
-  } catch (e) {
-    logger.error("Error getting reserves");
-    logger.error(e);
-    return null;
-  }
-};
+    if (id) return id;
 
-export const getPoolAccountId = async (baseAssetId: string, targetAssetId: string): Promise<string | null> => {
-  try {
-    const savedId = poolAccounts.get(baseAssetId, targetAssetId);
-
-    if (savedId) return savedId;
-
-    logger.debug('Pool properties request...');
-
-    const props = (await api.query.poolXYK.properties(baseAssetId, targetAssetId)).toJSON() as any;
-
-    logger.debug('Pool properties request completed');
-
-    if (!Array.isArray(props)) return null;
-
-    const poolAccountId = props[0];
-
-    poolAccounts.add(baseAssetId, targetAssetId, poolAccountId);
-
+    const poolAccountId = await getPoolProperties(baseAssetId, targetAssetId);
+  
+    if (poolAccountId) {
+      poolAccounts.add(baseAssetId, targetAssetId, poolAccountId);
+    } else {
+      logger.error(`Cannot find pool id ${baseAssetId}:${targetAssetId}`);
+    }
+  
     return poolAccountId;
-  } catch (e) {
-    logger.error("Error getting pool properties");
-    logger.error(e);
-    return null;
   }
-}
+};
 
-export const getOrCreatePoolXYKEntity = async (baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> => {
-  const poolId = await getPoolAccountId(baseAssetId, targetAssetId);
+class PoolsStorage {
+  private storage!: Map<string, PoolXYK>;
 
-  if (!poolId) {
-    logger.error(`Cannot find pool id ${baseAssetId}:${targetAssetId}`);
-    return null;
+  constructor() {
+    this.storage = new Map();
   }
 
-  let pool = await PoolXYK.get(poolId);
+  getPoolById(poolId: string): PoolXYK | null {
+    return this.storage.get(poolId) ?? null;
+  }
 
-  if (!pool) {
+  async getPool(baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> {
+    const poolId = await poolAccounts.getPoolAccountId(baseAssetId, targetAssetId);
+
+    if (!poolId) return null;
+
+    if (this.storage.has(poolId)) {
+      return this.storage.get(poolId);
+    }
+
+    let pool = await PoolXYK.get(poolId);
+
+    if (!pool) {
       pool = new PoolXYK(poolId);
       pool.baseAsset = baseAssetId;
       pool.targetAsset = targetAssetId;
@@ -110,50 +128,48 @@ export const getOrCreatePoolXYKEntity = async (baseAssetId: string, targetAssetI
       await pool.save();
 
       logger.debug(`[${poolId}] Created Pool XYK`);
-  }
+    }
 
-  return pool;
-};
+    this.storage.set(poolId, pool);
+
+    return pool;
+  }
+}
+
+export const poolAccounts = new PoolAccountsStorage();
+export const poolsStorage = new PoolsStorage();
 
 export const handleBlockTransferEvents = async (block: SubstrateBlock): Promise<void> => {
   const blockNumber = block.block.header.number.toNumber();
   const transfers = block.events.filter(e => isAssetTransferEvent(e));
-  const buffer: Record<string, PoolXYK> = {};
 
   for (const transfer of transfers) {
     const { assetId, from, to, amount } = getTransferEventData(transfer);
 
     if (poolAccounts.has(from)) {
       logger.debug(`[${blockNumber}][${from}] Handle pool withdraw`);
-      const pool = buffer[from] || await PoolXYK.get(from);
+      const pool = poolsStorage.getPoolById(from);
 
       if (pool.baseAsset === assetId) {
         pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount.toString());
       } else if (pool.targetAsset === assetId) {
         pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount.toString());
       }
-
-      buffer[from] = pool;
+      PoolsPrices.set(true);
+      await pool.save();
     }
 
     if (poolAccounts.has(to)) {
       logger.debug(`[${blockNumber}][${to}] Handle pool deposit`);
-      const pool = buffer[to] || await PoolXYK.get(to);
+      const pool = poolsStorage.getPoolById(to);
 
       if (pool.baseAsset === assetId) {
         pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount.toString());
       } else if (pool.targetAsset === assetId) {
         pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount.toString());
       }
-
-      buffer[to] = pool;
+      PoolsPrices.set(true);
+      await pool.save();
     }
-  }
-
-  const needUpdate = Object.values(buffer);
-
-  if (needUpdate.length) {
-    PoolsPrices.set(true);
-    await Promise.all(needUpdate.map(pool => pool.save()));
   }
 };
