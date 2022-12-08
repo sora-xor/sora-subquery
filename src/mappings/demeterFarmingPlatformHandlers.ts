@@ -11,30 +11,27 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
-  const { extrinsic: { args: [assetId, rewardAssetId, isFarm, desiredAmount] } } = extrinsic;
+  const [desiredAmount, isFarm, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
   const details: any = {};
 
-  // asset id paired with XOR (farming), or asset id (staking)
-  details.assetId = getAssetId(assetId);
+  // XOR or XSTUSD (farming), or asset id (staking)
+  details.baseAssetId = baseAssetId ? getAssetId(baseAssetId) : XOR;
+  // pool asset id (farming) or asset id (staking)
+  details.assetId = getAssetId(poolAssetId);
   // reward asset id
   details.rewardAssetId = getAssetId(rewardAssetId);
   // farming or staking
   details.isFarm = isFarm.toHuman();
 
-  // ability to find farming operation by XOR address
-  if (details.isFarm) {
-    details.baseAssetId = XOR;
-  }
+  const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'Deposited');
 
-  if (record.execution.success) {
-    const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'Deposited');
-    const { event: { data: [who, pool_asset, reward_asset, is_farm, amount] } } = event;
-
+  if (event) {
+    const [amount] = event.event.data.slice().reverse();
     // a little trick - we get decimals from pool asset, not lp token
-    details.amount = formatU128ToBalance(amount.toString(), getAssetId(assetId));
+    details.amount = formatU128ToBalance(amount.toString(), details.assetId);
   } else {
-    details.amount = formatU128ToBalance(desiredAmount.toString(), getAssetId(assetId));
+    details.amount = formatU128ToBalance(desiredAmount.toString(), details.assetId);
   }
 
   record.data = details;
@@ -50,30 +47,27 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
-  const { extrinsic: { args: [assetId, rewardAssetId, desiredAmount, isFarm] } } = extrinsic;
+  const [isFarm, desiredAmount, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
   const details: any = {};
 
-  // asset id paired with XOR (farming), or asset id (staking)
-  details.assetId = getAssetId(assetId);
+  // XOR or XSTUSD (farming), or asset id (staking)
+  details.baseAssetId = baseAssetId ? getAssetId(baseAssetId) : XOR;
+  // pool asset id (farming) or asset id (staking)
+  details.assetId = getAssetId(poolAssetId);
   // reward asset id
   details.rewardAssetId = getAssetId(rewardAssetId);
   // farming or staking
   details.isFarm = isFarm.toHuman();
 
-  // ability to find farming operation by XOR address
-  if (details.isFarm) {
-    details.baseAssetId = XOR;
-  }
+  const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'Withdrawn');
 
-  if (record.execution.success) {
-    const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'Withdrawn');
-    const { event: { data: [who, amount, pool_asset, reward_asset, is_farm] } } = event;
-
+  if (event) {
+    const { event: { data: [who, amount] } } = event;
     // a little trick - we get decimals from pool asset, not lp token
-    details.amount = formatU128ToBalance(amount.toString(), getAssetId(assetId));
+    details.amount = formatU128ToBalance(amount.toString(), details.assetId);
   } else {
-    details.amount = formatU128ToBalance(desiredAmount.toString(), getAssetId(assetId));
+    details.amount = formatU128ToBalance(desiredAmount.toString(), details.assetId);
   }
 
   record.data = details;
@@ -89,22 +83,21 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
-  const { extrinsic: { args: [poolAssetId, rewardAssetId, isFarm] } } = extrinsic;
+  const [isFarm, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
   const details: any = {};
-  const rewardAsset = getAssetId(rewardAssetId);
 
   // reward asset id
-  details.assetId = rewardAsset;
+  details.assetId = getAssetId(rewardAssetId);
   // reward for farming or staking
   details.isFarm = isFarm.toHuman();
 
   const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'RewardWithdrawn');
 
   if (event) {
-    const { event: { data: [who, amount, poolAssetId, rewardAssetId, isFarm] } } = event;
+    const { event: { data: [who, amount] } } = event;
 
-    details.amount = formatU128ToBalance(amount.toString(), rewardAsset);
+    details.amount = formatU128ToBalance(amount.toString(), details.assetId);
   } else {
     details.amount = '0';
   }
