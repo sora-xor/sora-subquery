@@ -4,7 +4,7 @@ String agentLabel        = 'docker-build-agent'
 String envImageName      = 'node:16.18.1-bullseye-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  'sora-staging'
-String jobList           =  'stage1'
+String jobList           =  '../sora2-stage1'
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
