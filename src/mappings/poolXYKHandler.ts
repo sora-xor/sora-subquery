@@ -1,27 +1,20 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateBlock } from "@subql/types";
-import { PoolXYK, SnapshotType } from "../types";
+import { PoolXYK } from "../types";
 
 import { formatU128ToBalance, assetStorage, assetSnapshotsStorage } from '../utils/assets';
 import { networkSnapshotsStorage } from '../utils/network';
-import { poolAccounts, handleBlockTransferEvents, PoolsPrices, poolsStorage } from '../utils/pools';
-import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS, SnapshotSecondsMap, SECONDS_IN_BLOCK } from '../utils/consts';
+import { poolAccounts, PoolsPrices, poolsStorage } from '../utils/pools';
+import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
 
-const NEW_SNAPSHOTS_INTERVAL = SnapshotSecondsMap[SnapshotType.DEFAULT] / SECONDS_IN_BLOCK;
-
 export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> {
-    handleBlockTransferEvents(block);
+    if (!PoolsPrices.get()) return;
 
     const blockNumber = block.block.header.number.toNumber();
-    const isNewInterval = blockNumber % NEW_SNAPSHOTS_INTERVAL === 0;
-    const isNewReserves = PoolsPrices.get();
-    const shouldSync = isNewReserves || isNewInterval;
 
-    if (!shouldSync) return;
-
-    logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities; isNewInterval: ${isNewInterval}; isNewReserves: ${isNewReserves}`);
+    logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities`);
 
     const blockTimestamp: number = formatDateTimestamp(block.timestamp);
 
@@ -43,6 +36,8 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
         let baseAssetInPools = new BigNumber(0);
         let baseAssetWithDoublePools = new BigNumber(0);
         let baseAssetPriceInDAI = new BigNumber(0);
+
+        logger.debug(`[${blockNumber}]: Update ${poolsMap.size} ${baseAssetId} based pools`);
 
         for (const poolId of poolsMap.values()) {
             const pool = poolsStorage.getPoolById(poolId);
@@ -114,11 +109,7 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
 
     await networkSnapshotsStorage.updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp);
 
-    if (isNewInterval) {
-        await poolsStorage.sync();
-        await assetSnapshotsStorage.sync();
-        await networkSnapshotsStorage.sync(blockTimestamp);
-    }
+    logger.debug(`[${blockNumber}]: PoolXYK entities updated`);
 
     PoolsPrices.set(false);
 }

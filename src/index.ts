@@ -19,3 +19,6 @@ export * from "./mappings/referralUnreserveHandler";
 export * from "./mappings/referrerRewardHandler";
 export * from "./mappings/demeterFarmingPlatformHandlers";
 export * from "./mappings/networkStatsHandler";
+export * from "./mappings/syncHandler";
+
+export * from "./mappings/events/transfer";

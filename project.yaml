@@ -163,5 +163,21 @@ dataSources:
             module: xorFee
             method: ReferrerRewarded
 
+        - handler: handleTransferEvent
+          kind: substrate/EventHandler
+          filter:
+            module: balances
+            method: Transfer
+        - handler: handleTransferEvent
+          kind: substrate/EventHandler
+          filter:
+            module: tokens
+            method: Transfer
+
         - handler: updatePoolXYKPrices
           kind: substrate/BlockHandler
+
+        - handler: handleSync
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 50

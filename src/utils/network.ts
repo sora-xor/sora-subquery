@@ -17,14 +17,10 @@ class NetworkStatsStorage {
   }
 
   async sync(): Promise<void> {
-    logger.debug('[NetworkStatsStorage] sync');
-
     await this.storage?.save();
   }
 
   async getStats(): Promise<NetworkStats> {
-    logger.debug('[NetworkStatsStorage] getStats');
-
     if (this.storage) return this.storage;
 
     let entity = await NetworkStats.get(this.id);
@@ -36,8 +32,6 @@ class NetworkStatsStorage {
       entity.totalTransactions = 0;
       entity.totalBridgeIncomingTransactions = 0;
       entity.totalBridgeOutgoingTransactions = 0;
-
-      await entity.save();
     }
 
     this.storage = entity;
@@ -56,6 +50,7 @@ class NetworkSnapshotsStorage {
   }
 
   async sync(blockTimestamp: number): Promise<void> {
+    logger.debug('[NetworkSnapshotsStorage] sync');
     await this.syncSnapshots(blockTimestamp);
     await this.syncStats();
   }

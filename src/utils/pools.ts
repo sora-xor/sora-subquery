@@ -1,7 +1,4 @@
-import { SubstrateBlock } from '@subql/types';
-
 import { PoolXYK } from '../types';
-import { isAssetTransferEvent, getTransferEventData } from './events';
 import { XOR, DOUBLE_PRICE_POOL } from './consts';
 
 // getters & setter for flag, should we sync poolXYK reserves
@@ -146,38 +143,3 @@ class PoolsStorage {
 
 export const poolAccounts = new PoolAccountsStorage();
 export const poolsStorage = new PoolsStorage();
-
-export const handleBlockTransferEvents = async (block: SubstrateBlock): Promise<void> => {
-  const blockNumber = block.block.header.number.toNumber();
-  const transfers = block.events.filter(e => isAssetTransferEvent(e));
-
-  for (const transfer of transfers) {
-    const { assetId, from, to, amount } = getTransferEventData(transfer);
-
-    if (poolAccounts.has(from)) {
-      logger.debug(`[${blockNumber}][${from}] Handle pool withdraw`);
-      const pool = poolsStorage.getPoolById(from);
-
-      if (pool.baseAsset === assetId) {
-        pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount.toString());
-      } else if (pool.targetAsset === assetId) {
-        pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount.toString());
-      }
-
-      PoolsPrices.set(true);
-    }
-
-    if (poolAccounts.has(to)) {
-      logger.debug(`[${blockNumber}][${to}] Handle pool deposit`);
-      const pool = poolsStorage.getPoolById(to);
-
-      if (pool.baseAsset === assetId) {
-        pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount.toString());
-      } else if (pool.targetAsset === assetId) {
-        pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount.toString());
-      }
-
-      PoolsPrices.set(true);
-    }
-  }
-};

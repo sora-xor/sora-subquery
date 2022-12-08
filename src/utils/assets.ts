@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
-import { SnapshotSecondsMap, XOR, DAI } from './consts';
+import { SnapshotSecondsMap, XOR, DAI, XSTUSD, XST } from './consts';
 import { networkSnapshotsStorage } from '../utils/network';
 
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
@@ -85,14 +85,24 @@ class AssetSnapshotsStorage {
     return [assetId, type, index].join('-');
   }
 
-  async sync(): Promise<void> {
+  async sync(blockTimestamp: number): Promise<void> {
     logger.debug('[AssetSnapshotsStorage] sync');
+    await this.syncSnapshots(blockTimestamp);
+  }
 
+  private async syncSnapshots(blockTimestamp: number): Promise<void> {
     for (const snapshot of this.storage.values()) {
-      await snapshot.save()
-    }
+      await snapshot.save();
 
-    this.storage.clear();
+      const { type, timestamp } = snapshot;
+      const seconds = SnapshotSecondsMap[type];
+      const currentShapshotIndex =  Math.floor(blockTimestamp / seconds);
+      const currentTimestamp = currentShapshotIndex * seconds;
+
+      if (currentTimestamp > timestamp) {
+        this.storage.delete(snapshot.id);
+      }
+    }
   }
 
   async getSnapshot(assetId: string, type: SnapshotType, blockTimestamp: number): Promise<AssetSnapshot> {
@@ -127,7 +137,8 @@ class AssetSnapshotsStorage {
         low: '0',
       };
 
-      snapshot.supply = await getAssetSupply(assetId);
+      // [TODO] supply
+      snapshot.supply = BigInt(0);
 
       // Find prev snapshot:
       // 1) to get it's "close" price, and set it as "open" price for new snapshot
