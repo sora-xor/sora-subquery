@@ -4,7 +4,7 @@ import type { EventRecord } from "@polkadot/types/interfaces";
 
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
 import { formatU128ToBalance } from '../utils/assets';
-import { updateBridgeIncomingTransactionsStats } from '../utils/network';
+import { networkSnapshotsStorage } from '../utils/network';
 import { getTransferEventData, isAssetTransferEvent } from '../utils/events';
 
 export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: SubstrateEvent): Promise<void> {
@@ -36,7 +36,7 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
 
     await record.save();
     await updateHistoryElementStats(record);
-    await updateBridgeIncomingTransactionsStats(record.timestamp);
+    await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(record.timestamp);
 
     logger.debug(`===== Saved ETH->SORA transfer extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

@@ -7,193 +7,197 @@ export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotTy
 
 const NetworkStatsId = '0';
 
-const getNetworkSnapshotId = (type: SnapshotType, index: number) => [type, index].join('-');
+class NetworkStatsStorage {
+  private storage!: NetworkStats | null;
+  private id!: string;
 
-export const getNetworkSnapshot = async (type: SnapshotType, blockTimestamp: number): Promise<NetworkSnapshot> => {
-  logger.debug('getNetworkSnapshot');
-
-  const seconds = SnapshotSecondsMap[type];
-  const shapshotIndex =  Math.floor(blockTimestamp / seconds);
-  const id = getNetworkSnapshotId(type, shapshotIndex);
-
-  let snapshot = await NetworkSnapshot.get(id);
-
-  if (!snapshot) {
-    const timestamp = shapshotIndex * seconds; // rounded snapshot timestamp
-
-    snapshot = new NetworkSnapshot(id);
-    snapshot.type = type;
-    snapshot.timestamp = timestamp;
-    snapshot.accounts = 0;
-    snapshot.transactions = 0;
-    snapshot.fees = BigInt(0);
-    snapshot.liquidity = {
-      xor: '0',
-      xstusd: '0'
-    };
-    snapshot.liquidityUSD = '0';
-    snapshot.volumeUSD = '0';
-    snapshot.bridgeIncomingTransactions = 0;
-    snapshot.bridgeOutgoingTransactions = 0;
+  constructor(id: string) {
+    this.id = id;
+    this.storage = null;
   }
 
-  return snapshot;
-};
+  async sync(): Promise<void> {
+    logger.debug('[NetworkStatsStorage] sync');
 
-export const getNetworkStats = async (): Promise<NetworkStats> => {
-  logger.debug('getNetworkStats');
-
-  let entity = await NetworkStats.get(NetworkStatsId);
-
-  if (!entity) {
-    entity = new NetworkStats(NetworkStatsId);
-    entity.totalFees = BigInt(0);
-    entity.totalAccounts = 0;
-    entity.totalTransactions = 0;
-    entity.totalBridgeIncomingTransactions = 0;
-    entity.totalBridgeOutgoingTransactions = 0;
+    await this.storage?.save();
   }
 
-  return entity;
+  async getStats(): Promise<NetworkStats> {
+    logger.debug('[NetworkStatsStorage] getStats');
+
+    if (this.storage) return this.storage;
+
+    let entity = await NetworkStats.get(this.id);
+
+    if (!entity) {
+      entity = new NetworkStats(this.id);
+      entity.totalFees = BigInt(0);
+      entity.totalAccounts = 0;
+      entity.totalTransactions = 0;
+      entity.totalBridgeIncomingTransactions = 0;
+      entity.totalBridgeOutgoingTransactions = 0;
+
+      await entity.save();
+    }
+
+    this.storage = entity;
+
+    return entity;
+  }
 };
 
-export const updateAccountsStats = async (blockTimestamp: number): Promise<void> => {
-  logger.debug('updateAccountsStats');
+class NetworkSnapshotsStorage {
+  private storage!: Map<string, NetworkSnapshot>;
+  private networkStatsStorage!: NetworkStatsStorage;
 
-  const stats = await getNetworkStats();
-  const snapshots = [];
-
-  stats.totalAccounts = stats.totalAccounts + 1;
-
-  await stats.save();
-
-  for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
-
-    snapshot.accounts = snapshot.accounts + 1;
-
-    snapshots.push(snapshot);
+  constructor() {
+    this.storage = new Map();
+    this.networkStatsStorage = new NetworkStatsStorage(NetworkStatsId);
   }
 
-  await Promise.all(snapshots.map(snapshot => snapshot.save()));
-};
-
-export const updateTransactionsStats = async (blockTimestamp: number): Promise<void> => {
-  logger.debug('updateTransactionsStats');
-
-  const stats = await getNetworkStats();
-  const snapshots = [];
-
-  stats.totalTransactions = stats.totalTransactions + 1;
-
-  await stats.save();
-
-  for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
-
-    snapshot.transactions = snapshot.transactions + 1;
-
-    snapshots.push(snapshot);
+  async sync(blockTimestamp: number): Promise<void> {
+    await this.syncSnapshots(blockTimestamp);
+    await this.syncStats();
   }
 
-  await Promise.all(snapshots.map(snapshot => snapshot.save()));
-};
-
-export const updateBridgeIncomingTransactionsStats = async (blockTimestamp: number): Promise<void> => {
-  logger.debug('updateBridgeIncomingTransactionsStats');
-
-  const stats = await getNetworkStats();
-  const snapshots = [];
-
-  stats.totalBridgeIncomingTransactions = stats.totalBridgeIncomingTransactions + 1;
-
-  await stats.save();
-
-  for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
-
-    snapshot.bridgeIncomingTransactions = snapshot.bridgeIncomingTransactions + 1;
-
-    snapshots.push(snapshot);
+  private async syncStats(): Promise<void> {
+    this.networkStatsStorage.sync();
   }
 
-  await Promise.all(snapshots.map(snapshot => snapshot.save()));
-};
+  private async syncSnapshots(blockTimestamp: number): Promise<void> {
+    for (const snapshot of this.storage.values()) {
+      await snapshot.save();
 
-export const updateBridgeOutgoingTransactionsStats = async (blockTimestamp: number): Promise<void> => {
-  logger.debug('updateBridgeOutgoingTransactionsStats');
+      const { type, timestamp } = snapshot;
+      const seconds = SnapshotSecondsMap[type];
+      const currentShapshotIndex =  Math.floor(blockTimestamp / seconds);
+      const currentTimestamp = currentShapshotIndex * seconds;
 
-  const stats = await getNetworkStats();
-  const snapshots = [];
-
-  stats.totalBridgeOutgoingTransactions = stats.totalBridgeOutgoingTransactions + 1;
-
-  await stats.save();
-
-  for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
-
-    snapshot.bridgeOutgoingTransactions = snapshot.bridgeOutgoingTransactions + 1;
-
-    snapshots.push(snapshot);
+      if (currentTimestamp > timestamp) {
+        this.storage.delete(snapshot.id);
+      }
+    }
   }
 
-  await Promise.all(snapshots.map(snapshot => snapshot.save()));
-};
-
-export const updateFeesStats = async (fee: bigint, blockTimestamp: number): Promise<void> => {
-  logger.debug('updateFeesStats');
-
-  const stats = await getNetworkStats();
-  const snapshots = [];
-
-  stats.totalFees = stats.totalFees + fee;
-
-  await stats.save();
-
-  for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
-
-    snapshot.fees = snapshot.fees + fee;
-
-    snapshots.push(snapshot);
+  private getId(type: SnapshotType, index: number): string {
+    return [type, index].join('-');
   }
 
-  await Promise.all(snapshots.map(snapshot => snapshot.save()));
-};
+  async getSnapshot(type: SnapshotType, blockTimestamp: number): Promise<NetworkSnapshot> {
+    const seconds = SnapshotSecondsMap[type];
+    const shapshotIndex =  Math.floor(blockTimestamp / seconds);
+    const id = this.getId(type, shapshotIndex);
 
-export const updateLiquidityStats = async (liquidities: Record<string, string>, liquiditiesUSD: BigNumber, blockTimestamp: number) => {
-  logger.debug('updateLiquidityStats');
+    if (this.storage.has(id)) {
+      return this.storage.get(id);
+    }
 
-  const snapshots = [];
+    let snapshot = await NetworkSnapshot.get(id);
 
-  for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
+    if (!snapshot) {
+      const timestamp = shapshotIndex * seconds; // rounded snapshot timestamp
 
-    snapshot.liquidity = {
-      xor: liquidities[XOR],
-      xstusd: liquidities[XSTUSD]
-    };
-    snapshot.liquidityUSD = liquiditiesUSD.toFixed(2);
+      snapshot = new NetworkSnapshot(id);
+      snapshot.type = type;
+      snapshot.timestamp = timestamp;
+      snapshot.accounts = 0;
+      snapshot.transactions = 0;
+      snapshot.fees = BigInt(0);
+      snapshot.liquidity = {
+        xor: '0',
+        xstusd: '0'
+      };
+      snapshot.liquidityUSD = '0';
+      snapshot.volumeUSD = '0';
+      snapshot.bridgeIncomingTransactions = 0;
+      snapshot.bridgeOutgoingTransactions = 0;
+    }
 
-    snapshots.push(snapshot);
+    this.storage.set(snapshot.id, snapshot);
+
+    return snapshot;
   }
 
-  await Promise.all(snapshots.map(snapshot => snapshot.save()));
-};
+  async updateAccountsStats(blockTimestamp: number): Promise<void> {
+    const stats = await this.networkStatsStorage.getStats();
 
-export const updateVolumeStats = async (volumeUSD: BigNumber, blockTimestamp: number) => {
-  logger.debug('updateVolumeStats');
+    stats.totalAccounts = stats.totalAccounts + 1;
 
-  const snapshots = [];
-
-  for (const type of NetworkSnapshots) {
-    const snapshot = await getNetworkSnapshot(type, blockTimestamp);
-
-    snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toFixed(2);
-
-    snapshots.push(snapshot);
+    for (const type of NetworkSnapshots) {
+      const snapshot = await this.getSnapshot(type, blockTimestamp);
+  
+      snapshot.accounts = snapshot.accounts + 1;
+    }
   }
 
-  await Promise.all(snapshots.map(snapshot => snapshot.save()));
-};
+  async updateTransactionsStats(blockTimestamp: number): Promise<void> {
+    const stats = await this.networkStatsStorage.getStats();
+
+    stats.totalTransactions = stats.totalTransactions + 1;
+
+    for (const type of NetworkSnapshots) {
+      const snapshot = await this.getSnapshot(type, blockTimestamp);
+
+      snapshot.transactions = snapshot.transactions + 1;
+    }
+  }
+
+  async updateBridgeIncomingTransactionsStats(blockTimestamp: number): Promise<void> {
+    const stats = await this.networkStatsStorage.getStats();
+
+    stats.totalBridgeIncomingTransactions = stats.totalBridgeIncomingTransactions + 1;
+
+    for (const type of NetworkSnapshots) {
+      const snapshot = await this.getSnapshot(type, blockTimestamp);
+
+      snapshot.bridgeIncomingTransactions = snapshot.bridgeIncomingTransactions + 1;
+    }
+  }
+
+  async updateBridgeOutgoingTransactionsStats(blockTimestamp: number): Promise<void> {
+    const stats = await this.networkStatsStorage.getStats();
+
+    stats.totalBridgeOutgoingTransactions = stats.totalBridgeOutgoingTransactions + 1;
+
+    for (const type of NetworkSnapshots) {
+      const snapshot = await this.getSnapshot(type, blockTimestamp);
+
+      snapshot.bridgeOutgoingTransactions = snapshot.bridgeOutgoingTransactions + 1;
+    }
+  }
+
+  async updateFeesStats(fee: bigint, blockTimestamp: number): Promise<void> {
+    const stats = await this.networkStatsStorage.getStats();
+
+    stats.totalFees = stats.totalFees + fee;
+
+    for (const type of NetworkSnapshots) {
+      const snapshot = await this.getSnapshot(type, blockTimestamp);
+
+      snapshot.fees = snapshot.fees + fee;
+    }
+  }
+
+  async updateLiquidityStats(liquidities: Record<string, string>, liquiditiesUSD: BigNumber, blockTimestamp: number): Promise<void> {
+    for (const type of NetworkSnapshots) {
+      const snapshot = await this.getSnapshot(type, blockTimestamp);
+  
+      snapshot.liquidity = {
+        xor: liquidities[XOR],
+        xstusd: liquidities[XSTUSD]
+      };
+
+      snapshot.liquidityUSD = liquiditiesUSD.toFixed(2);
+    }
+  }
+
+  async updateVolumeStats(volumeUSD: BigNumber, blockTimestamp: number): Promise<void> {
+    for (const type of NetworkSnapshots) {
+      const snapshot = await this.getSnapshot(type, blockTimestamp);
+  
+      snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toFixed(2);
+    }
+  }
+}
+
+export const networkSnapshotsStorage = new NetworkSnapshotsStorage();

@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
 import { SnapshotSecondsMap, XOR, DAI } from './consts';
-import { updateVolumeStats } from '../utils/network';
+import { networkSnapshotsStorage } from '../utils/network';
 
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
@@ -181,7 +181,7 @@ class AssetSnapshotsStorage {
       snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toFixed(2);
     }
 
-    await updateVolumeStats(volumeUSD, blockTimestamp);
+    await networkSnapshotsStorage.updateVolumeStats(volumeUSD, blockTimestamp);
   }
 
   async updateMinted(assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {

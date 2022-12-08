@@ -3,7 +3,7 @@ import type { SubstrateExtrinsic } from "@subql/types";
 import { HistoryElement } from "../types";
 import { formatU128ToBalance } from './assets';
 import { getOrCreateAccountEntity } from './account';
-import { updateTransactionsStats } from './network';
+import { networkSnapshotsStorage } from './network';
 import { XOR } from './consts';
 import { formatDateTimestamp } from './index';
 
@@ -88,5 +88,5 @@ export const updateHistoryElementStats = async (history: HistoryElement) => {
       await account.save();
   }
 
-  await updateTransactionsStats(timestamp);
+  await networkSnapshotsStorage.updateTransactionsStats(timestamp);
 }

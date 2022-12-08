@@ -25,10 +25,17 @@ dataSources:
       handlers:
         - handler: initializeAssets
           kind: substrate/BlockHandler
+          filter:
+            modulo: 8035052
         - handler: initializePools
           kind: substrate/BlockHandler
+          filter:
+            modulo: 8035052
         - handler: createNetworkSnapshots
           kind: substrate/BlockHandler
+          filter:
+            modulo: 600
+
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
           filter:
@@ -69,36 +76,11 @@ dataSources:
           filter:
             module: utility
             method: batchAll
-        - handler: handleBurnedAssetsAmount
-          kind: substrate/EventHandler
-          filter:
-            module: tokens
-            method: Withdrawn
-        - handler: handleRemintedAssetsAmount
-          kind: substrate/EventHandler
-          filter:
-            module: tokens
-            method: Deposited
-        - handler: handleNetworkFee
-          kind: substrate/EventHandler
-          filter:
-            module: xorFee
-            method: FeeWithdrawn
         - handler: soraEthTransferHandler
           kind: substrate/CallHandler
           filter:
             module: ethBridge
             method: transferToSidechain
-        - handler: ethSoraTransferHandler
-          kind: substrate/EventHandler
-          filter:
-            module: ethBridge
-            method: IncomingRequestFinalized
-        - handler: ethSoraTransferHandler
-          kind: substrate/EventHandler
-          filter:
-            module: ethBridge
-            method: IncomingRequestFinalizationFailed
         - handler: rewardsHandler
           kind: substrate/CallHandler
           filter:
@@ -134,11 +116,6 @@ dataSources:
           filter:
             module: referrals
             method: unreserve
-        - handler: referrerRewardHandler
-          kind: substrate/EventHandler
-          filter:
-            module: xorFee
-            method: ReferrerRewarded
         - handler: demeterDepositHandler
           kind: substrate/CallHandler
           filter:
@@ -154,5 +131,37 @@ dataSources:
           filter:
             module: demeterFarmingPlatform
             method: getRewards
+
+        - handler: ethSoraTransferHandler
+          kind: substrate/EventHandler
+          filter:
+            module: ethBridge
+            method: IncomingRequestFinalized
+        - handler: ethSoraTransferHandler
+          kind: substrate/EventHandler
+          filter:
+            module: ethBridge
+            method: IncomingRequestFinalizationFailed
+        - handler: handleBurnedAssetsAmount
+          kind: substrate/EventHandler
+          filter:
+            module: tokens
+            method: Withdrawn
+        - handler: handleRemintedAssetsAmount
+          kind: substrate/EventHandler
+          filter:
+            module: tokens
+            method: Deposited
+        - handler: handleNetworkFee
+          kind: substrate/EventHandler
+          filter:
+            module: xorFee
+            method: FeeWithdrawn
+        - handler: referrerRewardHandler
+          kind: substrate/EventHandler
+          filter:
+            module: xorFee
+            method: ReferrerRewarded
+
         - handler: updatePoolXYKPrices
           kind: substrate/BlockHandler

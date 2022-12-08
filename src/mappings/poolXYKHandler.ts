@@ -4,7 +4,7 @@ import { SubstrateBlock } from "@subql/types";
 import { PoolXYK, SnapshotType } from "../types";
 
 import { formatU128ToBalance, assetStorage, assetSnapshotsStorage } from '../utils/assets';
-import { updateLiquidityStats } from '../utils/network';
+import { networkSnapshotsStorage } from '../utils/network';
 import { poolAccounts, handleBlockTransferEvents, PoolsPrices, poolsStorage } from '../utils/pools';
 import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS, SnapshotSecondsMap, SECONDS_IN_BLOCK } from '../utils/consts';
 import { formatDateTimestamp } from '../utils';
@@ -112,10 +112,12 @@ export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> 
         }
     }
 
+    await networkSnapshotsStorage.updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp);
+
     if (isNewInterval) {
         await poolsStorage.sync();
         await assetSnapshotsStorage.sync();
-        await updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp);
+        await networkSnapshotsStorage.sync(blockTimestamp);
     }
 
     PoolsPrices.set(false);

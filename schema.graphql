@@ -92,7 +92,6 @@ type HistoryElement @entity {
   data: HistoryElementDetails
 }
 
-
 type ExecutionResult @jsonField {
   success: Boolean!
   error: Error

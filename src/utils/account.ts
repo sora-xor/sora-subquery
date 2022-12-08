@@ -1,6 +1,6 @@
 import { Account } from "../types";
 
-import { updateAccountsStats } from './network';
+import { networkSnapshotsStorage } from './network';
 
 export const getOrCreateAccountEntity = async (accountAddress: string, timestamp: number) => {
   let account = await Account.get(accountAddress);
@@ -8,7 +8,7 @@ export const getOrCreateAccountEntity = async (accountAddress: string, timestamp
   if (!account) {
       account = new Account(accountAddress);
       await account.save();
-      await updateAccountsStats(timestamp);
+      await networkSnapshotsStorage.updateAccountsStats(timestamp);
   }
 
   return account;
