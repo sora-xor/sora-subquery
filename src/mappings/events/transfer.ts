@@ -10,9 +10,9 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
   if (poolAccounts.has(from)) {
     const pool = poolsStorage.getPoolById(from);
 
-    if (pool.baseAsset === assetId) {
+    if (pool.baseAssetId === assetId) {
       pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount.toString());
-    } else if (pool.targetAsset === assetId) {
+    } else if (pool.targetAssetId === assetId) {
       pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount.toString());
     }
 
@@ -23,9 +23,9 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
   if (poolAccounts.has(to)) {
     const pool = poolsStorage.getPoolById(to);
 
-    if (pool.baseAsset === assetId) {
+    if (pool.baseAssetId === assetId) {
       pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount.toString());
-    } else if (pool.targetAsset === assetId) {
+    } else if (pool.targetAssetId === assetId) {
       pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount.toString());
     }
 

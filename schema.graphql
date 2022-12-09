@@ -37,6 +37,7 @@ type Asset @entity {
   id: ID!
   priceUSD: String!
   supply: BigInt!
+  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
   data: [AssetSnapshot!]! @derivedFrom(field: "asset")
 }
 
@@ -66,8 +67,8 @@ type AssetSnapshot @entity {
 
 type PoolXYK @entity {
   id: ID!
-  baseAsset: String!
-  targetAsset: String!
+  baseAsset: Asset!
+  targetAsset: Asset!
   baseAssetReserves: BigInt!
   targetAssetReserves: BigInt!
   multiplier: Int!

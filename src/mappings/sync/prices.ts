@@ -50,7 +50,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             baseAssetInPools = baseAssetInPools.plus(baseAssetReservesBN);
             baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReservesBN.multipliedBy(new BigNumber(pool.multiplier)));
 
-            if (pool.targetAsset === DAI) {
+            if (pool.targetAssetId === DAI) {
                 baseAssetPriceInDAI = targetAssetReservesBN.div(baseAssetReservesBN);
             }
 
@@ -70,7 +70,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                 p.priceUSD = daiPrice.toFixed(18);
 
                 // update pswap price (scope)
-                if (p.targetAsset === PSWAP && pswapPriceInDAI.isZero()) {
+                if (p.targetAssetId === PSWAP && pswapPriceInDAI.isZero()) {
                     pswapPriceInDAI = daiPrice;
                 }
             });
@@ -101,8 +101,8 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         // update price samples
         if (isXorPools) {
             for (const pool of pools) {
-                await assetStorage.updatePrice(pool.targetAsset, pool.priceUSD);
-                await assetSnapshotsStorage.updatePrice(pool.targetAsset, pool.priceUSD, blockTimestamp);
+                await assetStorage.updatePrice(pool.targetAssetId, pool.priceUSD);
+                await assetSnapshotsStorage.updatePrice(pool.targetAssetId, pool.priceUSD, blockTimestamp);
             }
 
             assetStorage.updatePrice(baseAssetId, baseAssetPriceInDAI.toFixed(18));

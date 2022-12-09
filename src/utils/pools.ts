@@ -135,8 +135,8 @@ class PoolsStorage {
 
     if (!pool) {
       pool = new PoolXYK(poolId);
-      pool.baseAsset = baseAssetId;
-      pool.targetAsset = targetAssetId;
+      pool.baseAssetId = baseAssetId;
+      pool.targetAssetId = targetAssetId;
       pool.baseAssetReserves = BigInt(0);
       pool.targetAssetReserves = BigInt(0);
       pool.multiplier = baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
