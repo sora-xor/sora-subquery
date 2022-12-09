@@ -20,7 +20,20 @@ export const getAllReserves = async (baseAssetId: string) => {
     logger.debug(`[${baseAssetId}] Pools XYK Reserves request completed.`);
     return reserves;
   } catch (e) {
-    logger.error("Error getting reserves");
+    logger.error("Error getting Reserves");
+    logger.error(e);
+    return null;
+  }
+};
+
+export const getAllProperties = async (baseAssetId: string) => {
+  try {
+    logger.debug(`[${baseAssetId}] Pools XYK Properties request...`);
+    const properties = await api.query.poolXYK.properties.entries(baseAssetId);
+    logger.debug(`[${baseAssetId}] Pools XYK Properties request completed.`);
+    return properties;
+  } catch (e) {
+    logger.error("Error getting Properties");
     logger.error(e);
     return null;
   }

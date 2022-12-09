@@ -18,8 +18,9 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
         assetPrecisions.set(assetId, value[2].toNumber());
 
-        // get asset supply on start of indexing
+        // create asset
         const asset = await assetStorage.getAsset(assetId);
+        // get asset supply on start of indexing
         asset.supply = await getAssetSupply(assetId);
     }
 

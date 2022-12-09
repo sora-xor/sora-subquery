@@ -42,6 +42,14 @@ class AssetStorage {
     this.storage = new Map();
   }
 
+  async sync(): Promise<void> {
+    logger.debug('[AssetStorage] sync');
+
+    for (const asset of this.storage.values()) {
+      await asset.save();
+    }
+  }
+
   async getAsset(id: string): Promise<Asset> {
     if (this.storage.has(id)) {
       return this.storage.get(id);
@@ -55,6 +63,7 @@ class AssetStorage {
       asset.supply = BigInt(0);
 
       await asset.save();
+
       logger.debug(`[AssetStorage] Created Asset ${id}`);
     }
 
@@ -120,12 +129,13 @@ class AssetSnapshotsStorage {
 
     if (!snapshot) {
       const timestamp = shapshotIndex * seconds; // rounded snapshot timestamp
+      const asset = await this.assetStorage.getAsset(assetId);
 
       snapshot = new AssetSnapshot(id);
       snapshot.assetId = assetId;
       snapshot.timestamp = timestamp;
       snapshot.type = type;
-      snapshot.supply = BigInt(0);
+      snapshot.supply = asset.supply;
       snapshot.mint = BigInt(0);
       snapshot.burn = BigInt(0);
       snapshot.volume = {
@@ -138,11 +148,6 @@ class AssetSnapshotsStorage {
         high: '0',
         low: '0',
       };
-
-      // get supply from current asset data
-      const asset = await this.assetStorage.getAsset(assetId);
-
-      snapshot.supply = asset.supply;
 
       // Find prev snapshot:
       // 1) to get it's "close" price, and set it as "open" price for new snapshot
@@ -170,12 +175,14 @@ class AssetSnapshotsStorage {
   }
 
   async updatePrice(assetId: string, price: string, blockTimestamp: number): Promise<void> {
+    const bnPrice = new BigNumber(price);
+
     for (const type of AssetSnapshots) {
       const snapshot = await this.getSnapshot(assetId, type, blockTimestamp);
 
       snapshot.priceUSD.close = price;
-      snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), new BigNumber(price)).toString();
-      snapshot.priceUSD.low = BigNumber.min(new BigNumber(snapshot.priceUSD.low), new BigNumber(price)).toString();
+      snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), bnPrice).toString();
+      snapshot.priceUSD.low = BigNumber.min(new BigNumber(snapshot.priceUSD.low), bnPrice).toString();
     }
   }
 
@@ -200,27 +207,27 @@ class AssetSnapshotsStorage {
   }
 
   async updateMinted(assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {
+    const asset = await this.assetStorage.getAsset(assetId);
+
+    asset.supply = asset.supply + amount;
+
     for (const type of AssetSnapshots) {
       const snapshot = await this.getSnapshot(assetId, type, blockTimestamp);
 
       snapshot.mint = snapshot.mint + amount;
     }
-
-    const asset = await this.assetStorage.getAsset(assetId);
-
-    asset.supply = asset.supply + amount;
   }
 
   async updateBurned(assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {
+    const asset = await this.assetStorage.getAsset(assetId);
+
+    asset.supply = asset.supply - amount;
+
     for (const type of AssetSnapshots) {
       const snapshot = await this.getSnapshot(assetId, type, blockTimestamp);
 
       snapshot.burn = snapshot.burn + amount;
     }
-
-    const asset = await this.assetStorage.getAsset(assetId);
-
-    asset.supply = asset.supply - amount;
   }
 }
 
