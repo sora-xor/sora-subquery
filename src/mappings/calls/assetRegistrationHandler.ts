@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { assetPrecisions, getAssetId, assetStorage } from '../utils/assets';
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { assetPrecisions, getAssetId, assetStorage } from '../../utils/assets';
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 

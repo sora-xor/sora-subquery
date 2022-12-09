@@ -1,7 +1,7 @@
 import { SubstrateEvent } from "@subql/types";
-import { getAssetId, assetSnapshotsStorage } from '../utils/assets';
-import { formatDateTimestamp } from '../utils';
-import { XOR } from '../utils/consts';
+import { getAssetId, assetSnapshotsStorage } from '../../utils/assets';
+import { formatDateTimestamp } from '../../utils';
+import { XOR } from '../../utils/consts';
 
 export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
     const { event: { data: [ currencyId, who, balance ] } } = event;

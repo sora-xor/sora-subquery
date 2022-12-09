@@ -2,10 +2,10 @@
 import type { SubstrateEvent } from "@subql/types";
 import type { EventRecord } from "@polkadot/types/interfaces";
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { formatU128ToBalance } from '../utils/assets';
-import { networkSnapshotsStorage } from '../utils/network';
-import { getTransferEventData, isAssetTransferEvent } from '../utils/events';
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { formatU128ToBalance } from '../../utils/assets';
+import { networkSnapshotsStorage } from '../../utils/network';
+import { getTransferEventData, isAssetTransferEvent } from '../../utils/events';
 
 export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: SubstrateEvent): Promise<void> {
 

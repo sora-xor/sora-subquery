@@ -1,8 +1,8 @@
 import { SubstrateExtrinsic } from "@subql/types";
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { XOR } from '../utils/consts';
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { XOR } from '../../utils/consts';
 
 const Section = 'demeterFarmingPlatform';
 

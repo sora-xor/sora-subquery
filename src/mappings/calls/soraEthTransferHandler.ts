@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { networkSnapshotsStorage } from '../utils/network';
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { networkSnapshotsStorage } from '../../utils/network';
 
 export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 

@@ -21,12 +21,13 @@ export const getAssetId = (asset: any): string => {
   return (asset?.code?.code ?? asset?.code ?? asset).toHuman();
 };
 
-const getAssetSupply = async (assetId: string): Promise<bigint> => {
+export const getAssetSupply = async (assetId: string): Promise<bigint> => {
   try {
+    logger.debug(`[${assetId}] Asset supply request...`);
     const supply = assetId === XOR
       ? await api.query.balances.totalIssuance()
       : await api.query.tokens.totalIssuance(assetId);
-
+    logger.debug(`[${assetId}] Asset supply request completed`);
     return BigInt(supply.toString());
   } catch (error) {
     logger.error(error);
@@ -51,7 +52,7 @@ class AssetStorage {
     if (!asset) {
       asset = new Asset(id);
       asset.priceUSD = '0';
-      asset.supply = await getAssetSupply(id);
+      asset.supply = BigInt(0);
 
       await asset.save();
       logger.debug(`[AssetStorage] Created Asset ${id}`);
@@ -138,7 +139,9 @@ class AssetSnapshotsStorage {
         low: '0',
       };
 
+      // get supply from current asset data
       const asset = await this.assetStorage.getAsset(assetId);
+
       snapshot.supply = asset.supply;
 
       // Find prev snapshot:

@@ -1,6 +1,6 @@
 import { SubstrateBlock } from "@subql/types";
 
-import { assetPrecisions, getAssetId, assetStorage } from '../utils/assets';
+import { assetPrecisions, getAssetId, assetStorage, getAssetSupply } from '../../utils/assets';
 
 let isFirstBlockIndexed = false;
 
@@ -13,12 +13,14 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     let initialAssets = await api.query.assets.assetInfos.entries();
 
-    for (const [{args: [assetId]}, value] of initialAssets) {
-        const asset = getAssetId(assetId);
+    for (const [{args: [assetCodec]}, value] of initialAssets) {
+        const assetId = getAssetId(assetCodec);
 
-        assetPrecisions.set(asset, value[2].toNumber());
+        assetPrecisions.set(assetId, value[2].toNumber());
 
-        await assetStorage.getAsset(asset);
+        // get asset supply on start of indexing
+        const asset = await assetStorage.getAsset(assetId);
+        asset.supply = await getAssetSupply(assetId);
     }
 
     isFirstBlockIndexed = true;

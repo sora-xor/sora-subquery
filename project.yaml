@@ -31,10 +31,6 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 8035052
-        - handler: createNetworkSnapshots
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 600
 
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
@@ -188,10 +184,10 @@ dataSources:
             module: tokens
             method: Transfer
 
-        - handler: updatePoolXYKPrices
+        - handler: syncPoolXykPrices
           kind: substrate/BlockHandler
 
-        - handler: handleSync
+        - handler: syncModels
           kind: substrate/BlockHandler
           filter:
             modulo: 50

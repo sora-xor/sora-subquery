@@ -1,9 +1,9 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { isAssetTransferEvent } from '../utils/events';
-import { poolsStorage } from '../utils/pools';
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { isAssetTransferEvent } from '../../utils/events';
+import { poolsStorage } from '../../utils/pools';
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
 

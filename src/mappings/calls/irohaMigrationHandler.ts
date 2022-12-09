@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { getAssetId, formatU128ToBalance } from '../utils/assets';
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 
 export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Promise<void> {
 

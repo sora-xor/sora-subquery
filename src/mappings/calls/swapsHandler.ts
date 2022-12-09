@@ -1,9 +1,9 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../utils/assets';
-import { XOR } from '../utils/consts';
-import { formatDateTimestamp } from '../utils';
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
+import { XOR } from '../../utils/consts';
+import { formatDateTimestamp } from '../../utils';
 
 import type { Vec } from "@polkadot/types";
 import type { Enum, Struct } from "@polkadot/types/codec";

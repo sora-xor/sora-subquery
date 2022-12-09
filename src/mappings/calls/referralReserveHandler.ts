@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { formatU128ToBalance } from '../utils/assets';
-import { XOR } from "../utils/consts";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { formatU128ToBalance } from '../../utils/assets';
+import { XOR } from "../../utils/consts";
 
 export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
     logger.debug("Caught referral reserve extrinsic");

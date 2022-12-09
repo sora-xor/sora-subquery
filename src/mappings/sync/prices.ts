@@ -1,15 +1,15 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateBlock } from "@subql/types";
-import { PoolXYK } from "../types";
+import { PoolXYK } from "../../types";
 
-import { formatU128ToBalance, assetStorage, assetSnapshotsStorage } from '../utils/assets';
-import { networkSnapshotsStorage } from '../utils/network';
-import { poolAccounts, PoolsPrices, poolsStorage } from '../utils/pools';
-import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS } from '../utils/consts';
-import { formatDateTimestamp } from '../utils';
+import { formatU128ToBalance, assetStorage, assetSnapshotsStorage } from '../../utils/assets';
+import { networkSnapshotsStorage } from '../../utils/network';
+import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
+import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS } from '../../utils/consts';
+import { formatDateTimestamp } from '../../utils';
 
-export async function updatePoolXYKPrices(block: SubstrateBlock): Promise<void> {
+export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     if (!PoolsPrices.get()) return;
 
     const blockNumber = block.block.header.number.toNumber();

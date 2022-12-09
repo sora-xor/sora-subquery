@@ -1,6 +1,6 @@
 import { SubstrateEvent } from "@subql/types";
-import { ReferrerReward } from "../types";
-import { formatDateTimestamp } from '../utils';
+import { ReferrerReward } from "../../types";
+import { formatDateTimestamp } from '../../utils';
 
 export async function referrerRewardHandler(
 	event: SubstrateEvent

@@ -1,9 +1,9 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../utils/history";
-import { getAssetId, formatU128ToBalance } from '../utils/assets';
-import { poolsStorage } from '../utils/pools';
-import { isAssetTransferEvent } from '../utils/events';
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { poolsStorage } from '../../utils/pools';
+import { isAssetTransferEvent } from '../../utils/events';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
     logger.debug("Caught liquidity adding extrinsic")
