@@ -51,6 +51,7 @@ class AssetStorage {
     if (!asset) {
       asset = new Asset(id);
       asset.priceUSD = '0';
+      asset.supply = await getAssetSupply(id);
 
       await asset.save();
       logger.debug(`[AssetStorage] Created Asset ${id}`);
@@ -137,8 +138,8 @@ class AssetSnapshotsStorage {
         low: '0',
       };
 
-      // [TODO] supply
-      snapshot.supply = BigInt(0);
+      const asset = await this.assetStorage.getAsset(assetId);
+      snapshot.supply = asset.supply;
 
       // Find prev snapshot:
       // 1) to get it's "close" price, and set it as "open" price for new snapshot
@@ -201,6 +202,10 @@ class AssetSnapshotsStorage {
 
       snapshot.mint = snapshot.mint + amount;
     }
+
+    const asset = await this.assetStorage.getAsset(assetId);
+
+    asset.supply = asset.supply + amount;
   }
 
   async updateBurned(assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {
@@ -209,6 +214,10 @@ class AssetSnapshotsStorage {
 
       snapshot.burn = snapshot.burn + amount;
     }
+
+    const asset = await this.assetStorage.getAsset(assetId);
+
+    asset.supply = asset.supply - amount;
   }
 }
 

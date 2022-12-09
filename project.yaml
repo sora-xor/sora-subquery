@@ -142,16 +142,30 @@ dataSources:
           filter:
             module: ethBridge
             method: IncomingRequestFinalizationFailed
-        - handler: handleBurnedAssetsAmount
+        # burn token
+        - handler: handleTokenBurn
           kind: substrate/EventHandler
           filter:
             module: tokens
             method: Withdrawn
-        - handler: handleRemintedAssetsAmount
+        # burn XOR
+        - handler: handleXorBurn
+          kind: substrate/EventHandler
+          filter:
+            module: balances
+            method: Withdraw
+        # mint token
+        - handler: handleTokenMint
           kind: substrate/EventHandler
           filter:
             module: tokens
             method: Deposited
+        # mint XOR
+        - handler: handleXorMint
+          kind: substrate/EventHandler
+          filter:
+            module: balances
+            method: Deposit
         - handler: handleNetworkFee
           kind: substrate/EventHandler
           filter:
