@@ -92,13 +92,13 @@ class PoolAccountsStorage {
     if (id) return id;
 
     const poolAccountId = await getPoolProperties(baseAssetId, targetAssetId);
-  
+
     if (poolAccountId) {
       poolAccounts.add(baseAssetId, targetAssetId, poolAccountId);
     } else {
       logger.error(`Cannot find pool id ${baseAssetId}:${targetAssetId}`);
     }
-  
+
     return poolAccountId;
   }
 };

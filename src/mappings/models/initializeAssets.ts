@@ -1,6 +1,7 @@
-import { SubstrateBlock } from "@subql/types";
+import type { SubstrateBlock } from "@subql/types";
 
-import { assetPrecisions, getAssetId, assetStorage, getAssetSupply } from '../../utils/assets';
+import { assetPrecisions, getAssetId } from '../../utils/assets';
+import { XOR } from '../../utils/consts';
 
 let isFirstBlockIndexed = false;
 
@@ -11,18 +12,41 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     logger.debug(`[${blockNumber}]: Initialize Asset entities`);
 
-    let initialAssets = await api.query.assets.assetInfos.entries();
+    const [
+        assetInfos,
+        tokensIssuances,
+        xorIssuance,
+    ] = await Promise.all([
+        api.query.assets.assetInfos.entries(),
+        api.query.tokens.totalIssuance.entries(),
+        api.query.balances.totalIssuance()
+    ]);
 
-    for (const [{args: [assetCodec]}, value] of initialAssets) {
+    const assets = new Map();
+
+    for (const [{args: [assetCodec]}, value] of assetInfos) {
         const assetId = getAssetId(assetCodec);
 
         assetPrecisions.set(assetId, value[2].toNumber());
 
-        // create asset
-        const asset = await assetStorage.getAsset(assetId);
-        // get asset supply on start of indexing
-        asset.supply = await getAssetSupply(assetId);
+        assets.set(assetId, {
+            id: assetId,
+            priceUSD: '0',
+            supply: BigInt(0),
+        });
     }
+
+    for (const [{args: [assetCodec]}, value] of tokensIssuances) {
+        const assetId = getAssetId(assetCodec);
+
+        if (assets.has(assetId)) {
+            assets.get(assetId).supply = BigInt(value.toString());
+        }
+    }
+
+    assets.get(XOR).supply = BigInt(xorIssuance.toString());
+
+    await store.bulkUpdate('Asset', [...assets.values()]);
 
     isFirstBlockIndexed = true;
 }

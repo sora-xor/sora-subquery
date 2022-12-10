@@ -1,7 +1,7 @@
 import { SubstrateBlock } from "@subql/types";
 
 import { getAssetId } from '../../utils/assets';
-import { getAllReserves, poolsStorage } from '../../utils/pools';
+import { getAllReserves, poolsStorage, poolAccounts } from '../../utils/pools';
 import { BASE_ASSETS } from '../../utils/consts';
 
 let isFirstBlockIndexed = false;
