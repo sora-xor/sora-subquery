@@ -40,7 +40,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         logger.debug(`[${blockNumber}]: Update ${poolsMap.size} ${baseAssetId} based pools`);
 
         for (const poolId of poolsMap.values()) {
-            const pool = poolsStorage.getPoolById(poolId);
+            const pool = await poolsStorage.getPoolById(poolId);
 
             if (!pool) continue;
 
@@ -111,7 +111,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
     await networkSnapshotsStorage.updateLiquidityStats(liquidityLocked, liquiditiesUSD, blockTimestamp);
 
-    logger.debug(`[${blockNumber}]: PoolXYK entities updated`);
+    logger.debug(`[${blockNumber}]: PoolXYK prices updated`);
 
     PoolsPrices.set(false);
 }

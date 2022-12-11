@@ -8,7 +8,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
 
   // withdraw token from pool
   if (poolAccounts.has(from)) {
-    const pool = poolsStorage.getPoolById(from);
+    const pool = await poolsStorage.getPoolById(from);
 
     if (pool.baseAssetId === assetId) {
       pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount.toString());
@@ -21,7 +21,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
 
   // deposit token to pool
   if (poolAccounts.has(to)) {
-    const pool = poolsStorage.getPoolById(to);
+    const pool = await poolsStorage.getPoolById(to);
 
     if (pool.baseAssetId === assetId) {
       pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount.toString());

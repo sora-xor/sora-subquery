@@ -44,7 +44,9 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         }
     }
 
-    assets.get(XOR).supply = BigInt(xorIssuance.toString());
+    if (assets.has(XOR)) {
+        assets.get(XOR).supply = BigInt(xorIssuance.toString());
+    }
 
     await store.bulkUpdate('Asset', [...assets.values()]);
 

@@ -59,11 +59,11 @@ export const getPoolProperties = async (baseAssetId: string, targetAssetId: stri
 
 class PoolAccountsStorage {
   private storage: Map<string, Map<string, string>>;
-  private accountIds: string[];
+  private accountIds: Map<string, [string, string]>;
 
   constructor() {
     this.storage = new Map();
-    this.accountIds = [];
+    this.accountIds = new Map();
   }
 
   add(baseAssetId: string, targetAssetId: string, poolAccountId: string): void {
@@ -71,11 +71,15 @@ class PoolAccountsStorage {
       this.storage.set(baseAssetId, new Map());
     }
     this.storage.get(baseAssetId).set(targetAssetId, poolAccountId);
-    this.accountIds = [...new Set([...this.accountIds, poolAccountId])];
+    this.accountIds.set(poolAccountId, [baseAssetId, targetAssetId]);
   }
 
   get(baseAssetId: string, targetAssetId: string): string | undefined {
     return this.getMap(baseAssetId)?.get(targetAssetId);
+  }
+
+  getById(poolAccountId: string) {
+    return this.accountIds.get(poolAccountId);
   }
 
   getMap(baseAssetId: string) {
@@ -83,7 +87,7 @@ class PoolAccountsStorage {
   }
 
   has(poolAccountId: string): boolean {
-    return this.accountIds.includes(poolAccountId);
+    return this.accountIds.has(poolAccountId);
   }
 
   async getPoolAccountId (baseAssetId: string, targetAssetId: string): Promise<string | null> {
@@ -110,8 +114,18 @@ class PoolsStorage {
     this.storage = new Map();
   }
 
-  getPoolById(poolId: string): PoolXYK | null {
-    return this.storage.get(poolId) ?? null;
+  async getPoolById(poolId: string): Promise<PoolXYK | null> {
+    if (this.storage.has(poolId)) {
+      return this.storage.get(poolId);
+    }
+
+    const adresses = poolAccounts.getById(poolId);
+
+    if (adresses) {
+      return await this.getPool(...adresses);
+    }
+
+    return null;
   }
 
   async sync(): Promise<void> {
