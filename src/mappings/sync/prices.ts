@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../../types";
 
-import { formatU128ToBalance, assetStorage, assetSnapshotsStorage } from '../../utils/assets';
+import { formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
 import { XOR, XSTUSD, PSWAP, DAI, BASE_ASSETS } from '../../utils/consts';
@@ -26,7 +26,6 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     };
 
     for (const baseAssetId of BASE_ASSETS) {
-        const isXorPools = baseAssetId === XOR;
         const pools: Array<PoolXYK> = [];
 
         const poolsMap = poolAccounts.getMap(baseAssetId);
@@ -99,13 +98,11 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         );
 
         // update price samples
-        if (isXorPools) {
+        if (baseAssetId === XOR) {
             for (const pool of pools) {
-                await assetStorage.updatePrice(pool.targetAssetId, pool.priceUSD);
                 await assetSnapshotsStorage.updatePrice(pool.targetAssetId, pool.priceUSD, blockTimestamp);
             }
 
-            await assetStorage.updatePrice(baseAssetId, baseAssetPriceInDAI.toFixed(18));
             await assetSnapshotsStorage.updatePrice(baseAssetId, baseAssetPriceInDAI.toFixed(18), blockTimestamp);
         }
     }
