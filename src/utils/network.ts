@@ -59,7 +59,7 @@ class NetworkSnapshotsStorage {
   }
 
   private async syncSnapshots(blockTimestamp: number): Promise<void> {
-    logger.debug(`[NetworkSnapshotsStorage] syncSnapshots ${this.storage.size}`);
+    logger.debug(`[NetworkSnapshotsStorage] ${this.storage.size} snapshots sync`);
 
     await store.bulkUpdate('NetworkSnapshot', [...this.storage.values()]);
 
@@ -74,7 +74,7 @@ class NetworkSnapshotsStorage {
       }
     }
 
-    logger.debug(`[NetworkSnapshotsStorage] snaphots in storage after sync: ${this.storage.size}`);
+    logger.debug(`[NetworkSnapshotsStorage] ${this.storage.size} snaphots in storage after sync`);
   }
 
   private getId(type: SnapshotType, index: number): string {

@@ -43,11 +43,8 @@ class AssetStorage {
   }
 
   async sync(): Promise<void> {
-    logger.debug('[AssetStorage] sync');
-
-    for (const asset of this.storage.values()) {
-      await asset.save();
-    }
+    logger.debug(`[AssetStorage] ${this.storage.size} entities sync`);
+    await store.bulkUpdate('Asset', [...this.storage.values()]);
   }
 
   async getAsset(id: string): Promise<Asset> {
@@ -59,7 +56,7 @@ class AssetStorage {
 
     if (!asset) {
       asset = new Asset(id);
-      asset.liquidity = '0';
+      asset.liquidity = BigInt(0);
       asset.priceUSD = '0';
       asset.supply = BigInt(0);
 
@@ -83,12 +80,10 @@ class AssetStorage {
     }
   }
 
-  async updateLiquidity(id: string, liquidity: string): Promise<void> {
+  async updateLiquidity(id: string, liquidity: bigint): Promise<void> {
     const asset = await this.getAsset(id);
 
-    if (asset.liquidity !== liquidity) {
-      asset.liquidity = liquidity;
-    }
+    asset.liquidity = liquidity;
   }
 }
 
@@ -110,7 +105,7 @@ class AssetSnapshotsStorage {
   }
 
   private async syncSnapshots(blockTimestamp: number): Promise<void> {
-    logger.debug(`[AssetSnapshotsStorage] syncSnapshots: ${this.storage.size}`);
+    logger.debug(`[AssetSnapshotsStorage] ${this.storage.size} snapshots sync`);
 
     await store.bulkUpdate('AssetSnapshot', [...this.storage.values()]);
 
@@ -125,7 +120,7 @@ class AssetSnapshotsStorage {
       }
     }
 
-    logger.debug(`[AssetSnapshotsStorage] snaphots in storage after sync: ${this.storage.size}`);
+    logger.debug(`[AssetSnapshotsStorage] ${this.storage.size} snaphots in storage after sync`);
   }
 
   async getSnapshot(assetId: string, type: SnapshotType, blockTimestamp: number): Promise<AssetSnapshot> {

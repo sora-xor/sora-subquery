@@ -129,7 +129,7 @@ class PoolsStorage {
   }
 
   async sync(): Promise<void> {
-    logger.debug('[PoolsStorage] sync');
+    logger.debug(`[PoolsStorage] ${this.storage.size} entities sync`);
     await store.bulkUpdate('PoolXYK', [...this.storage.values()]);
   }
 

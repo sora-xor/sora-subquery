@@ -33,7 +33,7 @@ type Asset @entity {
   poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
   priceUSD: String!
   supply: BigInt!
-  liquidity: String! # locked in pairs (in tokens)
+  liquidity: BigInt! # locked in pairs (in tokens)
 }
 
 type AssetPrice @jsonField {

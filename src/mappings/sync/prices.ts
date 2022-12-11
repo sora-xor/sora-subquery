@@ -17,7 +17,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities`);
 
     const blockTimestamp: number = formatDateTimestamp(block.timestamp);
-    const assetsLockedInPools = new Map();
+    const assetsLockedInPools = new Map<string, bigint>();
 
     let pswapPriceInDAI = new BigNumber(0);
     let liquiditiesUSD = new BigNumber(0);
@@ -51,17 +51,17 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             }
 
             assetsLockedInPools.set(
+                pool.baseAssetId,
+                (assetsLockedInPools.get(pool.baseAssetId) || BigInt(0)) + pool.baseAssetReserves,
+            );
+
+            assetsLockedInPools.set(
                 pool.targetAssetId,
-                (assetsLockedInPools.get(pool.targetAssetId) || new BigNumber(0)).plus(targetAssetReservesBN),
+                (assetsLockedInPools.get(pool.targetAssetId) || BigInt(0)) + pool.targetAssetReserves,
             );
 
             pools.push(pool);
         }
-
-        assetsLockedInPools.set(
-            baseAssetId,
-            (assetsLockedInPools.get(baseAssetId) || new BigNumber(0)).plus(baseAssetInPools),
-        );
 
         // If base asset has price in DAI
         if (!baseAssetPriceInDAI.isZero()) {
@@ -113,8 +113,8 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     }
 
     // update locked luqidity for assets
-    for (const [assetId, liquidityBN] of assetsLockedInPools.entries()) {
-        await assetStorage.updateLiquidity(assetId, formatU128ToBalance(liquidityBN.toFixed(0), assetId));
+    for (const [assetId, liquidity] of assetsLockedInPools.entries()) {
+        await assetStorage.updateLiquidity(assetId, liquidity);
     }
 
     // update total liquidity in USD
