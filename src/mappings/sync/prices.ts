@@ -105,7 +105,8 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                 await assetSnapshotsStorage.updatePrice(pool.targetAssetId, pool.priceUSD, blockTimestamp);
             }
 
-            assetStorage.updatePrice(baseAssetId, baseAssetPriceInDAI.toFixed(18));
+            await assetStorage.updatePrice(baseAssetId, baseAssetPriceInDAI.toFixed(18));
+            await assetSnapshotsStorage.updatePrice(baseAssetId, baseAssetPriceInDAI.toFixed(18), blockTimestamp);
         }
     }
 

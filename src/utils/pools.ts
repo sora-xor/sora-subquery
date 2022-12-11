@@ -130,10 +130,7 @@ class PoolsStorage {
 
   async sync(): Promise<void> {
     logger.debug('[PoolsStorage] sync');
-
-    for (const pool of this.storage.values()) {
-      await pool.save();
-    }
+    await store.bulkUpdate('PoolXYK', [...this.storage.values()]);
   }
 
   async getPool(baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> {

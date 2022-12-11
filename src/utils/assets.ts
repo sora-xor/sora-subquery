@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
-import { SnapshotSecondsMap, XOR, DAI, XSTUSD, XST } from './consts';
+import { SnapshotSecondsMap, XOR, DAI } from './consts';
 import { networkSnapshotsStorage } from '../utils/network';
 
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
@@ -85,7 +85,7 @@ class AssetStorage {
 
 class AssetSnapshotsStorage {
   private storage!: Map<string, AssetSnapshot>;
-  private assetStorage!: AssetStorage;
+  public assetStorage!: AssetStorage;
 
   constructor(assetStorage: AssetStorage) {
     this.storage = new Map();
@@ -97,14 +97,15 @@ class AssetSnapshotsStorage {
   }
 
   async sync(blockTimestamp: number): Promise<void> {
-    logger.debug('[AssetSnapshotsStorage] sync');
     await this.syncSnapshots(blockTimestamp);
   }
 
   private async syncSnapshots(blockTimestamp: number): Promise<void> {
-    for (const snapshot of this.storage.values()) {
-      await snapshot.save();
+    logger.debug(`[AssetSnapshotsStorage] syncSnapshots: ${this.storage.size}`);
 
+    await store.bulkUpdate('AssetSnapshot', [...this.storage.values()]);
+
+    for (const snapshot of this.storage.values()) {
       const { type, timestamp } = snapshot;
       const seconds = SnapshotSecondsMap[type];
       const currentShapshotIndex =  Math.floor(blockTimestamp / seconds);
@@ -114,6 +115,8 @@ class AssetSnapshotsStorage {
         this.storage.delete(snapshot.id);
       }
     }
+
+    logger.debug(`[AssetSnapshotsStorage] snaphots in storage after sync: ${this.storage.size}`);
   }
 
   async getSnapshot(assetId: string, type: SnapshotType, blockTimestamp: number): Promise<AssetSnapshot> {
@@ -175,6 +178,9 @@ class AssetSnapshotsStorage {
   }
 
   async updatePrice(assetId: string, price: string, blockTimestamp: number): Promise<void> {
+    const asset = await this.assetStorage.getAsset(assetId);
+
+
     const bnPrice = new BigNumber(price);
 
     for (const type of AssetSnapshots) {
