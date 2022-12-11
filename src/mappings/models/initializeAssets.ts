@@ -31,6 +31,7 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
         assets.set(assetId, {
             id: assetId,
+            liquidity: '0',
             priceUSD: '0',
             supply: BigInt(0),
         });

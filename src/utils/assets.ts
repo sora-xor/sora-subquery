@@ -59,6 +59,7 @@ class AssetStorage {
 
     if (!asset) {
       asset = new Asset(id);
+      asset.liquidity = '0';
       asset.priceUSD = '0';
       asset.supply = BigInt(0);
 
@@ -77,8 +78,16 @@ class AssetStorage {
 
     if (asset.priceUSD !== price) {
       asset.priceUSD = price;
-
+      // to update asset price by ws subscription instantly
       await asset.save();
+    }
+  }
+
+  async updateLiquidity(id: string, liquidity: string): Promise<void> {
+    const asset = await this.getAsset(id);
+
+    if (asset.liquidity !== liquidity) {
+      asset.liquidity = liquidity;
     }
   }
 }

@@ -14,11 +14,6 @@ type NetworkStats @entity {
   totalBridgeOutgoingTransactions: Int!
 }
 
-type LockedLiquidity @jsonField {
-  xor: String!
-  xstusd: String!
-}
-
 type NetworkSnapshot @entity {
   id: ID!
   type: SnapshotType!
@@ -26,7 +21,6 @@ type NetworkSnapshot @entity {
   accounts: Int!
   transactions: Int!
   fees: BigInt!
-  liquidity: LockedLiquidity!
   liquidityUSD: String!
   volumeUSD: String!
   bridgeIncomingTransactions: Int!
@@ -35,10 +29,11 @@ type NetworkSnapshot @entity {
 
 type Asset @entity {
   id: ID!
+  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
+  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
   priceUSD: String!
   supply: BigInt!
-  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
-  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
+  liquidity: String! # locked in pairs (in tokens)
 }
 
 type AssetPrice @jsonField {

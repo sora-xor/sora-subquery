@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
-import { SnapshotSecondsMap, XOR, XSTUSD } from './consts';
+import { SnapshotSecondsMap } from './consts';
 
 export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
 
@@ -101,10 +101,6 @@ class NetworkSnapshotsStorage {
       snapshot.accounts = 0;
       snapshot.transactions = 0;
       snapshot.fees = BigInt(0);
-      snapshot.liquidity = {
-        xor: '0',
-        xstusd: '0'
-      };
       snapshot.liquidityUSD = '0';
       snapshot.volumeUSD = '0';
       snapshot.bridgeIncomingTransactions = 0;
@@ -176,14 +172,9 @@ class NetworkSnapshotsStorage {
     }
   }
 
-  async updateLiquidityStats(liquidities: Record<string, string>, liquiditiesUSD: BigNumber, blockTimestamp: number): Promise<void> {
+  async updateLiquidityStats(liquiditiesUSD: BigNumber, blockTimestamp: number): Promise<void> {
     for (const type of NetworkSnapshots) {
       const snapshot = await this.getSnapshot(type, blockTimestamp);
-  
-      snapshot.liquidity = {
-        xor: liquidities[XOR],
-        xstusd: liquidities[XSTUSD]
-      };
 
       snapshot.liquidityUSD = liquiditiesUSD.toFixed(2);
     }
