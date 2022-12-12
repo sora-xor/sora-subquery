@@ -1,6 +1,6 @@
 import type { SubstrateBlock } from "@subql/types";
 
-import { assetPrecisions, getAssetId } from '../../utils/assets';
+import { assetPrecisions, getAssetId, assetStorage } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
 
 let isFirstBlockIndexed = false;
@@ -24,15 +24,6 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     const assets = new Map();
 
-    logger.debug(`XOR issuance: ${xorIssuance.toString()}`);
-
-    assets.set(XOR, {
-        id: XOR,
-        liquidity: BigInt(0),
-        priceUSD: '0',
-        supply: BigInt(xorIssuance.toString()),
-    });
-
     for (const [{args: [assetCodec]}, value] of assetInfos) {
         const assetId = getAssetId(assetCodec);
 
@@ -54,7 +45,13 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         }
     }
 
-    await store.bulkUpdate('Asset', [...assets.values()]);
+    assets.get(XOR).supply = BigInt(xorIssuance.toString());
+
+    const entities = [...assets.values()];
+
+    await store.bulkUpdate('Asset', entities);
+
+    await Promise.all(entities.map(entity => assetStorage.getAsset(entity.id)));
 
     isFirstBlockIndexed = true;
 }

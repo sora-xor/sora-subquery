@@ -21,20 +21,6 @@ export const getAssetId = (asset: any): string => {
   return (asset?.code?.code ?? asset?.code ?? asset).toHuman();
 };
 
-export const getAssetSupply = async (assetId: string): Promise<bigint> => {
-  try {
-    logger.debug(`[${assetId}] Asset supply request...`);
-    const supply = assetId === XOR
-      ? await api.query.balances.totalIssuance()
-      : await api.query.tokens.totalIssuance(assetId);
-    logger.debug(`[${assetId}] Asset supply request completed`);
-    return BigInt(supply.toString());
-  } catch (error) {
-    logger.error(error);
-    return BigInt(0);
-  }
-}
-
 class AssetStorage {
   private storage!: Map<string, Asset>;
 

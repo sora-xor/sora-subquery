@@ -1,7 +1,7 @@
 import { SubstrateBlock } from "@subql/types";
 
 import { getAssetId } from '../../utils/assets';
-import { poolAccounts, getAllReserves, getAllProperties } from '../../utils/pools';
+import { poolAccounts, getAllReserves, getAllProperties, poolsStorage } from '../../utils/pools';
 import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
 
 let isFirstBlockIndexed = false;
@@ -48,7 +48,11 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
         }
     }
 
+    const entities = [...poolsBuffer.values()];
+
     await store.bulkUpdate('PoolXYK', [...poolsBuffer.values()]);
+
+    await Promise.all(entities.map(entity => poolsStorage.getPoolById(entity.id)));
 
     isFirstBlockIndexed = true;
 }
