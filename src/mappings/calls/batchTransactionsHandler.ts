@@ -97,7 +97,7 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
 
         if (initializePool) {
-            await poolsStorage.getPool(initializePool.data.asset_a, initializePool.data.asset_b);
+            await poolsStorage.getPool(initializePool.data.args.asset_a, initializePool.data.args.asset_b);
         }
     }
 }

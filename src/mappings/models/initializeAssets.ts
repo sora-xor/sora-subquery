@@ -24,6 +24,15 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     const assets = new Map();
 
+    logger.debug(`XOR issuance: ${xorIssuance.toString()}`);
+
+    assets.set(XOR, {
+        id: XOR,
+        liquidity: BigInt(0),
+        priceUSD: '0',
+        supply: BigInt(xorIssuance.toString()),
+    });
+
     for (const [{args: [assetCodec]}, value] of assetInfos) {
         const assetId = getAssetId(assetCodec);
 
@@ -43,10 +52,6 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         if (assets.has(assetId)) {
             assets.get(assetId).supply = BigInt(value.toString());
         }
-    }
-
-    if (assets.has(XOR)) {
-        assets.get(XOR).supply = BigInt(xorIssuance.toString());
     }
 
     await store.bulkUpdate('Asset', [...assets.values()]);

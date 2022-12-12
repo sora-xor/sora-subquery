@@ -4,7 +4,7 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 1.9.1
+    version: 1.14.1
   query:
     name: '@subql/query'
     version: 1.5.0
@@ -13,24 +13,20 @@ repository: https://github.com/sora-xor/sora-subquery
 schema:
   file: ./schema.graphql
 network:
-  chainId: '0x7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5'
-  endpoint: wss://mof2.sora.org
+  chainId: '0xd2b6bcee450d9e0755bf296718b138527ec0339f497d22565eeeb387c7af8f1e'
+  endpoint: wss://ws.framenode-1.s1.dev.sora2.soramitsu.co.jp
   chaintypes:
     file: ./types.json
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 8280000
+    startBlock: 1
     mapping:
       file: ./dist/index.js
       handlers:
         - handler: initializeAssets
           kind: substrate/BlockHandler
-          filter:
-            modulo: 8280000
         - handler: initializePools
           kind: substrate/BlockHandler
-          filter:
-            modulo: 8280000
 
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
