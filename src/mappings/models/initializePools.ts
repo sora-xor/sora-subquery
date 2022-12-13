@@ -53,6 +53,7 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     if (entities.length) {
         await store.bulkUpdate('PoolXYK', [...poolsBuffer.values()]);
         await Promise.all(entities.map(entity => poolsStorage.getPoolById(entity.id)));
+        logger.debug(`[${blockNumber}]: ${entities.length} Pool XYKs initialized!`);
     } else {
         logger.debug(`[${blockNumber}]: No Pool XYKs to initialize!`);
     }
