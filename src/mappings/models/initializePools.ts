@@ -50,9 +50,12 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
 
     const entities = [...poolsBuffer.values()];
 
-    await store.bulkUpdate('PoolXYK', [...poolsBuffer.values()]);
-
-    await Promise.all(entities.map(entity => poolsStorage.getPoolById(entity.id)));
+    if (entities.length) {
+        await store.bulkUpdate('PoolXYK', [...poolsBuffer.values()]);
+        await Promise.all(entities.map(entity => poolsStorage.getPoolById(entity.id)));
+    } else {
+        logger.debug(`[${blockNumber}]: No Pool XYKs to initialize!`);
+    }
 
     isFirstBlockIndexed = true;
 }

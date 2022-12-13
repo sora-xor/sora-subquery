@@ -5,6 +5,45 @@ import { XOR } from '../../utils/consts';
 
 let isFirstBlockIndexed = false;
 
+export const getAssetInfos = async () => {
+    try {
+      logger.debug(`Asset infos request...`);
+      const data = api.query.assets.assetInfos.entries();
+      logger.debug(`Asset infos request completed.`);
+      return data;
+    } catch (e) {
+      logger.error("Error getting Asset infos");
+      logger.error(e);
+      return null;
+    }
+};
+
+export const getTokensIssuances = async () => {
+    try {
+      logger.debug(`Tokens issuances request...`);
+      const data = api.query.tokens.totalIssuance.entries();
+      logger.debug(`Tokens issuances request completed.`);
+      return data;
+    } catch (e) {
+      logger.error("Error getting Tokens issuances");
+      logger.error(e);
+      return null;
+    }
+};
+
+export const getXorIssuance = async () => {
+    try {
+      logger.debug(`XOR issuance request...`);
+      const data = api.query.balances.totalIssuance();
+      logger.debug(`XOR issuance request completed.`);
+      return data;
+    } catch (e) {
+      logger.error("Error getting XOR issuance");
+      logger.error(e);
+      return null;
+    }
+};
+
 export async function initializeAssets(block: SubstrateBlock): Promise<void> {
     if (isFirstBlockIndexed) return;
 
@@ -17,41 +56,58 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         tokensIssuances,
         xorIssuance,
     ] = await Promise.all([
-        api.query.assets.assetInfos.entries(),
-        api.query.tokens.totalIssuance.entries(),
-        api.query.balances.totalIssuance()
+        getAssetInfos(),
+        getTokensIssuances(),
+        getXorIssuance()
     ]);
 
     const assets = new Map();
 
-    for (const [{args: [assetCodec]}, value] of assetInfos) {
-        const assetId = getAssetId(assetCodec);
+    const create = (assetId: string) => {
+        if (!assets.has(assetId)) {
+            assets.set(assetId, {
+                id: assetId,
+                liquidity: BigInt(0),
+                priceUSD: '0',
+                supply: BigInt(0),
+            });
+        }
+    };
 
-        assetPrecisions.set(assetId, value[2].toNumber());
+    if (assetInfos) {
+        for (const [{args: [assetCodec]}, value] of assetInfos) {
+            const assetId = getAssetId(assetCodec);
 
-        assets.set(assetId, {
-            id: assetId,
-            liquidity: BigInt(0),
-            priceUSD: '0',
-            supply: BigInt(0),
-        });
+            assetPrecisions.set(assetId, value[2].toNumber());
+
+            create(assetId);
+        }
     }
 
-    for (const [{args: [assetCodec]}, value] of tokensIssuances) {
-        const assetId = getAssetId(assetCodec);
+    if (tokensIssuances) {
+        for (const [{args: [assetCodec]}, value] of tokensIssuances) {
+            const assetId = getAssetId(assetCodec);
 
-        if (assets.has(assetId)) {
+            create(assetId);
+
             assets.get(assetId).supply = BigInt(value.toString());
         }
     }
 
-    assets.get(XOR).supply = BigInt(xorIssuance.toString());
+    create(XOR);
+
+    if (xorIssuance) {
+        assets.get(XOR).supply = BigInt(xorIssuance.toString());
+    }
 
     const entities = [...assets.values()];
 
-    await store.bulkUpdate('Asset', entities);
-
-    await Promise.all(entities.map(entity => assetStorage.getAsset(entity.id)));
+    if (entities.length) {
+        await store.bulkUpdate('Asset', entities);
+        await Promise.all(entities.map(entity => assetStorage.getAsset(entity.id)));
+    } else {
+        logger.debug(`[${blockNumber}]: No Assets to initialize!`);
+    }
 
     isFirstBlockIndexed = true;
 }
