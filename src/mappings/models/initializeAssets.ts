@@ -8,7 +8,7 @@ let isFirstBlockIndexed = false;
 export const getAssetInfos = async () => {
     try {
       logger.debug(`Asset infos request...`);
-      const data = api.query.assets.assetInfos.entries();
+      const data = await api.query.assets.assetInfos.entries();
       logger.debug(`Asset infos request completed.`);
       return data;
     } catch (e) {
@@ -21,7 +21,7 @@ export const getAssetInfos = async () => {
 export const getTokensIssuances = async () => {
     try {
       logger.debug(`Tokens issuances request...`);
-      const data = api.query.tokens.totalIssuance.entries();
+      const data = await api.query.tokens.totalIssuance.entries();
       logger.debug(`Tokens issuances request completed.`);
       return data;
     } catch (e) {
@@ -34,7 +34,7 @@ export const getTokensIssuances = async () => {
 export const getXorIssuance = async () => {
     try {
       logger.debug(`XOR issuance request...`);
-      const data = api.query.balances.totalIssuance();
+      const data = await api.query.balances.totalIssuance();
       logger.debug(`XOR issuance request completed.`);
       return data;
     } catch (e) {
