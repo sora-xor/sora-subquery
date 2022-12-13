@@ -55,6 +55,7 @@ type AssetSnapshot @entity {
   type: SnapshotType!
   priceUSD: AssetPrice
   volume: AssetVolume
+  liquidity: BigInt # locked in pairs (in tokens)
   supply: BigInt!
   mint: BigInt!
   burn: BigInt!

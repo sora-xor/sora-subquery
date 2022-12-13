@@ -65,12 +65,6 @@ class AssetStorage {
       await asset.save();
     }
   }
-
-  async updateLiquidity(id: string, liquidity: bigint): Promise<void> {
-    const asset = await this.getAsset(id);
-
-    asset.liquidity = liquidity;
-  }
 }
 
 class AssetSnapshotsStorage {
@@ -128,7 +122,8 @@ class AssetSnapshotsStorage {
       snapshot.assetId = assetId;
       snapshot.timestamp = timestamp;
       snapshot.type = type;
-      // set current asset supply on creation
+      // set current asset supply & liquidity on creation
+      snapshot.liquidity = asset.liquidity;
       snapshot.supply = asset.supply;
       snapshot.mint = BigInt(0);
       snapshot.burn = BigInt(0);
@@ -182,6 +177,18 @@ class AssetSnapshotsStorage {
     }
 
     await networkSnapshotsStorage.updateVolumeStats(volumeUSD, blockTimestamp);
+  }
+
+  async updateLiquidity(assetId: string, liquidity: bigint, blockTimestamp: number): Promise<void> {
+    for (const type of AssetSnapshots) {
+      const snapshot = await this.getSnapshot(assetId, type, blockTimestamp);
+
+      snapshot.liquidity = liquidity;
+    }
+
+    const asset = await this.assetStorage.getAsset(assetId);
+
+    asset.liquidity = liquidity;
   }
 
   async updateMinted(assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {

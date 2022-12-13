@@ -114,7 +114,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
     // update locked luqidity for assets
     for (const [assetId, liquidity] of assetsLockedInPools.entries()) {
-        await assetStorage.updateLiquidity(assetId, liquidity);
+        await assetSnapshotsStorage.updateLiquidity(assetId, liquidity, blockTimestamp);
     }
 
     // update total liquidity in USD
