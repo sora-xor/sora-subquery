@@ -30,7 +30,7 @@ class AssetStorage {
 
   async sync(): Promise<void> {
     logger.debug(`[AssetStorage] ${this.storage.size} entities sync`);
-    await store.bulkUpdate('Asset', [...this.storage.values()]);
+    await store.bulkUpdate('Asset', [...this.storage.values()], []);
   }
 
   async getAsset(id: string): Promise<Asset> {
@@ -87,7 +87,7 @@ class AssetSnapshotsStorage {
   private async syncSnapshots(blockTimestamp: number): Promise<void> {
     logger.debug(`[AssetSnapshotsStorage] ${this.storage.size} snapshots sync`);
 
-    await store.bulkUpdate('AssetSnapshot', [...this.storage.values()]);
+    await store.bulkUpdate('AssetSnapshot', [...this.storage.values()], []);
 
     for (const snapshot of this.storage.values()) {
       const { type, timestamp } = snapshot;

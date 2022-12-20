@@ -103,8 +103,9 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
     const entities = [...assets.values()];
 
     if (entities.length) {
-        await store.bulkUpdate('Asset', entities);
+        await store.bulkUpdate('Asset', entities, []);
         await Promise.all(entities.map(entity => assetStorage.getAsset(entity.id)));
+        logger.debug(`[${blockNumber}]: ${entities.length} Assets initialized!`);
     } else {
         logger.debug(`[${blockNumber}]: No Assets to initialize!`);
     }

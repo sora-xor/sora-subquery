@@ -51,8 +51,9 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     const entities = [...poolsBuffer.values()];
 
     if (entities.length) {
-        await store.bulkUpdate('PoolXYK', [...poolsBuffer.values()]);
+        await store.bulkUpdate('PoolXYK', entities, []);
         await Promise.all(entities.map(entity => poolsStorage.getPoolById(entity.id)));
+        logger.debug(`[${blockNumber}]: ${entities.length} Pool XYKs initialized!`);
     } else {
         logger.debug(`[${blockNumber}]: No Pool XYKs to initialize!`);
     }

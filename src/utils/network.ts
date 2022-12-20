@@ -61,7 +61,7 @@ class NetworkSnapshotsStorage {
   private async syncSnapshots(blockTimestamp: number): Promise<void> {
     logger.debug(`[NetworkSnapshotsStorage] ${this.storage.size} snapshots sync`);
 
-    await store.bulkUpdate('NetworkSnapshot', [...this.storage.values()]);
+    await store.bulkUpdate('NetworkSnapshot', [...this.storage.values()], []);
 
     for (const snapshot of this.storage.values()) {
       const { type, timestamp } = snapshot;
