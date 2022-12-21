@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assetPrecisions, getAssetId, assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { assetPrecisions, getAssetId, assetStorage } from '../../utils/assets';
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -25,6 +26,7 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
             assetPrecisions.set(assetId, precision.toNumber());
         }
 
+        await assetStorage.getAsset(assetId);
     }
 
     else {
@@ -40,7 +42,7 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
     record.data = details
 
     await record.save();
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved asset registration with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 

@@ -36,7 +36,7 @@ pipeline {
     }
     environment {
         SUBQUERY_CLI_VERSION = '1.9.0'
-        SUBQUERY_INDEXER_VERSION = 'v1.16.'
+        SUBQUERY_INDEXER_VERSION = 'v1.16.0'
         SUBQUERY_NODE_VERSION = 'v1.9.1'
         SUBQUERY_CLI_VERSION_STAGING = '1.9.0'
         SUBQUERY_INDEXER_VERSION_STAGING = 'v1.16.0'
