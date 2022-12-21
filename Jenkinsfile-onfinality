@@ -39,12 +39,12 @@ pipeline {
 
 
     environment {
-        SUBQUERY_CLI_VERSION = '1.8.0'
-        SUBQUERY_INDEXER_VERSION = 'v1.14.1'
-        SUBQUERY_NODE_VERSION = 'v1.5.0'
-        SUBQUERY_CLI_VERSION_STAGING = '1.8.0'
-        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.14.1'
-        SUBQUERY_NODE_VERSION_STAGING = 'v1.5.0'
+        SUBQUERY_CLI_VERSION = '1.9.0'
+        SUBQUERY_INDEXER_VERSION = 'v1.16.0'
+        SUBQUERY_NODE_VERSION = 'v1.9.1'
+        SUBQUERY_CLI_VERSION_STAGING = '1.9.0'
+        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.16.0'
+        SUBQUERY_NODE_VERSION_STAGING = 'v1.9.1'
         SUBQUERY_ORG =  'sora-xor'
         SUBQUERY_PROJECT_DB = 'sora'
         matrix_chain = "sora-${targetEnvironment}"
