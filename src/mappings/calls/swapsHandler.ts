@@ -1,9 +1,13 @@
 import { SubstrateExtrinsic } from '@subql/types';
+
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
+import { XOR } from '../../utils/consts';
+import { formatDateTimestamp } from '../../utils';
+
 import type { Vec } from "@polkadot/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo, PoolsPrices, updateAssetVolume, getAssetId, updateHistoryElementAccounts } from "./utils";
-import { XOR } from '..';
-import { Enum, Struct } from "@polkadot/types/codec";
-import { Balance } from "@polkadot/types/interfaces/runtime"
+import type { Enum, Struct } from "@polkadot/types/codec";
+import type { Balance } from "@polkadot/types/interfaces/runtime"
 
 interface SwapAmount extends Enum {
     readonly isWithDesiredInput: boolean;
@@ -50,7 +54,7 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
     const blockNumber = extrinsic.block.block.header.number.toNumber();
-    const blockTimestamp: number = parseInt(((extrinsic.block.timestamp).getTime() / 1000).toFixed(0));
+    const blockTimestamp = formatDateTimestamp(extrinsic.block.timestamp);
     const record = assignCommonHistoryElemInfo(extrinsic)
 
     const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = extrinsic.extrinsic.args.slice().reverse();
@@ -83,13 +87,12 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
     record.data = details
 
     await record.save();
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     // update assets volume
     if (record.execution.success) {
-        await updateAssetVolume(baseAssetId, details.baseAssetAmount, blockTimestamp, blockNumber);
-        await updateAssetVolume(targetAssetId, details.targetAssetAmount, blockTimestamp, blockNumber);
-        PoolsPrices.set(true);
+        await assetSnapshotsStorage.updateVolume(baseAssetId, details.baseAssetAmount, blockTimestamp);
+        await assetSnapshotsStorage.updateVolume(targetAssetId, details.targetAssetAmount, blockTimestamp);
     }
 }
 

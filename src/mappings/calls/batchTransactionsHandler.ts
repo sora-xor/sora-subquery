@@ -1,7 +1,10 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
-import { assignCommonHistoryElemInfo, formatU128ToBalance, PoolsPrices, getAssetId, updateHistoryElementAccounts } from "./utils";
+
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { poolsStorage } from '../../utils/pools';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -82,16 +85,19 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         calls.map((call, idx) => extractCalls(call, idx, record.blockHeight.toString(), entities))
     );
 
-
     record.data = entities as Object
 
     await record.save()
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
 
+    if (record.execution.success) {
+        // If initialize pool call exists, create new Pool
+        const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
 
-    if (calls.some(call => call.method === 'initializePool')) {
-        PoolsPrices.set(true);
+        if (initializePool) {
+            await poolsStorage.getPool(initializePool.data.args.asset_a, initializePool.data.args.asset_b);
+        }
     }
 }
