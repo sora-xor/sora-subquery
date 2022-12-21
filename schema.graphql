@@ -1,8 +1,39 @@
+enum SnapshotType {
+  DEFAULT
+  HOUR
+  DAY
+  MONTH
+}
+
+type NetworkStats @entity {
+  id: ID!
+  totalFees: BigInt!
+  totalAccounts: Int!
+  totalTransactions: Int!
+  totalBridgeIncomingTransactions: Int!
+  totalBridgeOutgoingTransactions: Int!
+}
+
+type NetworkSnapshot @entity {
+  id: ID!
+  type: SnapshotType!
+  timestamp: Int!
+  accounts: Int!
+  transactions: Int!
+  fees: BigInt!
+  liquidityUSD: String!
+  volumeUSD: String!
+  bridgeIncomingTransactions: Int!
+  bridgeOutgoingTransactions: Int!
+}
+
 type Asset @entity {
   id: ID!
-  poolXYK: PoolXYK
-  poolTBC: PoolTBC
   data: [AssetSnapshot!]! @derivedFrom(field: "asset")
+  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
+  priceUSD: String!
+  supply: BigInt!
+  liquidity: BigInt! # locked in pairs (in tokens)
 }
 
 type AssetPrice @jsonField {
@@ -17,34 +48,28 @@ type AssetVolume @jsonField {
   amountUSD: String!
 }
 
-enum AssetSnapshotType {
-  DEFAULT
-  HOUR
-  DAY
-}
-
 type AssetSnapshot @entity {
   id: ID!
   asset: Asset! @index #relation to Asset
   timestamp: Int!
-  type: AssetSnapshotType!
+  type: SnapshotType!
   priceUSD: AssetPrice
   volume: AssetVolume
+  liquidity: BigInt # locked in pairs (in tokens)
+  supply: BigInt!
+  mint: BigInt!
+  burn: BigInt!
 }
 
 type PoolXYK @entity {
   id: ID!
+  baseAsset: Asset!
+  targetAsset: Asset!
+  baseAssetReserves: BigInt!
+  targetAssetReserves: BigInt!
+  multiplier: Int!
   priceUSD: String
   strategicBonusApy: String
-  baseAssetReserves: String!
-  targetAssetReserves: String!
-  multiplier: Int!
-}
-
-type PoolTBC @entity {
-  id: ID!
-  priceUSD: String
-  collateralReserves: String!
 }
 
 type Account @entity {
@@ -65,7 +90,6 @@ type HistoryElement @entity {
   data: HistoryElementDetails
 }
 
-
 type ExecutionResult @jsonField {
   success: Boolean!
   error: Error
@@ -79,31 +103,6 @@ type Error @jsonField {
 
 type HistoryElementDetails @jsonField {
   data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
-}
-
-type BurnedAssetsAmount @entity {
-  id: ID!
-  blockHeight: BigInt! @index
-  blockHash: String!
-  currencyId: String!
-  balance: BigInt!
-}
-
-type RemintedAssetsAmount @entity {
-  id: ID!
-  blockHeight: BigInt! @index
-  blockHash: String!
-  currencyId: String!
-  balance: BigInt!
-}
-
-type ClaimableReward @entity {
-  id: ID!
-  blockHeight: BigInt! @index
-  blockHash: String!
-  from: String!
-  currencyId: String!
-  balance: BigInt!
 }
 
 type ReferrerReward @entity {

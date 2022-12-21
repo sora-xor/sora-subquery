@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { formatU128ToBalance, assignCommonHistoryElemInfo, getAssetId, updateHistoryElementAccounts } from "./utils";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 
 export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -37,7 +38,7 @@ export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<v
     record.data = details
 
     await record.save();
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved transfer with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
