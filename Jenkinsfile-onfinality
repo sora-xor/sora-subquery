@@ -133,7 +133,7 @@ pipeline {
                             --org=${SUBQUERY_ORG} \
                             --indexerSubscription \
                             --querySubscription \
-                            --dict=dict \
+                            --useDefaults \
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
                             --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
@@ -160,7 +160,7 @@ pipeline {
                             --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
                             --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
                             --org=${SUBQUERY_ORG} \
-                            --dict=dict \
+                            --useDefaults \
                             --indexerSubscription \
                             --querySubscription \
                             --ipfsCID=\$RESULT \
