@@ -4,10 +4,10 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 1.14.1
+    version: 1.16.0
   query:
     name: '@subql/query'
-    version: 1.5.0
+    version: 1.9.1
 description: ''
 repository: https://github.com/sora-xor/sora-subquery
 schema:
@@ -23,15 +23,16 @@ dataSources:
     mapping:
       file: ./dist/index.js
       handlers:
-        - handler: getAllAssetsInfos
+        - handler: initializeAssets
           kind: substrate/BlockHandler
+        - handler: initializePools
+          kind: substrate/BlockHandler
+
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
           filter:
             module: assets
             method: register
-        - handler: syncXYKPools
-          kind: substrate/BlockHandler
         - handler: handlerTransfers
           kind: substrate/CallHandler
           filter:
@@ -67,36 +68,11 @@ dataSources:
           filter:
             module: utility
             method: batchAll
-        - handler: handleBurnedAssetsAmount
-          kind: substrate/EventHandler
-          filter:
-            module: currencies
-            method: Withdrawn
-        - handler: handleRemintedAssetsAmount
-          kind: substrate/EventHandler
-          filter:
-            module: currencies
-            method: Deposited
-        - handler: handleClaimableReward
-          kind: substrate/EventHandler
-          filter:
-            module: currencies
-            method: Transferred
         - handler: soraEthTransferHandler
           kind: substrate/CallHandler
           filter:
             module: ethBridge
             method: transferToSidechain
-        - handler: ethSoraTransferHandler
-          kind: substrate/EventHandler
-          filter:
-            module: ethBridge
-            method: IncomingRequestFinalized
-        - handler: ethSoraTransferHandler
-          kind: substrate/EventHandler
-          filter:
-            module: ethBridge
-            method: IncomingRequestFinalizationFailed
         - handler: rewardsHandler
           kind: substrate/CallHandler
           filter:
@@ -132,11 +108,6 @@ dataSources:
           filter:
             module: referrals
             method: unreserve
-        - handler: referrerRewardHandler
-          kind: substrate/EventHandler
-          filter:
-            module: xorFee
-            method: ReferrerRewarded
         - handler: demeterDepositHandler
           kind: substrate/CallHandler
           filter:
@@ -152,3 +123,67 @@ dataSources:
           filter:
             module: demeterFarmingPlatform
             method: getRewards
+
+        - handler: ethSoraTransferHandler
+          kind: substrate/EventHandler
+          filter:
+            module: ethBridge
+            method: IncomingRequestFinalized
+        - handler: ethSoraTransferHandler
+          kind: substrate/EventHandler
+          filter:
+            module: ethBridge
+            method: IncomingRequestFinalizationFailed
+        # burn token
+        - handler: handleTokenBurn
+          kind: substrate/EventHandler
+          filter:
+            module: tokens
+            method: Withdrawn
+        # burn XOR
+        - handler: handleXorBurn
+          kind: substrate/EventHandler
+          filter:
+            module: balances
+            method: Withdraw
+        # mint token
+        - handler: handleTokenMint
+          kind: substrate/EventHandler
+          filter:
+            module: tokens
+            method: Deposited
+        # mint XOR
+        - handler: handleXorMint
+          kind: substrate/EventHandler
+          filter:
+            module: balances
+            method: Deposit
+        - handler: handleNetworkFee
+          kind: substrate/EventHandler
+          filter:
+            module: xorFee
+            method: FeeWithdrawn
+        - handler: referrerRewardHandler
+          kind: substrate/EventHandler
+          filter:
+            module: xorFee
+            method: ReferrerRewarded
+
+        - handler: handleTransferEvent
+          kind: substrate/EventHandler
+          filter:
+            module: balances
+            method: Transfer
+        - handler: handleTransferEvent
+          kind: substrate/EventHandler
+          filter:
+            module: tokens
+            method: Transfer
+
+        - handler: syncPoolXykPrices
+          kind: substrate/BlockHandler
+
+        - handler: syncModels
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 50

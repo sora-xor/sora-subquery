@@ -1,6 +1,6 @@
 docker rm -f $(docker-compose ps -a -q)
-sudo rm -rf .data/
-sudo rm -rf dist/
+rm -rf .data/
+rm -rf dist/
 yarn
 yarn codegen
 yarn build

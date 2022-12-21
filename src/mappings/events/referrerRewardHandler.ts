@@ -1,5 +1,6 @@
 import { SubstrateEvent } from "@subql/types";
-import { ReferrerReward } from "../types";
+import { ReferrerReward } from "../../types";
+import { formatDateTimestamp } from '../../utils';
 
 export async function referrerRewardHandler(
 	event: SubstrateEvent
@@ -24,9 +25,7 @@ export async function referrerRewardHandler(
 		referrerReward.amount = BigInt(0);
 	}
 
-	referrerReward.updated = parseInt(
-		(event.block.timestamp.getTime() / 1000).toFixed(0)
-	);
+	referrerReward.updated = formatDateTimestamp(event.block.timestamp);
 
 	referrerReward.amount = referrerReward.amount + (BigInt(amount.toString()));
 

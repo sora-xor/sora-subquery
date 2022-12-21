@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { getAssetId, assignCommonHistoryElemInfo, updateHistoryElementAccounts } from "./utils";
+import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { getAssetId } from '../../utils/assets';
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -24,7 +25,7 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
     }
 
     await record.save();
-    await updateHistoryElementAccounts(record);
+    await updateHistoryElementStats(record);
 
     logger.debug(`===== Saved reward claim extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
