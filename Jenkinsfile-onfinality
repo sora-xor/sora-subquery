@@ -1,7 +1,7 @@
 @Library('jenkins-library')
 
 String agentLabel        = 'docker-build-agent'
-String envImageName      = 'node:14.16.1-buster-slim'
+String envImageName      = 'node:16.18.1-bullseye-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
@@ -39,12 +39,12 @@ pipeline {
 
 
     environment {
-        SUBQUERY_CLI_VERSION = '1.8.0'
-        SUBQUERY_INDEXER_VERSION = 'v1.14.1'
-        SUBQUERY_NODE_VERSION = 'v1.5.0'
-        SUBQUERY_CLI_VERSION_STAGING = '1.8.0'
-        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.14.1'
-        SUBQUERY_NODE_VERSION_STAGING = 'v1.5.0'
+        SUBQUERY_CLI_VERSION = '1.9.0'
+        SUBQUERY_INDEXER_VERSION = 'v1.16.0'
+        SUBQUERY_NODE_VERSION = 'v1.9.1'
+        SUBQUERY_CLI_VERSION_STAGING = '1.9.0'
+        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.16.0'
+        SUBQUERY_NODE_VERSION_STAGING = 'v1.9.1'
         SUBQUERY_ORG =  'sora-xor'
         SUBQUERY_PROJECT_DB = 'sora'
         matrix_chain = "sora-${targetEnvironment}"
@@ -124,9 +124,6 @@ pipeline {
                         sh """
                             npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                             apt-get update && apt-get install curl -y
-                            npm install -g typescript
-                            npm install tslib
-                            npm link typescript
                             yarn
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
@@ -154,11 +151,8 @@ pipeline {
                 script {
                     docker.image("${envImageName}").inside() {
                         sh """
-                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}    
+                            npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                             apt-get update && apt-get install curl -y
-                            npm install -g typescript
-                            npm install tslib
-                            npm link typescript
                             yarn
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
