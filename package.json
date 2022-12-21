@@ -8,6 +8,7 @@
     "prepack": "rm -rf dist && npm build",
     "test": "jest",
     "codegen": "./node_modules/.bin/subql codegen",
+    "config:chainId": "node ./scripts/chainId.js",
     "generate:defs": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package sora/api-interfaces --input ./src/api-interfaces/",
     "generate:meta": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --package sora/api-interfaces --endpoint ./src/api-interfaces/sora.json --output ./src/api-interfaces"
   },
@@ -18,19 +19,27 @@
     "schema.graphql",
     "project.yaml"
   ],
+  "resolutions": {
+    "ipfs-unixfs": "6.0.6"
+  },
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@polkadot/typegen": "^4.9.2",
-    "@subql/cli": "^0.23.0",
-    "@subql/node": "0.23.1",
-    "@subql/types": "^0.14.0",
+    "@polkadot/typegen": "8.9.1",
+    "@subql/cli": "1.9.1",
+    "@subql/node": "1.16.0",
+    "@subql/types": "1.7.0",
+    "read-yaml-file": "^2.1.0",
     "ts-node": "^8.6.2",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.3",
+    "write-yaml-file": "^4.2.0"
   },
   "dependencies": {
-    "@polkadot/api": "^4.9.2",
-    "@sora-substrate/type-definitions": "^1.6.9",
+    "@polkadot/api": "8.9.1",
+    "@sora-substrate/liquidity-proxy": "1.10.0-beta.6",
+    "@sora-substrate/math": "1.10.0-beta.6",
+    "@sora-substrate/type-definitions": "1.10.0-beta.6",
+    "@sora-substrate/types": "1.10.0-beta.6",
     "bignumber.js": "^9.0.1"
   }
 }
