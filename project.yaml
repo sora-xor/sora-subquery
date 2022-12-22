@@ -19,6 +19,11 @@ network:
     file: ./types.json
 dataSources:
   - kind: substrate/Runtime
+    # 37: 874156
+    # 38: 1971434
+    # 39: 2116789
+    # 40: 2422935
+    # 42: 2592952
     startBlock: 874156
     mapping:
       file: ./dist/index.js
