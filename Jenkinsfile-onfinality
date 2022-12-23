@@ -130,7 +130,7 @@ pipeline {
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
-                            sed -e 's/chainId:.'*'/&\'$HASH'/p'  project.yaml
+                            sed -i '/chainId:/s/'0'/'$HASH'/' ./project.yaml
                             subql deployment:deploy \
                             --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
                             --queryVersion=${SUBQUERY_NODE_VERSION} \
@@ -161,7 +161,7 @@ pipeline {
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
-                            sed -e 's/chainId:.*/&\'$HASH'/p' project.yaml
+                            sed -i '/chainId:/s/'0'/'$HASH'/' ./project.yaml
                             subql deployment:deploy \
                             --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
                             --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
