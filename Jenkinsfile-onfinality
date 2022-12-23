@@ -128,9 +128,9 @@ pipeline {
                             apt-get update && apt-get install curl -y
                             yarn
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+                            sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
-                            sed -i '/chainId:/s/'0'/'$HASH'/' ./project.yaml
                             subql deployment:deploy \
                             --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
                             --queryVersion=${SUBQUERY_NODE_VERSION} \
@@ -159,9 +159,9 @@ pipeline {
                             apt-get update && apt-get install curl -y
                             yarn
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+                            sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
-                            sed -i '/chainId:/s/'0'/'$HASH'/' ./project.yaml
                             subql deployment:deploy \
                             --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
                             --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
