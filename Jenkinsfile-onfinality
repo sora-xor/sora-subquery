@@ -5,6 +5,7 @@ String envImageName      = 'node:16.18.1-bullseye-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
+String chainId           = ''
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
@@ -50,6 +51,7 @@ pipeline {
         matrix_chain = "sora-${targetEnvironment}"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
         TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
+        HASH = "${chainId}"
     }
 
     stages {
@@ -125,6 +127,8 @@ pipeline {
                             npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                             apt-get update && apt-get install curl -y
                             yarn
+                            HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+                            sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                             subql deployment:deploy \
@@ -154,6 +158,8 @@ pipeline {
                             npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
                             apt-get update && apt-get install curl -y
                             yarn
+                            HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+                            sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                             subql deployment:deploy \
