@@ -8,7 +8,6 @@ String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
-    string(defaultValue: chainId, name: 'hash', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
