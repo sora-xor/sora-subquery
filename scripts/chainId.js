@@ -1,6 +1,5 @@
 const fetch = require('node-fetch');
 const readYamlFile = require('read-yaml-file');
-const writeYamlFile = require('write-yaml-file');
 
 const configPath = 'project.yaml';
 
@@ -25,17 +24,9 @@ async function main() {
     const responseData = await response.json();
     const chainId = responseData.result;
 
-    const updatedConfig = {
-      ...config,
-      network: {
-        ...(config.network || {}),
-        chainId,
-      },
-    };
-
-    await writeYamlFile(configPath, updatedConfig);
+    console.log(chainId);
   } catch (error) {
-    console.error(error);
+    console.log(0);
   }
 }
 
