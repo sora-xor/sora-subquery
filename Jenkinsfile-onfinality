@@ -5,7 +5,6 @@ String envImageName      = 'node:16.18.1-bullseye-slim'
 String subqueryToken     = 'subquery-token'
 String targetEnvironment =  'prod-sub4'
 String jobList           = '../sora2-' + targetEnvironment
-String chainId           = ''
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     booleanParam(defaultValue: false, name: 'fullClean'),
@@ -47,7 +46,6 @@ pipeline {
         matrix_chain = "sora-prod-sub4"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
         TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
-        HASH = "${chainId}"
     }
 
     stages {
