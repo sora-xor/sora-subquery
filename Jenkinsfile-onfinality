@@ -137,6 +137,7 @@ pipeline {
                             --org=${SUBQUERY_ORG} \
                             --indexerSubscription \
                             --querySubscription \
+                            --disableHistorical \
                             --useDefaults \
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
@@ -169,6 +170,7 @@ pipeline {
                             --useDefaults \
                             --indexerSubscription \
                             --querySubscription \
+                            --disableHistorical \
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
                             --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
