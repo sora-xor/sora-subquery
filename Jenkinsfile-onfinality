@@ -35,12 +35,12 @@ pipeline {
         }
     }
     environment {
-        SUBQUERY_CLI_VERSION = '1.9.0'
-        SUBQUERY_INDEXER_VERSION = 'v1.16.0'
-        SUBQUERY_NODE_VERSION = 'v1.9.1'
-        SUBQUERY_CLI_VERSION_STAGING = '1.9.0'
-        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.16.0'
-        SUBQUERY_NODE_VERSION_STAGING = 'v1.9.1'
+        SUBQUERY_CLI_VERSION = '1.10.1'
+        SUBQUERY_INDEXER_VERSION = 'v1.17.1'
+        SUBQUERY_NODE_VERSION = 'v1.10.1'
+        SUBQUERY_CLI_VERSION_STAGING = '1.10.1'
+        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.17.1'
+        SUBQUERY_NODE_VERSION_STAGING = 'v1.10.1'
         SUBQUERY_ORG =  'sora-xor'
         SUBQUERY_PROJECT_DB = 'sora'
         matrix_chain = "sora-prod-sub4"
@@ -110,6 +110,7 @@ pipeline {
                        --org=${SUBQUERY_ORG} \
                        --indexerSubscription \
                        --querySubscription \
+                       --disableHistorical \
                        --useDefaults \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
@@ -137,6 +138,7 @@ pipeline {
                        --useDefaults \
                        --indexerSubscription \
                        --querySubscription \
+                       --disableHistorical \
                        --ipfsCID=\$RESULT \
                        --projectName=${matrix_chain} \
                        --endpoint=wss://${endpoint} \
