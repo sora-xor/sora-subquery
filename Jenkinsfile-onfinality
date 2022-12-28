@@ -95,7 +95,7 @@ pipeline {
             }
         }
         stage('Creating a project if needed') {
-            when { anyOf {
+            when { allOf {
                 expression {params.fullClean}
                 expression {params.createProject}
                 }
