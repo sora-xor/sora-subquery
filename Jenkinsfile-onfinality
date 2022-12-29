@@ -8,10 +8,10 @@ String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
-    booleanParam(defaultValue: false, name: 'fullClean'),
-    booleanParam(defaultValue: false, name: 'createProject'),
+    booleanParam(defaultValue: true, name: 'fullClean'),
+    booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
-    booleanParam(defaultValue: false, name: 'prodSlot'),
+    booleanParam(defaultValue: true, name: 'prodSlot'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
 String telegramChatId    = 'telegram-deploy-chat-id'
