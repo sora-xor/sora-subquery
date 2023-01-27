@@ -148,11 +148,7 @@ pipeline {
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
                             --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
-<<<<<<< HEAD
                             echo "New deployment in production slot is executed from block from ${STARTBLOCK} block!"
-=======
-                            echo "New deployment in production slot is executed from ${STARTBLOCK} block!"
->>>>>>> f705d05810056804567431b5d9c07c0c235dac0f
                         """
                     }
                 }
