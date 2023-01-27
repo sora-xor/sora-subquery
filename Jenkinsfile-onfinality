@@ -6,10 +6,12 @@ String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
-String startBlock        = startBlock
+String startBlockProdSlot        = startBlockProdSlot
+String startBlockStageSlot       = startBlockStageSlot
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
-    string(defaultValue: '1', name: 'startBlock', trim: true),
+    string(defaultValue: '1', name: 'startBlockProdSlot', trim: true),
+    string(defaultValue: '1', name: 'startBlockStageSlot', trim: true),
     booleanParam(defaultValue: true, name: 'fullClean'),
     booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
@@ -54,7 +56,8 @@ pipeline {
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
         TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
         HASH = "${chainId}"
-        STARTBLOCK = "${startBlock}"
+        STARTBLOCK = "${startBlockProdSlot}"
+        STARTBLOCK_STG = "${startBlockStageSlot}"
     }
 
     stages {
@@ -129,7 +132,9 @@ pipeline {
                             apt-get update && apt-get install curl -y
                             yarn
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+                            STARTBLOCK=${STARTBLOCK}
                             sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
+                            sed -i '/startBlock:/s/1/'\$STARTBLOCK'/' project.yaml
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                             subql deployment:deploy \
@@ -161,8 +166,7 @@ pipeline {
                             apt-get update && apt-get install curl -y
                             yarn
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
-                            STARTBLOCK=${STARTBLOCK}
-                            echo \$STARTBLOCK
+                            STARTBLOCK=${STARTBLOCK_STG}
                             sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
                             sed -i '/startBlock:/s/1/'\$STARTBLOCK'/' project.yaml
                             yarn codegen
