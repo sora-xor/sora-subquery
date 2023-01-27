@@ -9,7 +9,7 @@ String chainId           = ''
 String startBlock        = '1'
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
-    string(defaultValue: startBlock, name: 'startblock', trim: true),
+    string(defaultValue: startBlock, name: 'startBlock', trim: true),
     booleanParam(defaultValue: true, name: 'fullClean'),
     booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
