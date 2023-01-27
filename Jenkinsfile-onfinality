@@ -6,8 +6,12 @@ String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
+String startBlock        = startBlock
+String startBlockStg        = startBlockStg
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
+    string(defaultValue: '1', name: 'startBlock', trim: true),
+    string(defaultValue: '1', name: 'startBlockStg', trim: true),
     booleanParam(defaultValue: true, name: 'fullClean'),
     booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
@@ -52,6 +56,8 @@ pipeline {
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
         TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
         HASH = "${chainId}"
+        STARTBLOCK = "${startBlock}"
+        STARTBLOCKSTG = "${startBlockStg}"
     }
 
     stages {
@@ -126,7 +132,9 @@ pipeline {
                             apt-get update && apt-get install curl -y
                             yarn
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+                            STARTBLOCK=${STARTBLOCK}
                             sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
+                            sed -i '/startBlock:/s/1/'\$STARTBLOCK'/' project.yaml
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                             subql deployment:deploy \
@@ -140,7 +148,7 @@ pipeline {
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
                             --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
-                            echo "New deployment in production slot is executed"
+                            echo "New deployment in production slot is executed from block from ${STARTBLOCK} block!"
                         """
                     }
                 }
@@ -158,7 +166,9 @@ pipeline {
                             apt-get update && apt-get install curl -y
                             yarn
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+                            STARTBLOCK=${STARTBLOCKSTG}
                             sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
+                            sed -i '/startBlock:/s/1/'\$STARTBLOCK'/' project.yaml
                             yarn codegen
                             RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
                             subql deployment:deploy \
@@ -173,7 +183,7 @@ pipeline {
                             --projectName=${matrix_chain} \
                             --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
                             --type=stage
-                            echo "New deployment in staging slot is executed"
+                            echo "New deployment in staging slot is executed from ${STARTBLOCKSTG} block!"
                         """
                     }
                 }
