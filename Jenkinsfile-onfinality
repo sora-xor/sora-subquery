@@ -11,7 +11,7 @@ String startBlockStg     = startBlockStg
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     string(defaultValue: '1', name: 'startBlock', trim: true),
-    tring(defaultValue: '1', name: 'startBlockStg', trim: true),
+    string(defaultValue: '1', name: 'startBlockStg', trim: true),
     booleanParam(defaultValue: true, name: 'fullClean'),
     booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
