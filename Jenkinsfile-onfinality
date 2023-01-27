@@ -7,7 +7,7 @@ String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
 String startBlock        = startBlock
-String startBlockStg        = startBlockStg
+String startBlockStg        = ''
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     string(defaultValue: '1', name: 'startBlock', trim: true),
