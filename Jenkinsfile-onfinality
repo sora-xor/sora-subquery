@@ -161,6 +161,7 @@ pipeline {
                             apt-get update && apt-get install curl -y
                             yarn
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+                            STARTBLOCK="${startBlock}"
                             sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
                             sed -i '/startBlock:/s/1/'\$STARTBLOCK'/' project.yaml
                             yarn codegen
