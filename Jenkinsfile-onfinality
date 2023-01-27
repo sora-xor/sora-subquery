@@ -6,7 +6,7 @@ String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
-String startBlock        = '1'
+String startBlock        = ''
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     string(defaultValue: startBlock, name: 'startBlock', trim: true),
@@ -161,7 +161,6 @@ pipeline {
                             apt-get update && apt-get install curl -y
                             yarn
                             HASH=\$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
-                            STARTBLOCK="${startBlock}"
                             sed -i '/chainId:/s/'0'/'\$HASH'/' project.yaml
                             sed -i '/startBlock:/s/1/'\$STARTBLOCK'/' project.yaml
                             yarn codegen
