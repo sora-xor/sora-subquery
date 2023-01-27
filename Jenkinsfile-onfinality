@@ -6,7 +6,7 @@ String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
-String startBlock        = startBlock
+String startBlock        = ''
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
     string(defaultValue: '1', name: 'startBlock', trim: true),
