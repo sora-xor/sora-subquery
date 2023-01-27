@@ -6,12 +6,12 @@ String subqueryToken     = 'subquery-token'
 String targetEnvironment =  getEnvFromJobName()
 String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
-String startBlockProdSlot        = startBlockProdSlot
-String startBlockStageSlot       = startBlockStageSlot
+String startBlock        = startBlock
+String startBlockStg     = startBlockStg
 List   jobParams         = [
     string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
-    string(defaultValue: '1', name: 'startBlockProdSlot', trim: true),
-    string(defaultValue: '1', name: 'startBlockStageSlot', trim: true),
+    string(defaultValue: '1', name: 'startBlock', trim: true),
+    tring(defaultValue: '1', name: 'startBlockStg', trim: true),
     booleanParam(defaultValue: true, name: 'fullClean'),
     booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
@@ -56,8 +56,8 @@ pipeline {
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
         TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
         HASH = "${chainId}"
-        STARTBLOCK = "${startBlockProdSlot}"
-        STARTBLOCK_STG = "${startBlockStageSlot}"
+        STARTBLOCK = "${startBlock}"
+        STARTBLOCK_STG = "${startBlockStg}"
     }
 
     stages {
