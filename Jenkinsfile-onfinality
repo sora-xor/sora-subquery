@@ -145,7 +145,7 @@ pipeline {
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
                             --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp
-                            echo "New deployment in production slot is executed"
+                            echo "New deployment in production slot is executed from ${STARTBLOCK} block!"
                         """
                     }
                 }
@@ -180,7 +180,7 @@ pipeline {
                             --projectName=${matrix_chain} \
                             --endpoint=wss://ws.framenode-${endpoint}.sora2.soramitsu.co.jp \
                             --type=stage
-                            echo "New deployment in staging slot is executed"
+                            echo "New deployment in staging slot is executed from ${STARTBLOCK} block!"
                         """
                     }
                 }
