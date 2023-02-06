@@ -9,9 +9,9 @@ export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, Snapshot
 export let assetPrecisions = new Map<string, number>();
 
 export const formatU128ToBalance = (u128: string, assetId: string): string => {
-  let decimals = assetPrecisions.get(assetId);
+  let decimals = assetPrecisions.get(assetId) ?? 18;
   let padded = u128.padStart(decimals + 1, "0");
-  if (decimals == 0) {
+  if (decimals === 0) {
       return padded
   }
   return `${padded.slice(0, -decimals)}.${padded.slice(-decimals)}`;
