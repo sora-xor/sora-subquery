@@ -146,6 +146,8 @@ class AssetSnapshotsStorage {
   }
 
   async updatePrice(assetId: string, price: string, blockTimestamp: number): Promise<void> {
+    await this.assetStorage.updatePrice(assetId, price);
+
     const bnPrice = new BigNumber(price);
 
     for (const type of AssetSnapshots) {
@@ -155,8 +157,6 @@ class AssetSnapshotsStorage {
       snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), bnPrice).toString();
       snapshot.priceUSD.low = BigNumber.min(new BigNumber(snapshot.priceUSD.low), bnPrice).toString();
     }
-
-    await this.assetStorage.updatePrice(assetId, price);
   }
 
   async updateVolume(assetId: string, amount: string, blockTimestamp: number): Promise<void> {
@@ -180,39 +180,39 @@ class AssetSnapshotsStorage {
   }
 
   async updateLiquidity(assetId: string, liquidity: bigint, blockTimestamp: number): Promise<void> {
+    const asset = await this.assetStorage.getAsset(assetId);
+
+    asset.liquidity = liquidity;
+
     for (const type of AssetSnapshots) {
       const snapshot = await this.getSnapshot(assetId, type, blockTimestamp);
 
       snapshot.liquidity = liquidity;
     }
-
-    const asset = await this.assetStorage.getAsset(assetId);
-
-    asset.liquidity = liquidity;
   }
 
   async updateMinted(assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {
+    const asset = await this.assetStorage.getAsset(assetId);
+
+    asset.supply = asset.supply + amount;
+
     for (const type of AssetSnapshots) {
       const snapshot = await this.getSnapshot(assetId, type, blockTimestamp);
 
       snapshot.mint = snapshot.mint + amount;
     }
-
-    const asset = await this.assetStorage.getAsset(assetId);
-
-    asset.supply = asset.supply + amount;
   }
 
   async updateBurned(assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {
+    const asset = await this.assetStorage.getAsset(assetId);
+
+    asset.supply = asset.supply - amount;
+
     for (const type of AssetSnapshots) {
       const snapshot = await this.getSnapshot(assetId, type, blockTimestamp);
 
       snapshot.burn = snapshot.burn + amount;
     }
-
-    const asset = await this.assetStorage.getAsset(assetId);
-
-    asset.supply = asset.supply - amount;
   }
 }
 
