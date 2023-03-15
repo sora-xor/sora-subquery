@@ -22,12 +22,16 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     let pswapPriceInDAI = new BigNumber(0);
     let liquiditiesUSD = new BigNumber(0);
 
-    for (const baseAssetId of BASE_ASSETS) {
-        const pools: Array<PoolXYK> = [];
+    let baseAssetWithDoublePoolsPrice = new BigNumber(0);
 
+    const pools: Record<string, PoolXYK[]> = {};
+
+    for (const baseAssetId of BASE_ASSETS) {
         const poolsMap = poolAccounts.getMap(baseAssetId);
 
         if (!poolsMap) continue;
+
+        pools[baseAssetId] = [];
 
         let baseAssetInPools = new BigNumber(0);
         let baseAssetWithDoublePools = new BigNumber(0);
@@ -60,13 +64,15 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                 (assetsLockedInPools.get(pool.targetAssetId) || BigInt(0)) + pool.targetAssetReserves,
             );
 
-            pools.push(pool);
+            pools[baseAssetId].push(pool);
         }
+
+        baseAssetWithDoublePoolsPrice = baseAssetWithDoublePoolsPrice.plus(baseAssetWithDoublePools.multipliedBy(baseAssetPriceInDAI));
 
         // If base asset has price in DAI
         if (!baseAssetPriceInDAI.isZero()) {
             // update pools prices
-            pools.forEach(p => {
+            pools[baseAssetId].forEach(p => {
                 const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
                 const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
                 const daiPrice = baseAssetReserves
@@ -75,22 +81,11 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
                 p.priceUSD = daiPrice.toFixed(18);
 
-                // update pswap price (scope)
-                if (p.targetAssetId === PSWAP && pswapPriceInDAI.isZero()) {
+                // update PSWAP price (price from pair with XOR)
+                if (p.targetAssetId === PSWAP && p.baseAssetId === XOR) {
                     pswapPriceInDAI = daiPrice;
                 }
             });
-
-            if (!pswapPriceInDAI.isZero()) {
-                pools.forEach(p => {
-                    const strategicBonusApy = ((
-                        (pswapPriceInDAI.multipliedBy(new BigNumber(2500000)))
-                        .dividedBy(baseAssetPriceInDAI.multipliedBy(baseAssetWithDoublePools.dividedBy(Math.pow(10, 18)))))
-                        .multipliedBy(new BigNumber(365 / 2)))
-                        .multipliedBy(new BigNumber((p.multiplier)));
-                    p.strategicBonusApy = strategicBonusApy.toFixed(18);
-                });
-            }
         }
 
         const baseAssetInPoolsFormatted = formatU128ToBalance(baseAssetInPools.toFixed(0), baseAssetId);
@@ -104,11 +99,28 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
         // update price samples
         if (baseAssetId === XOR) {
-            for (const pool of pools) {
+            for (const pool of pools[baseAssetId]) {
                 await assetSnapshotsStorage.updatePrice(pool.targetAssetId, pool.priceUSD, blockTimestamp);
             }
 
             await assetSnapshotsStorage.updatePrice(baseAssetId, baseAssetPriceInDAI.toFixed(18), blockTimestamp);
+        }
+    }
+
+    // update pools SB_APY
+    if (!pswapPriceInDAI.isZero()) {
+        const pswapsPerDay = new BigNumber(2_500_000);
+
+        for (const baseAssetId of BASE_ASSETS) {
+            pools[baseAssetId].forEach(p => {
+                const strategicBonusApy =
+                    pswapPriceInDAI.multipliedBy(pswapsPerDay)
+                    .dividedBy(baseAssetWithDoublePoolsPrice.dividedBy(Math.pow(10, 18)))
+                    .multipliedBy(new BigNumber(365 / 2))
+                    .multipliedBy(new BigNumber(p.multiplier));
+
+                p.strategicBonusApy = strategicBonusApy.toFixed(18);
+            });
         }
     }
 
