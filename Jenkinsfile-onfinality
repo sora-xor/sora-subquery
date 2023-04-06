@@ -145,6 +145,7 @@ pipeline {
                             --org=${SUBQUERY_ORG} \
                             --indexerSubscription \
                             --querySubscription \
+                            --queryTimeout=20000ms \
                             --disableHistorical \
                             --useDefaults \
                             --ipfsCID=\$RESULT \
@@ -180,6 +181,7 @@ pipeline {
                             --useDefaults \
                             --indexerSubscription \
                             --querySubscription \
+                            --queryTimeout=20000ms \
                             --disableHistorical \
                             --ipfsCID=\$RESULT \
                             --projectName=${matrix_chain} \
