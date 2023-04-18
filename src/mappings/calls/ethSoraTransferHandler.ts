@@ -5,7 +5,7 @@ import type { EventRecord } from "@polkadot/types/interfaces";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
-import { getTransferEventData, isAssetTransferEvent } from '../../utils/events';
+import { getDepositedEventData, getTransferEventData, isAssetDepositedEvent, isAssetTransferEvent } from '../../utils/events';
 
 export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: SubstrateEvent): Promise<void> {
 
@@ -13,13 +13,15 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
 
     const extrinsic = incomingRequestFinalizationEvent.extrinsic
     const registeredRequestEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered' && e.event.section === 'ethBridge')
-    const currenciesEvent = extrinsic.events.find(e => isAssetTransferEvent(e));
+    const currenciesEvent = extrinsic.events.find(e => isAssetDepositedEvent(e) || isAssetTransferEvent(e));
 
     if (!registeredRequestEvent || !currenciesEvent) return;
 
     const {event: {data: [requestHash]}} = registeredRequestEvent
 
-    const { assetId, amount, to } = getTransferEventData(currenciesEvent as EventRecord)
+    const { assetId, amount, to } = isAssetDepositedEvent(currenciesEvent)
+        ? getDepositedEventData(currenciesEvent as EventRecord)
+        : getTransferEventData(currenciesEvent);
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
