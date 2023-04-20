@@ -15,7 +15,7 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
         const rewards = extrinsic.events.reduce((buffer, e) => {
             if (isAssetTransferEvent(e)) {
                 const { assetId, amount } = getTransferEventData(e);
-                buffer.push({ assetId: getAssetId(assetId), amount: amount.toString() });
+                buffer.push({ assetId, amount });
             }
             return buffer;
         }, []);
