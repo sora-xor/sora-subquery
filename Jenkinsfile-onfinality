@@ -15,7 +15,7 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'fullClean'),
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
-    booleanParam(defaultValue: false, name: 'prodSlot'),
+    booleanParam(defaultValue: true, name: 'prodSlot'),
     ]
 String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.s1.stg1'
 String telegramChatId    = 'telegram-deploy-chat-id'
@@ -101,10 +101,8 @@ pipeline {
             }
         }
         stage('Creating a project if needed') {
-            when { anyOf {
-                expression {params.fullClean}
+            when {
                 expression {params.createProject}
-                }
             }
             steps {
                 script {
