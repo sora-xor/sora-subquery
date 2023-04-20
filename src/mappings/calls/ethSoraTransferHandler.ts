@@ -1,6 +1,5 @@
 
 import type { SubstrateEvent } from "@subql/types";
-import type { EventRecord } from "@polkadot/types/interfaces";
 
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { formatU128ToBalance } from '../../utils/assets';
@@ -20,7 +19,7 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
     const {event: {data: [requestHash]}} = registeredRequestEvent
 
     const { assetId, amount, to } = isAssetDepositedEvent(currenciesEvent)
-        ? getDepositedEventData(currenciesEvent as EventRecord)
+        ? getDepositedEventData(currenciesEvent)
         : getTransferEventData(currenciesEvent);
 
     const record = assignCommonHistoryElemInfo(extrinsic)
