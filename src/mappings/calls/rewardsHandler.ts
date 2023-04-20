@@ -1,6 +1,7 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId } from '../../utils/assets';
+import { isAssetTransferEvent, getTransferEventData } from '../../utils/events';
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -12,9 +13,9 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
 
         let details = new Object();
         const rewards = extrinsic.events.reduce((buffer, e) => {
-            if (e.event.method === 'Transfer' && e.event.section === 'tokens') {
-                const { event: { data: [asset, , , amount] } } = e;
-                buffer.push({ assetId: getAssetId(asset), amount: amount.toString() });
+            if (isAssetTransferEvent(e)) {
+                const { assetId, amount } = getTransferEventData(e);
+                buffer.push({ assetId: getAssetId(assetId), amount: amount.toString() });
             }
             return buffer;
         }, []);
