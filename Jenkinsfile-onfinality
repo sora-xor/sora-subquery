@@ -17,7 +17,7 @@ List   jobParams         = [
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     booleanParam(defaultValue: true, name: 'prodSlot'),
     ]
-String endpoint          = targetEnvironment == 'dev' ? '3.s3.dev' : '1.v1.tst'
+String endpoint          = targetEnvironment == 'dev' ? '1.r0.dev' : '1.v1.tst'
 String telegramChatId    = 'telegram-deploy-chat-id'
 Boolean statusNotif      = true
 String registry               = 'docker.soramitsu.co.jp'
