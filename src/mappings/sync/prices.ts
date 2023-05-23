@@ -112,15 +112,17 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         const pswapsPerDay = new BigNumber(2_500_000);
 
         for (const baseAssetId of BASE_ASSETS) {
-            pools[baseAssetId].forEach(p => {
-                const strategicBonusApy =
-                    pswapPriceInDAI.multipliedBy(pswapsPerDay)
-                    .dividedBy(baseAssetWithDoublePoolsPrice.dividedBy(Math.pow(10, 18)))
-                    .multipliedBy(new BigNumber(365 / 2))
-                    .multipliedBy(new BigNumber(p.multiplier));
-
-                p.strategicBonusApy = strategicBonusApy.toFixed(18);
-            });
+            if (Array.isArray(pools[baseAssetId])) {
+                pools[baseAssetId].forEach(p => {
+                    const strategicBonusApy =
+                        pswapPriceInDAI.multipliedBy(pswapsPerDay)
+                        .dividedBy(baseAssetWithDoublePoolsPrice.dividedBy(Math.pow(10, 18)))
+                        .multipliedBy(new BigNumber(365 / 2))
+                        .multipliedBy(new BigNumber(p.multiplier));
+    
+                    p.strategicBonusApy = strategicBonusApy.toFixed(18);
+                });
+            }
         }
     }
 
