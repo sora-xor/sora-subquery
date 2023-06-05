@@ -7,12 +7,18 @@ export async function handleBandRateUpdate(event: SubstrateEvent): Promise<void>
   const { event: { data } } = event;
   const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
-  for (const eventItem of data) {
-    const [ticker, rate] = eventItem as any;
-    const referenceSymbol = getTickerSymbol(ticker);
-    const syntheticAssetId = tickerSyntheticAssetId.get(referenceSymbol);
-    const price = formatU128ToBalance(rate.toString(), syntheticAssetId);
+  for (const vec of data) {
+    for (const [ticker, rate] of vec as any) {
+      const referenceSymbol = getTickerSymbol(ticker);
+      const syntheticAssetId = tickerSyntheticAssetId.get(referenceSymbol);
 
-    await assetSnapshotsStorage.updatePrice(syntheticAssetId, price, blockTimestamp);
+      if (syntheticAssetId) {
+        const price = formatU128ToBalance(rate.toString(), syntheticAssetId);
+
+        logger.debug(`Synthetic asset price update ${syntheticAssetId}: ${price}`);
+
+        await assetSnapshotsStorage.updatePrice(syntheticAssetId, price, blockTimestamp);
+      }
+    }
   }
 }

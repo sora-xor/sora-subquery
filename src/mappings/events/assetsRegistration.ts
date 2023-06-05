@@ -25,5 +25,7 @@ export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promis
   // synthetic assets always have 18 decimals
   assetPrecisions.set(assetId, 18);
 
+  logger.debug(`Synthetic asset enabled ${assetId}, referenceSymbol ${referenceSymbol}`);
+
   await assetStorage.getAsset(assetId);
 }

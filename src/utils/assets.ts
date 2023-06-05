@@ -1,3 +1,5 @@
+import { TextDecoder } from 'util';
+
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
@@ -25,7 +27,8 @@ export const getAssetId = (asset: any): string => {
 };
 
 export const getTickerSymbol = (ticker: any): string => {
-  return new TextDecoder().decode(ticker);
+  const result = new TextDecoder().decode(ticker);
+  return result;
 };
 
 class AssetStorage {
