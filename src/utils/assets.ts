@@ -8,6 +8,9 @@ export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, Snapshot
 
 export let assetPrecisions = new Map<string, number>();
 
+// <ticker string, assetId string>
+export let tickerSyntheticAssetId = new Map<string, string>();
+
 export const formatU128ToBalance = (u128: string, assetId: string): string => {
   let decimals = assetPrecisions.get(assetId) ?? 18;
   let padded = u128.padStart(decimals + 1, "0");
@@ -19,6 +22,10 @@ export const formatU128ToBalance = (u128: string, assetId: string): string => {
 
 export const getAssetId = (asset: any): string => {
   return (asset?.code?.code ?? asset?.code ?? asset).toHuman();
+};
+
+export const getTickerSymbol = (ticker: any): string => {
+  return new TextDecoder().decode(ticker);
 };
 
 class AssetStorage {

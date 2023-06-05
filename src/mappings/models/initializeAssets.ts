@@ -1,6 +1,6 @@
 import type { SubstrateBlock } from "@subql/types";
 
-import { assetPrecisions, getAssetId, assetStorage } from '../../utils/assets';
+import { assetPrecisions, getAssetId, assetStorage, tickerSyntheticAssetId, getTickerSymbol } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
 
 let isFirstBlockIndexed = false;
@@ -13,6 +13,19 @@ export const getAssetInfos = async () => {
       return data;
     } catch (e) {
       logger.error("Error getting Asset infos");
+      logger.error(e);
+      return null;
+    }
+};
+
+export const getSyntheticAssets = async () => {
+    try {
+      logger.debug(`Synthetic assets request...`);
+      const data = await api.query.xstPool.enabledSynthetics.entries();
+      logger.debug(`Synthetic assets request completed.`);
+      return data;
+    } catch (e) {
+      logger.error("Error getting Synthetic assets");
       logger.error(e);
       return null;
     }
@@ -53,10 +66,12 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     const [
         assetInfos,
+        syntheticAssets,
         tokensIssuances,
         xorIssuance,
     ] = await Promise.all([
         getAssetInfos(),
+        getSyntheticAssets(),
         getTokensIssuances(),
         getXorIssuance()
     ]);
@@ -79,6 +94,21 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
             const assetId = getAssetId(assetCodec);
 
             assetPrecisions.set(assetId, value[2].toNumber());
+
+            create(assetId);
+        }
+    }
+
+    if (syntheticAssets) {
+        for (const [{args: [assetCodec]}, value] of assetInfos) {
+            const assetId = getAssetId(assetCodec);
+            const data = value.toHuman() as any;
+            const referenceSymbol = data.referenceSymbol;
+
+            assetPrecisions.set(assetId, 18);
+            tickerSyntheticAssetId.set(referenceSymbol, assetId);
+
+            logger.debug(`[${blockNumber}]: ${referenceSymbol} ticker and synthetic asset ${assetId} added`);
 
             create(assetId);
         }
