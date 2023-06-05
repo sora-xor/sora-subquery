@@ -28,6 +28,24 @@ dataSources:
         - handler: initializePools
           kind: substrate/BlockHandler
 
+        - handler: handleAssetRegistration
+          kind: substrate/EventHandler
+          filter:
+            module: assets
+            method: AssetRegistered
+
+        - handler: handleSyntheticAssetEnabled
+          kind: substrate/EventHandler
+          filter:
+            module: xstPool
+            method: SyntheticAssetEnabled
+
+        - handler: handleBandRateUpdate
+          kind: substrate/EventHandler
+          filter:
+            module: band
+            method: SymbolsRelayed
+
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
           filter:
