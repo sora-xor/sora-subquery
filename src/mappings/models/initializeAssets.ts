@@ -1,6 +1,6 @@
 import type { SubstrateBlock } from "@subql/types";
 
-import { assetPrecisions, getAssetId, assetStorage, formatU128ToBalance, tickerSyntheticAssetId } from '../../utils/assets';
+import { assetPrecisions, getAssetId, assetStorage } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
 
 let isFirstBlockIndexed = false;
@@ -13,32 +13,6 @@ export const getAssetInfos = async () => {
       return data;
     } catch (e) {
       logger.error("Error getting Asset infos");
-      logger.error(e);
-      return null;
-    }
-};
-
-export const getSyntheticAssets = async () => {
-    try {
-      logger.debug(`Synthetic assets request...`);
-      const data = await api.query.xstPool.enabledSynthetics.entries();
-      logger.debug(`Synthetic assets request completed.`);
-      return data;
-    } catch (e) {
-      logger.error("Error getting Synthetic assets");
-      logger.error(e);
-      return null;
-    }
-};
-
-export const getBandRates = async () => {
-    try {
-      logger.debug(`Band rates request...`);
-      const data = await api.query.band.symbolRates.entries();
-      logger.debug(`Band rates request completed.`);
-      return data;
-    } catch (e) {
-      logger.error("Error getting Band rates");
       logger.error(e);
       return null;
     }
@@ -79,14 +53,10 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     const [
         assetInfos,
-        syntheticAssets,
-        bandRates,
         tokensIssuances,
         xorIssuance,
     ] = await Promise.all([
         getAssetInfos(),
-        getSyntheticAssets(),
-        getBandRates(),
         getTokensIssuances(),
         getXorIssuance()
     ]);
@@ -111,41 +81,6 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
             assetPrecisions.set(assetId, value[2].toNumber());
 
             create(assetId);
-        }
-    }
-
-    if (syntheticAssets) {
-        for (const [{args: [assetCodec]}, value] of syntheticAssets) {
-            const assetId = getAssetId(assetCodec);
-            const data = value.toHuman() as any;
-            const referenceSymbol = data.referenceSymbol;
-
-            assetPrecisions.set(assetId, 18);
-            tickerSyntheticAssetId.set(referenceSymbol, assetId);
-
-            logger.debug(`[${blockNumber}]: ${referenceSymbol} ticker and synthetic asset ${assetId} added`);
-
-            create(assetId);
-        }
-    }
-
-    if (bandRates) {
-        for (const [{args: [ticker]}, data] of bandRates) {
-            const referenceSymbol = ticker.toHuman() as string;
-            const assetId = tickerSyntheticAssetId.get(referenceSymbol);
-
-            if (!assetId) {
-                continue;
-            }
-
-            create(assetId);
-
-            const price = (data as any).value.value.toString();
-            const priceUSD = formatU128ToBalance(price, assetId);
-
-            logger.debug(`${referenceSymbol} ticker price: ${priceUSD}`);
-
-            assets.get(assetId).priceUSD = priceUSD;
         }
     }
 

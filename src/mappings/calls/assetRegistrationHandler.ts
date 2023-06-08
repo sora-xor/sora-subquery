@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
-import { getAssetId } from '../../utils/assets';
+import { assetPrecisions, getAssetId, assetStorage } from '../../utils/assets';
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 
@@ -12,22 +12,31 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
     if (record.execution.success) {
 
-        const assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
+        let assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
         const { event: { data: [asset] } } = assetRegistrationEvent;
 
-        const assetId: string = getAssetId(asset);
+        let assetId: string = getAssetId(asset);
 
         details = {
             assetId: assetId
         }
+
+        if (!assetPrecisions.has(assetId)) {
+            const [, , precision,] = await api.query.assets.assetInfos(assetId) as any;
+            assetPrecisions.set(assetId, precision.toNumber());
+        }
+
+        await assetStorage.getAsset(assetId);
     }
 
     else {
+
         const { extrinsic: { args: [symbol, ,] } } = extrinsic;
 
         details = {
             assetId: symbol.toHuman()
         }
+
     }
 
     record.data = details
