@@ -1,3 +1,5 @@
+import { TextDecoder } from 'util';
+
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
@@ -7,6 +9,9 @@ import { networkSnapshotsStorage } from '../utils/network';
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
 export let assetPrecisions = new Map<string, number>();
+
+// <ticker string, assetId string>
+export let tickerSyntheticAssetId = new Map<string, string>();
 
 export const formatU128ToBalance = (u128: string, assetId: string): string => {
   let decimals = assetPrecisions.get(assetId) ?? 18;
@@ -19,6 +24,11 @@ export const formatU128ToBalance = (u128: string, assetId: string): string => {
 
 export const getAssetId = (asset: any): string => {
   return (asset?.code?.code ?? asset?.code ?? asset).toHuman();
+};
+
+export const getTickerSymbol = (ticker: any): string => {
+  const result = new TextDecoder().decode(ticker);
+  return result;
 };
 
 class AssetStorage {
