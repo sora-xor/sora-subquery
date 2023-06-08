@@ -19,14 +19,16 @@ export async function referrerRewardHandler(
 	let referrerReward = await ReferrerReward.get(key);
 
 	if (!referrerReward) {
-		referrerReward = new ReferrerReward(key);
-		referrerReward.referral = referree.toString();
-		referrerReward.referrer = referrer.toString();
-		referrerReward.amount = BigInt(0);
+		referrerReward = new ReferrerReward(
+			key,
+			referree.toString(),
+			referrer.toString(),
+			formatDateTimestamp(event.block.timestamp),
+			BigInt(0)
+		);
 	}
 
 	referrerReward.updated = formatDateTimestamp(event.block.timestamp);
-
 	referrerReward.amount = referrerReward.amount + (BigInt(amount.toString()));
 
 	await referrerReward.save();

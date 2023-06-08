@@ -23,20 +23,23 @@ const getExtrinsicNetworkFee = (extrinsic: SubstrateExtrinsic): string => {
 }
 
 export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): HistoryElement => {
-  const record = new HistoryElement(extrinsic.extrinsic.hash.toString())
+  const id = extrinsic.extrinsic.hash.toString();
+  const blockHeight = extrinsic.block.block.header.number.toBigInt()
+  const blockHash = extrinsic.block.block.header.hash.toString()
+  const module = extrinsic.extrinsic.method.section
+  const method = extrinsic.extrinsic.method.method
+  const address = extrinsic.extrinsic.signer.toString()
+  const networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic), XOR)
+  const execution = {
+    success: true
+  };
+  const timestamp = formatDateTimestamp(extrinsic.block.timestamp)
 
-  record.blockHeight = extrinsic.block.block.header.number.toBigInt()
-  record.blockHash = extrinsic.block.block.header.hash.toString()
-  record.module = extrinsic.extrinsic.method.section
-  record.method = extrinsic.extrinsic.method.method
-  record.address = extrinsic.extrinsic.signer.toString()
-  record.networkFee = formatU128ToBalance(getExtrinsicNetworkFee(extrinsic), XOR)
-  record.timestamp = formatDateTimestamp(extrinsic.block.timestamp)
+  const record = new HistoryElement(id, blockHeight, blockHash, module, method, address, networkFee, execution, timestamp);
 
   let failedEvent = extrinsic.events.find(e => e.event.method === 'ExtrinsicFailed');
 
   if (failedEvent) {
-
       record.execution = {
           success: false
       }
@@ -56,13 +59,6 @@ export const assignCommonHistoryElemInfo = (extrinsic: SubstrateExtrinsic): Hist
               nonModuleErrorMessage: error.toString()
           }
 
-      }
-
-  }
-
-  else {
-      record.execution = {
-          success: true
       }
   }
 

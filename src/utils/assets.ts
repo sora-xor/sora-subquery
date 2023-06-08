@@ -41,10 +41,7 @@ class AssetStorage {
     let asset = await Asset.get(id);
 
     if (!asset) {
-      asset = new Asset(id);
-      asset.liquidity = BigInt(0);
-      asset.priceUSD = '0';
-      asset.supply = BigInt(0);
+      asset = new Asset(id, '0', BigInt(0), BigInt(0));
 
       await asset.save();
 
@@ -118,20 +115,21 @@ class AssetSnapshotsStorage {
       const timestamp = shapshotIndex * seconds; // rounded snapshot timestamp
       const asset = await this.assetStorage.getAsset(assetId);
 
-      snapshot = new AssetSnapshot(id);
-      snapshot.assetId = assetId;
-      snapshot.timestamp = timestamp;
-      snapshot.type = type;
-      // set current asset supply & liquidity on creation
+      snapshot = new AssetSnapshot(
+        id,
+        assetId,
+        timestamp,
+        type,
+        asset.supply,
+        BigInt(0),
+        BigInt(0)
+      );
+      // optional fields
       snapshot.liquidity = asset.liquidity;
-      snapshot.supply = asset.supply;
-      snapshot.mint = BigInt(0);
-      snapshot.burn = BigInt(0);
       snapshot.volume = {
         amount: '0',
         amountUSD: '0'
       };
-      // set current asset price on creation
       snapshot.priceUSD = {
         open: asset.priceUSD,
         close: asset.priceUSD,
