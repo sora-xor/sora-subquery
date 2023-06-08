@@ -25,8 +25,9 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     let baseAssetWithDoublePoolsPrice = new BigNumber(0);
 
     const pools: Record<string, PoolXYK[]> = {};
+    const assetsPrices: Record<string, { reserves: bigint; price: string; }> = {};
 
-    for (const baseAssetId of BASE_ASSETS) {
+    for (const baseAssetId of [...BASE_ASSETS].reverse()) {
         const poolsMap = poolAccounts.getMap(baseAssetId);
 
         if (!poolsMap) continue;
@@ -98,13 +99,18 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         );
 
         // update price samples
-        if (baseAssetId === XOR) {
-            for (const pool of pools[baseAssetId]) {
-                await assetSnapshotsStorage.updatePrice(pool.targetAssetId, pool.priceUSD, blockTimestamp);
+        for (const pool of pools[baseAssetId]) {
+            if (!assetsPrices[pool.targetAssetId] || assetsPrices[pool.targetAssetId].reserves < pool.targetAssetReserves) {
+                assetsPrices[pool.targetAssetId] = {
+                    reserves: pool.targetAssetReserves,
+                    price: pool.priceUSD,
+                };
             }
-
-            await assetSnapshotsStorage.updatePrice(baseAssetId, baseAssetPriceInDAI.toFixed(18), blockTimestamp);
         }
+        assetsPrices[baseAssetId] = {
+            reserves: BigInt(0),
+            price: baseAssetPriceInDAI.toFixed(18),
+        };
     }
 
     // update pools SB_APY
@@ -124,6 +130,11 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                 });
             }
         }
+    }
+
+    // update assets prices
+    for (const [assetId, { price }] of Object.entries(assetsPrices)) {
+        await assetSnapshotsStorage.updatePrice(assetId, price, blockTimestamp);
     }
 
     // update locked luqidity for assets
