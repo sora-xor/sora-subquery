@@ -3,6 +3,7 @@ export * from "./mappings/models/initializeAssets";
 export * from "./mappings/models/initializePools";
 
 export * from './mappings/calls/swapsHandler';
+export * from './mappings/calls/swapTransferBatchHandler';
 export * from './mappings/calls/transfersHandler';
 export * from './mappings/calls/liquidityDepositHandler';
 export * from './mappings/calls/liquidityRemovalHandler';
