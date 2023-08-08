@@ -1,7 +1,9 @@
 import { SubstrateExtrinsic } from '@subql/types';
+import BigNumber from "bignumber.js";
 
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
+import { networkSnapshotsStorage } from '../../utils/network';
 import { XOR } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
 
@@ -91,8 +93,12 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 
     // update assets volume
     if (record.execution.success) {
-        await assetSnapshotsStorage.updateVolume(baseAssetId, details.baseAssetAmount, blockTimestamp);
-        await assetSnapshotsStorage.updateVolume(targetAssetId, details.targetAssetAmount, blockTimestamp);
+        const aVolumeUSD = await assetSnapshotsStorage.updateVolume(baseAssetId, details.baseAssetAmount, blockTimestamp);
+        const bVolumeUSD = await assetSnapshotsStorage.updateVolume(targetAssetId, details.targetAssetAmount, blockTimestamp);
+        // get the minimal volume (sell\buy)
+        const volumeUSD = BigNumber.min(aVolumeUSD, bVolumeUSD);
+
+        await networkSnapshotsStorage.updateVolumeStats(volumeUSD, blockTimestamp);
     }
 }
 
