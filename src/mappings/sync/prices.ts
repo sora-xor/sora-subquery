@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../../types";
 
-import { formatU128ToBalance, assetSnapshotsStorage, assetStorage } from '../../utils/assets';
+import { formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS } from '../../utils/consts';
