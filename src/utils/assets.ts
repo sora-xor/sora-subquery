@@ -3,8 +3,7 @@ import { TextDecoder } from 'util';
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
-import { SnapshotSecondsMap, XOR, DAI } from './consts';
-import { networkSnapshotsStorage } from '../utils/network';
+import { SnapshotSecondsMap, DAI } from './consts';
 
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
@@ -174,7 +173,7 @@ class AssetSnapshotsStorage {
     await this.assetStorage.updatePrice(assetId, price);
   }
 
-  async updateVolume(assetId: string, amount: string, blockTimestamp: number): Promise<void> {
+  async updateVolume(assetId: string, amount: string, blockTimestamp: number): Promise<BigNumber> {
     const asset = await this.assetStorage.getAsset(assetId);
 
     const assetPrice = DAI === assetId
@@ -191,7 +190,7 @@ class AssetSnapshotsStorage {
       snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toFixed(2);
     }
 
-    await networkSnapshotsStorage.updateVolumeStats(volumeUSD, blockTimestamp);
+    return volumeUSD;
   }
 
   async updateLiquidity(assetId: string, liquidity: bigint, blockTimestamp: number): Promise<void> {
