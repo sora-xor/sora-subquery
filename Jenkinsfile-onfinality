@@ -1,5 +1,6 @@
 @Library('jenkins-library@feature/dops-2583/subqd_lib')
 
+def pipeline = new org.subqd.AppPipeline(steps: this,
 List jobParams  = [
     string(defaultValue: project, name: 'project', trim: true),
     string(defaultValue: '1', name: 'startBlock', trim: true),
@@ -9,8 +10,6 @@ List jobParams  = [
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     booleanParam(defaultValue: true, name: 'prodSlot')
 ]
-
-def pipeline = new org.subqd.AppPipeline(steps: this,
       validate: true,
       subqOrg: 'sora-xor',
       sbuqDB: 'sora-xor',
