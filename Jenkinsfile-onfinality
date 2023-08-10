@@ -1,19 +1,19 @@
 @Library('jenkins-library@feature/dops-2583/subqd_lib')
 
 def pipeline = new org.subqd.AppPipeline(steps: this,
-List jobParams  = [
-    string(defaultValue: project, name: 'project', trim: true),
-    string(defaultValue: '1', name: 'startBlock', trim: true),
-    string(defaultValue: '1', name: 'startBlockStg', trim: true),
-    booleanParam(defaultValue: true, name: 'fullClean'),
-    booleanParam(defaultValue: true, name: 'createProject'),
-    booleanParam(defaultValue: false, name: 'stagingSlot'),
-    booleanParam(defaultValue: true, name: 'prodSlot')
-]
-      validate: true,
-      subqOrg: 'sora-xor',
-      sbuqDB: 'sora-xor',
-      project: 'sora-dev',
-      endpoint: 'ws.framenode-1.r0.dev.sora2.soramitsu.co.jp'
+    jobParams  = [
+        string(defaultValue: project, name: 'project', trim: true),
+        string(defaultValue: '1', name: 'startBlock', trim: true),
+        string(defaultValue: '1', name: 'startBlockStg', trim: true),
+        booleanParam(defaultValue: true, name: 'fullClean'),
+        booleanParam(defaultValue: true, name: 'createProject'),
+        booleanParam(defaultValue: false, name: 'stagingSlot'),
+        booleanParam(defaultValue: true, name: 'prodSlot')
+    ]
+    validate: true,
+    subqOrg: 'sora-xor',
+    sbuqDB: 'sora-xor',
+    project: 'sora-dev',
+    endpoint: 'ws.framenode-1.r0.dev.sora2.soramitsu.co.jp'
 )
 pipeline.runPipeline()
