@@ -1,5 +1,7 @@
 @Library('jenkins-library@feature/dops-2583/subqd_lib')
 
+def pr
+
 def jobParams  = [
     string(defaultValue: project, name: 'sora-dev', trim: true),
     string(defaultValue: '1', name: 'startBlock', trim: true),
