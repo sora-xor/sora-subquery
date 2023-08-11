@@ -1,9 +1,8 @@
 #!/bin/bash
-
 set -e
 
 # deleteProject
-if [[ $fullClean = true ]]; then
+if [ $fullClean = true ]; then
     echo "👷‍♂️ Start deleting project..."
     subql project:delete-project \
     --org=$SUBQUERY_ORG \
@@ -12,7 +11,7 @@ if [[ $fullClean = true ]]; then
 fi
 
 # Create Project
-if [[ $createProject = true || $fullClean = true]]; then
+if [ $createProject = true ] || [ $fullClean = true]; then
     echo "👷‍♂️ Start creating project..."
     subql project:create-project \
     --org=$SUBQUERY_ORG \
@@ -23,7 +22,7 @@ if [[ $createProject = true || $fullClean = true]]; then
 fi
 
 # Deploying project
-if [[ $prodslot = true || $createProject = true ]] || [[ $fullClean = true ]] || [[ $stageSlot = true ]]; then
+if [ $prodslot = true || $createProject = true ] || [ $fullClean = true ] || [ $stageSlot = true ]; then
     yarn
     RESULT=$(subql publish -f project.yaml  | grep -oP ': \K.*')
     HASH=$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
@@ -45,7 +44,7 @@ if [[ $prodslot = true || $createProject = true ]] || [[ $fullClean = true ]] ||
         --projectName=$project \
         --endpoint=$endpoint
         echo "✅ New deployment in production slot was executed from block from $STARTBLOCK block!"
-        elif [[ $stageSlot = true ]]; then
+        elif [ $stageSlot = true ]; then
         echo "👷‍♂️ Deploying project in staging slot..."
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
         sed -i '/startBlock:/s/1/'$STARTBLOCKSTG'/' project.yaml
