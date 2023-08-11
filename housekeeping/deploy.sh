@@ -11,7 +11,7 @@ if [ $fullClean = true ]; then
 fi
 
 # Create Project
-if [ $createProject = true ] || [ $fullClean = true]; then
+if [ $createProject = true ] || [ $fullClean = true ]; then
     echo "👷‍♂️ Start creating project..."
     subql project:create-project \
     --org=$SUBQUERY_ORG \
@@ -24,8 +24,8 @@ fi
 # Deploying project
 if [ $prodslot = true || $createProject = true ] || [ $fullClean = true ] || [ $stageSlot = true ]; then
     yarn
-    RESULT=$(subql publish -f project.yaml  | grep -oP ': \K.*')
-    HASH=$(yarn config:chainId | grep -oP '0.*' | grep -v 's')
+    RESULT=$(subql publish -f project.yaml  | grep -oE ': \K.*')
+    HASH=$(yarn config:chainId | grep -oE '0.*' | grep -v 's')
     if [[ $prodslot = true || $createProject = true ]] || [[ $fullClean = true ]]; then
         echo "👷‍♂️ Deploying project in production slot..."
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
