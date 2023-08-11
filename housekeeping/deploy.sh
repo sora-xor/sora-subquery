@@ -33,36 +33,36 @@ if [[ $prodslot = true || $createProject = true ]] || [[ $fullClean = true ]] ||
         sed -i '/startBlock:/s/1/'$STARTBLOCK'/' project.yaml
         yarn codegen
         subql deployment:deploy \
-            --indexerVersion=$SUBQUERY_INDEXER_VERSION \
-            --queryVersion=$SUBQUERY_NODE_VERSION \
-            --org=$SUBQUERY_ORG \
-            --indexerSubscription \
-            --querySubscription \
-            --queryTimeout=20000 \
-            --disableHistorical \
-            --useDefaults \
-            --ipfsCID=$RESULT \
-            --projectName=$project \
-            --endpoint=$endpoint
+        --indexerVersion=$SUBQUERY_INDEXER_VERSION \
+        --queryVersion=$SUBQUERY_NODE_VERSION \
+        --org=$SUBQUERY_ORG \
+        --indexerSubscription \
+        --querySubscription \
+        --queryTimeout=20000 \
+        --disableHistorical \
+        --useDefaults \
+        --ipfsCID=$RESULT \
+        --projectName=$project \
+        --endpoint=$endpoint
         echo "✅ New deployment in production slot was executed from block from $STARTBLOCK block!"
-    elif [[ $stageSlot = true ]]; then
+        elif [[ $stageSlot = true ]]; then
         echo "👷‍♂️ Deploying project in staging slot..."
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
         sed -i '/startBlock:/s/1/'$STARTBLOCKSTG'/' project.yaml
         yarn codegen
         subql deployment:deploy \
-            --indexerVersion=$SUBQUERY_INDEXER_VERSION_STAGING \
-            --queryVersion=$SUBQUERY_NODE_VERSION_STAGING \
-            --org=$SUBQUERY_ORG \
-            --useDefaults \
-            --indexerSubscription \
-            --querySubscription \
-            --queryTimeout=20000 \
-            --disableHistorical \
-            --ipfsCID=$RESULT \
-            --projectName=$project \
-            --endpoint=$endpoint \
-            --type=stage
+        --indexerVersion=$SUBQUERY_INDEXER_VERSION_STAGING \
+        --queryVersion=$SUBQUERY_NODE_VERSION_STAGING \
+        --org=$SUBQUERY_ORG \
+        --useDefaults \
+        --indexerSubscription \
+        --querySubscription \
+        --queryTimeout=20000 \
+        --disableHistorical \
+        --ipfsCID=$RESULT \
+        --projectName=$project \
+        --endpoint=$endpoint \
+        --type=stage
         echo " ✅ New deployment in staging slot was executed from $STARTBLOCKSTG block!"
     fi
 fi
