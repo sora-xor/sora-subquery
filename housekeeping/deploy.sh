@@ -22,7 +22,7 @@ if [ $createProject = true ] || [ $fullClean = true ]; then
 fi
 
 # Deploying project
-if [ $prodslot = true || $createProject = true ] || [ $fullClean = true ] || [ $stageSlot = true ]; then
+if [ $prodslot = true ] || [ $createProject = true ] || [ $fullClean = true ] || [ $stageSlot = true ]; then
     yarn
     RESULT=$(subql publish -f project.yaml  | grep -oE ': \K.*')
     HASH=$(yarn config:chainId | grep -oE '0.*' | grep -v 's')
