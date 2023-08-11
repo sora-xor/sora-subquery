@@ -1,6 +1,6 @@
 @Library('jenkins-library@feature/dops-2583/subqd_lib')
 
-def pr
+def project = 'sora-dev'
 
 def jobParams  = [
     string(defaultValue: project, name: 'sora-dev', trim: true),
