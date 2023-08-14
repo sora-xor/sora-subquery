@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+SUBQUERY_CLI_VERSION="1.10.1"
+echo $INDEXER_VERSION_STAGING $stageSlot
+
+
+npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
+
 # deleteProject
 if [ "$fullClean" = true ]; then
     echo "👷‍♂️ Start deleting project..."
@@ -23,6 +29,7 @@ fi
 
 # Deploying project
 if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = true ] || [ "$stageSlot" = true ]; then
+    printf 'Building project\n'
     yarn
     RESULT=$(subql publish -f project.yaml  | grep -oE ': \K.*')
     HASH=$(yarn config:chainId | grep -oE '0.*' | grep -v 's')
