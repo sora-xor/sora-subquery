@@ -29,8 +29,8 @@ fi
 if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = true ] || [ "$stageSlot" = true ]; then
     printf 'Building project \n'
     yarn
-    RESULT='$(subql publish -f project.yaml  | grep -oE ': \K.*')'
-    HASH='$(yarn config:chainId | grep -oE '0.*' | grep -v 's')'
+    RESULT="$(subql publish -f project.yaml  | grep -oE ': \K.*')"
+    HASH="$(yarn config:chainId | grep -oE '0.*' | grep -v 's')"
     if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = true ]; then
         echo "👷‍♂️ Deploying project in production slot..."
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
