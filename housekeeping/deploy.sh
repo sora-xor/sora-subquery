@@ -29,10 +29,10 @@ fi
 if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = true ] || [ "$stageSlot" = true ]; then
     printf 'Building project \n'
     yarn
-    HASH="$(yarn config:chainId | grep -oE '0.*' | grep -v 's')"
-    RESULT="$(subql publish -f project.yaml  | grep -oE ': \K.*')"
     if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = true ]; then
         echo "👷‍♂️ Deploying project in production slot..."
+        HASH="$(yarn config:chainId | grep -oE '0.*' | grep -v 's')"
+        RESULT="$(subql publish -f project.yaml  | grep -oE ': \K.*')"
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
         sed -i '/startBlock:/s/1/'$STARTBLOCK'/' project.yaml
         yarn codegen
@@ -51,6 +51,8 @@ if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = tru
         printf "✅ New deployment in production slot was executed from block from $STARTBLOCK block! \n"
         elif [ "$stageSlot" = true ]; then
         echo "👷‍♂️ Deploying project in staging slot..."
+        HASH="$(yarn config:chainId | grep -oE '0.*' | grep -v 's')"
+        RESULT="$(subql publish -f project.yaml  | grep -oE ': \K.*')"
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
         sed -i '/startBlock:/s/1/'$STARTBLOCKSTG'/' project.yaml
         yarn codegen
