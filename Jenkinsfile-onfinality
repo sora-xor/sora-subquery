@@ -20,6 +20,6 @@ def pipeline = new org.subqd.AppPipeline(
     sbuqDB: 'sora-xor',
     project: 'sora-dev',
     endpoint: 'ws.framenode-1.r0.dev.sora2.soramitsu.co.jp',
-    buildTestCmd: './housekeeping/deploy.sh'
+    buildTestCmds: './housekeeping/deploy.sh'
 )
 pipeline.runPipeline()
