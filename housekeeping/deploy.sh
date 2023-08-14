@@ -1,11 +1,8 @@
-#!/bin/bash
+#!/bin/bash -x
 set -e
 
 SUBQUERY_CLI_VERSION="1.10.1"
 echo $INDEXER_VERSION_STAGING $stageSlot
-
-
-npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
 
 # deleteProject
 if [ "$fullClean" = true ]; then
