@@ -30,7 +30,7 @@ if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = tru
     printf 'Building project \n'
     yarn
     HASH="$(awk '/0.*/ && !/s/' <<< "$(yarn config:chainId)")"
-    RESULT="$(subql publish -f project.yaml | awk '{print substr($0, index($0, ":")+2)}')"
+    RESULT="$(subql publish -f project.yaml  | grep -oE ': \K.*')"
     if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = true ]; then
         echo "👷‍♂️ Deploying project in production slot..."
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
