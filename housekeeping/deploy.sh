@@ -33,7 +33,10 @@ if [ "$createProject" = true ] || [ "$fullClean" = true ]; then
 fi
 
 
-deploy=(subql deployment:deploy \
+deploy=(
+    yarn codegen
+    RESULT=$(subql publish -f project.yaml | grep -oE ': .*' | awk '{print $2}')
+    subql deployment:deploy \
     --indexerVersion=v$indexer_version \
     --queryVersion=v$query_version \
     --org=$org \
@@ -60,8 +63,8 @@ if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = tru
         echo "👷‍♂️ Deploying project in production slot..."
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
         sed -i '/startBlock:/s/1/'$STARTBLOCK'/' project.yaml
-        yarn codegen
-        RESULT=$(subql publish -f project.yaml | grep -oE ': .*' | awk '{print $2}')
+        #yarn codegen
+        #RESULT=$(subql publish -f project.yaml | grep -oE ': .*' | awk '{print $2}')
         "${deploy[@]}"
         printf "✅ New deployment in production slot was executed from block from $STARTBLOCK block! \n"
         if [ "$stageSlot" = true ]; then
@@ -72,8 +75,8 @@ if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = tru
         echo "👷‍♂️ Deploying project in staging slot..."
         sed -i '/chainId:/s/'0'/'$HASH'/' project.yaml
         sed -i '/startBlock:/s/1/'$STARTBLOCKSTG'/' project.yaml
-        yarn codegen
-        RESULT=$(subql publish -f project.yaml | grep -oE ': .*' | awk '{print $2}')
+        #yarn codegen
+        #RESULT=$(subql publish -f project.yaml | grep -oE ': .*' | awk '{print $2}')
         "${deploy[@]}"
         printf " ✅ New deployment in staging slot was executed from $STARTBLOCKSTG block! \n"
     fi
