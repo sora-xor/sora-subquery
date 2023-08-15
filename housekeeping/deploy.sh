@@ -33,22 +33,22 @@ if [ "$createProject" = true ] || [ "$fullClean" = true ]; then
 fi
 
 
-deploy=(subql deployment:deploy \
-    --indexerVersion=v$indexer_version \
-    --queryVersion=v$query_version \
-    --org=$org \
-    --indexerSubscription \
-    --querySubscription \
-    --queryTimeout=20000 \
-    --disableHistorical \
-    --useDefaults \
-    --ipfsCID=$RESULT \
-    --projectName=$project \
-    --endpoint=$endpoint
-)
+deploy="subql deployment:deploy \
+--indexerVersion=v$indexer_version \
+--queryVersion=v$query_version \
+--org=$org \
+--indexerSubscription \
+--querySubscription \
+--queryTimeout=20000 \
+--disableHistorical \
+--useDefaults \
+--ipfsCID=$RESULT \
+--projectName=$project \
+--endpoint=$endpoint
+"
 
 if [ "$stageSlot" = true ]; then
-    deploy+=" \\"
+    deploy+=' \'
     deploy+=" --type=stage"
 fi
 
