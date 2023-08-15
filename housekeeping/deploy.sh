@@ -47,7 +47,7 @@ deploy=(subql deployment:deploy \
     --endpoint=$endpoint
 )
 
-if [ "$stageSlot" = true]; then
+if [ "$stageSlot" = true ]; then
     deploy+=" \\"
     deploy+=" --type=stage"
 fi
