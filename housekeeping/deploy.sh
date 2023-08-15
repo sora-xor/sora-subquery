@@ -63,7 +63,7 @@ if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = tru
         sed -i '/startBlock:/s/1/'$STARTBLOCK'/' project.yaml
         yarn codegen
         RESULT=$(subql publish -f project.yaml | grep -oE ': .*' | awk '{print $2}')
-        $deploy
+        eval $deploy
         printf "✅ New deployment in production slot was executed from block from $STARTBLOCK block! \n"
         if [ "$stageSlot" = true ]; then
             printf "✅ New deployment in staging slot was executed from block from $STARTBLOCKSTG block! \n"
