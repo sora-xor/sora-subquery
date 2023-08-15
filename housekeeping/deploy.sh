@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 set -e
 
 # vars
@@ -47,10 +47,10 @@ deploy=(subql deployment:deploy \
     --endpoint=$endpoint
 )
 
-# if [ "$stageSlot" = true ]; then
-#     deploy+=' \'
-#     deploy+=" --type=stage"
-# fi
+if [ "$stageSlot" = true ]; then
+    deploy+=' \'
+    deploy+=" --type=stage"
+fi
 
 # Deploying project
 if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = true ] || [ "$stageSlot" = true ]; then
@@ -75,7 +75,7 @@ if [ "$prodslot" = true ] || [ "$createProject" = true ] || [ "$fullClean" = tru
         sed -i '/startBlock:/s/1/'$STARTBLOCKSTG'/' project.yaml
         yarn codegen
         RESULT=$(subql publish -f project.yaml | grep -oE ': .*' | awk '{print $2}')
-        "${deploy[@]}" --type=stage
+        "${deploy[@]}"
         printf " ✅ New deployment in staging slot was executed from $STARTBLOCKSTG block! \n"
     fi
 fi
