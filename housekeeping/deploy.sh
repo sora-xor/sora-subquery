@@ -48,8 +48,7 @@ deploy=(subql deployment:deploy \
 )
 
 if [ "$stageSlot" = true ]; then
-    deploy+=' \'
-    deploy+=" --type=stage"
+    deploy+=("--type=stage")
 fi
 
 # Deploying project
