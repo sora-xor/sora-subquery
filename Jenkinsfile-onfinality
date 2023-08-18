@@ -15,6 +15,6 @@ def pipeline = new org.subqd.AppPipeline(
     validate: true,
     jobParams: jobParams,
     project: 'sora-dev',
-    upstreamJobList: '../sora2-' + project
+    upstreamJobList: '../sora2-' + getEnvFromJobName()
 )
 pipeline.runPipeline()
