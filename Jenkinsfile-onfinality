@@ -1,7 +1,7 @@
 @Library('jenkins-library@feature/dops-2583/subqd_lib')
 
 def upstreamJobList = '../sora2-' + project
-
+def project
 
 def jobParams  = [
     string(defaultValue: '1', name: 'startBlock', trim: true),
