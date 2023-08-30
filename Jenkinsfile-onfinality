@@ -52,7 +52,7 @@ pipeline {
         SUBQUERY_NODE_VERSION_STAGING = 'v1.10.1'
         SUBQUERY_ORG =  'sora-xor'
         SUBQUERY_PROJECT_DB = 'sora'
-        matrix_chain = "sora-${targetEnvironment}"
+        matrix_chain = "sora-dev"
         SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
         TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
         HASH = "${chainId}"
