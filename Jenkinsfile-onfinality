@@ -3,7 +3,7 @@
 String agentLabel        = 'docker-build-agent'
 String envImageName      = 'node:16.18.1-bullseye-slim'
 String subqueryToken     = 'subquery-token'
-String targetEnvironment =  dev
+String targetEnvironment =  'dev'
 String jobList           = '../sora2-' + targetEnvironment
 String chainId           = ''
 String startBlock        = startBlock
