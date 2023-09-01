@@ -1,163 +1,19 @@
 @Library('jenkins-library')
 
-String agentLabel        = 'docker-build-agent'
-String envImageName      = 'node:16.18.1-bullseye-slim'
-String subqueryToken     = 'subquery-token'
-String targetEnvironment =  'prod-sub4'
-String jobList           = '../sora2-' + targetEnvironment
-List   jobParams         = [
-    string(defaultValue: targetEnvironment, name: 'targetEnvironment', trim: true),
-    booleanParam(defaultValue: false, name: 'fullClean'),
-    booleanParam(defaultValue: false, name: 'createProject'),
+def jobParams  = [
+    string(defaultValue: '1', name: 'startBlock', trim: true),
+    string(defaultValue: '1', name: 'startBlockStg', trim: true),
+    string(defaultValue: '20000', name: 'queryTimeout', trim: true),
+    booleanParam(defaultValue: true, name: 'fullClean'),
+    booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
-    booleanParam(defaultValue: false, name: 'prodSlot'),
-    ]
-String endpoint          = 'mof2.sora.org'
-String telegramChatId    = 'telegram-deploy-chat-id'
-Boolean statusNotif      = true
+    booleanParam(defaultValue: true, name: 'prodSlot')
+]
 
-
-properties([
-    parameters( jobParams ),
-    pipelineTriggers([upstream( jobList )])
-])
-
-pipeline {
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '20'))
-        timestamps()
-        disableConcurrentBuilds()
-    }
-    agent {
-        docker {
-            label agentLabel
-            image envImageName
-        }
-    }
-    environment {
-        SUBQUERY_CLI_VERSION = '1.10.1'
-        SUBQUERY_INDEXER_VERSION = 'v1.17.1'
-        SUBQUERY_NODE_VERSION = 'v1.10.1'
-        SUBQUERY_CLI_VERSION_STAGING = '1.10.1'
-        SUBQUERY_INDEXER_VERSION_STAGING = 'v1.17.1'
-        SUBQUERY_NODE_VERSION_STAGING = 'v1.10.1'
-        SUBQUERY_ORG =  'sora-xor'
-        SUBQUERY_PROJECT_DB = 'sora'
-        matrix_chain = "sora-prod-sub4"
-        SUBQL_ACCESS_TOKEN = credentials("${subqueryToken}")
-        TELEGRAM_CHAT_ID = credentials("${telegramChatId}")
-    }
-
-    stages {
-        stage('Validation before deployment') {
-            steps {
-                script {
-                    sh """
-                       npm install -g @subql/cli@${SUBQUERY_CLI_VERSION}
-                       subql validate
-                    """
-                }
-            }
-        }
-        stage('Deleting a project if needed') {
-            when {
-                expression {params.fullClean}
-            }
-            steps {
-                script {
-                    sh """
-                    subql project:delete-project \
-                    --org=${SUBQUERY_ORG} \
-                    --projectName=${matrix_chain}
-                    echo project ${matrix_chain} is deleted
-                """
-                }
-            }
-        }
-        stage('Creating a project if needed') {
-            when { anyOf {
-                expression {params.fullClean}
-                expression {params.createProject}
-                }
-            }
-            steps {
-                script {
-                    sh """
-                    subql project:create-project \
-                    --org=${SUBQUERY_ORG} \
-                    --dedicatedDB=${SUBQUERY_PROJECT_DB} \
-                    --projectName=${matrix_chain} \
-                    --gitRepo=https://github.com/sora-xor/sora-subquery
-                    echo project ${matrix_chain} is created
-                """
-                }
-            }
-        }
-        stage('Install Dependencies & Deploy in production slot') {
-            when {
-                expression {params.prodSlot}
-            }
-            steps {
-                script {
-                    sh """
-                       apt-get update && apt-get install curl -y
-                       yarn
-                       yarn codegen
-                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
-                       subql deployment:deploy \
-                       --indexerVersion=${SUBQUERY_INDEXER_VERSION} \
-                       --queryVersion=${SUBQUERY_NODE_VERSION} \
-                       --org=${SUBQUERY_ORG} \
-                       --indexerSubscription \
-                       --querySubscription \
-                       --queryTimeout=20000 \
-                       --disableHistorical \
-                       --useDefaults \
-                       --ipfsCID=\$RESULT \
-                       --projectName=${matrix_chain} \
-                       --endpoint=wss://${endpoint}
-                       echo "New deployment in production slot is executed"
-                    """
-                }
-            }
-        }
-        stage('Install Dependencies & Deploy in staging slot') {
-            when {
-                expression {params.stagingSlot}
-            }
-            steps {
-                script {
-                    sh """
-                       apt-get update && apt-get install curl -y
-                       yarn
-                       yarn codegen
-                       RESULT=\$(subql publish -f project.yaml  | grep -oP ': \\K.*')
-                       subql deployment:deploy \
-                       --indexerVersion=${SUBQUERY_INDEXER_VERSION_STAGING} \
-                       --queryVersion=${SUBQUERY_NODE_VERSION_STAGING} \
-                       --org=${SUBQUERY_ORG} \
-                       --useDefaults \
-                       --indexerSubscription \
-                       --querySubscription \
-                       --queryTimeout=20000 \
-                       --disableHistorical \
-                       --ipfsCID=\$RESULT \
-                       --projectName=${matrix_chain} \
-                       --endpoint=wss://${endpoint} \
-                       --type=stage
-                       echo "New deployment in staging slot is executed"
-                    """
-                }
-            }
-        }
-    }
-    post {
-        always {
-            pushNotiTelegram(
-              status: statusNotif,
-              telegramChatId: "${TELEGRAM_CHAT_ID}"
-            ) 
-        }
-        cleanup { cleanWs() }
-    }
-}
+def pipeline = new org.subqd.AppPipeline(
+    steps: this,
+    validate: true,
+    jobParams: jobParams,
+    upstreamJobList: '../sora2-' + getEnvFromJobName()
+)
+pipeline.runPipeline()
