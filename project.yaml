@@ -66,6 +66,11 @@ dataSources:
           filter:
             module: liquidityProxy
             method: swapTransfer
+        - handler: handleSwapTransferBatch
+          kind: substrate/CallHandler
+          filter:
+            module: liquidityProxy
+            method: swapTransferBatch
         - handler: handleLiquidityDeposit
           kind: substrate/CallHandler
           filter:
