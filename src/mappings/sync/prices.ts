@@ -9,11 +9,11 @@ import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
 
-const getAssetDexCap = (assetReserves: bigint, assetPrice: bigint, daiReserves: bigint) => {
+const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiReserves: BigNumber) => {
     // theoretical asset capitalization in DAI inside DEX
-    const assetDaiCap = assetPrice * assetReserves;
+    const assetDaiCap = assetPrice.multipliedBy(assetReserves);
     // real asset capitalization is supported by DAI
-    const assetDexCap = assetDaiCap > daiReserves ? daiReserves : assetDaiCap;
+    const assetDexCap = assetDaiCap.isGreaterThan(daiReserves) ? daiReserves : assetDaiCap;
 
     return assetDexCap;
 };
@@ -34,8 +34,8 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     let baseAssetWithDoublePoolsPrice = new BigNumber(0);
 
     const pools: Record<string, PoolXYK[]> = {};
-    const daiReserves: Record<string, bigint> = {};
-    const assetsPrices: Record<string, { dexCap: bigint; price: string; }> = {};
+    const daiReserves: Record<string, BigNumber> = {};
+    const assetsPrices: Record<string, { dexCap: BigNumber; price: string; }> = {};
     const syntheticAssetsIds = [...tickerSyntheticAssetId.values()];
 
     for (const baseAssetId of [...BASE_ASSETS].reverse()) {
@@ -64,7 +64,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
             if (pool.targetAssetId === DAI) {
                 baseAssetPriceInDAI = targetAssetReservesBN.div(baseAssetReservesBN);
-                daiReserves[baseAssetId] = pool.targetAssetReserves
+                daiReserves[baseAssetId] = targetAssetReservesBN
             }
 
             assetsLockedInPools.set(
@@ -114,21 +114,21 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         assetsPrices[baseAssetId] = {
             price: baseAssetPriceInDAI.toFixed(18),
             dexCap: getAssetDexCap(
-                BigInt(baseAssetInPools.toString()),
-                BigInt(baseAssetPriceInDAI.toFixed(18)),
-                daiReserves[baseAssetId]
+                baseAssetInPools,
+                baseAssetPriceInDAI,
+                daiReserves[baseAssetId],
             ),
         };
 
         // update price samples
         for (const pool of pools[baseAssetId]) {
             const assetDexCap = getAssetDexCap(
-                pool.targetAssetReserves,
-                BigInt(pool.priceUSD),
+                new BigNumber(pool.targetAssetReserves.toString()),
+                new BigNumber(pool.priceUSD),
                 daiReserves[baseAssetId]
             );
 
-            if (!assetsPrices[pool.targetAssetId] || assetsPrices[pool.targetAssetId].dexCap < assetDexCap) {
+            if (!assetsPrices[pool.targetAssetId] || assetsPrices[pool.targetAssetId].dexCap.isLessThan(assetDexCap)) {
                 assetsPrices[pool.targetAssetId] = {
                     dexCap: assetDexCap,
                     price: pool.priceUSD,
