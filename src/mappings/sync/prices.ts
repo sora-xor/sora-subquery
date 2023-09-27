@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../../types";
 
-import { formatU128ToBalance, assetSnapshotsStorage, assetStorage } from '../../utils/assets';
+import { formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS } from '../../utils/consts';
@@ -25,7 +25,8 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     let baseAssetWithDoublePoolsPrice = new BigNumber(0);
 
     const pools: Record<string, PoolXYK[]> = {};
-    const assetsPrices: Record<string, { reserves: bigint; price: string; }> = {};
+    const daiReserves: Record<string, bigint> = {};
+    const assetsPrices: Record<string, { dexDaiReserves: bigint; price: string; }> = {};
 
     for (const baseAssetId of [...BASE_ASSETS].reverse()) {
         const poolsMap = poolAccounts.getMap(baseAssetId);
@@ -53,6 +54,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
             if (pool.targetAssetId === DAI) {
                 baseAssetPriceInDAI = targetAssetReservesBN.div(baseAssetReservesBN);
+                daiReserves[baseAssetId] = pool.targetAssetReserves
             }
 
             assetsLockedInPools.set(
@@ -100,15 +102,16 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
         // update price samples
         for (const pool of pools[baseAssetId]) {
-            if (!assetsPrices[pool.targetAssetId] || assetsPrices[pool.targetAssetId].reserves < pool.targetAssetReserves) {
+            if (!assetsPrices[pool.targetAssetId] || assetsPrices[pool.targetAssetId].dexDaiReserves < daiReserves[baseAssetId]) {
                 assetsPrices[pool.targetAssetId] = {
-                    reserves: pool.targetAssetReserves,
+                    dexDaiReserves: daiReserves[baseAssetId],
                     price: pool.priceUSD,
                 };
             }
         }
+
         assetsPrices[baseAssetId] = {
-            reserves: BigInt(0),
+            dexDaiReserves: daiReserves[baseAssetId],
             price: baseAssetPriceInDAI.toFixed(18),
         };
     }
