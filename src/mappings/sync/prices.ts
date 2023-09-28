@@ -6,7 +6,7 @@ import { PoolXYK } from "../../types";
 import { formatU128ToBalance, assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
-import { XOR, PSWAP, DAI, BASE_ASSETS } from '../../utils/consts';
+import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
 
 const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiReserves: BigNumber) => {
@@ -36,7 +36,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     const pools: Record<string, PoolXYK[]> = {};
     const daiReserves: Record<string, BigNumber> = {};
     const assetsPrices: Record<string, { dexCap: BigNumber; price: string; }> = {};
-    const syntheticAssetsIds = [...tickerSyntheticAssetId.values()];
+    const syntheticAssetsIds = [...tickerSyntheticAssetId.values()].filter((id) => id !== XSTUSD);
 
     for (const baseAssetId of [...BASE_ASSETS].reverse()) {
         const poolsMap = poolAccounts.getMap(baseAssetId);
