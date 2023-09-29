@@ -3,20 +3,11 @@ import BigNumber from "bignumber.js";
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../../types";
 
-import { formatU128ToBalance, assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
+import { formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
-import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
+import { XOR, PSWAP, DAI, BASE_ASSETS } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
-
-const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiReserves: BigNumber) => {
-    // theoretical asset capitalization in DAI inside DEX
-    const assetDaiCap = assetPrice.multipliedBy(assetReserves);
-    // real asset capitalization is supported by DAI
-    const assetDexCap = assetDaiCap.isGreaterThan(daiReserves) ? daiReserves : assetDaiCap;
-
-    return assetDexCap;
-};
 
 export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     if (!PoolsPrices.get()) return;
@@ -34,9 +25,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     let baseAssetWithDoublePoolsPrice = new BigNumber(0);
 
     const pools: Record<string, PoolXYK[]> = {};
-    const daiReserves: Record<string, BigNumber> = {};
-    const assetsPrices: Record<string, { dexCap: BigNumber; price: string; }> = {};
-    const syntheticAssetsIds = [...tickerSyntheticAssetId.values()].filter((id) => id !== XSTUSD);
+    const assetsPrices: Record<string, { reserves: bigint; price: string; }> = {};
 
     for (const baseAssetId of [...BASE_ASSETS].reverse()) {
         const poolsMap = poolAccounts.getMap(baseAssetId);
@@ -64,7 +53,6 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
             if (pool.targetAssetId === DAI) {
                 baseAssetPriceInDAI = targetAssetReservesBN.div(baseAssetReservesBN);
-                daiReserves[baseAssetId] = targetAssetReservesBN
             }
 
             assetsLockedInPools.set(
@@ -111,30 +99,18 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         );
 
         // update price samples
-        assetsPrices[baseAssetId] = {
-            price: baseAssetPriceInDAI.toFixed(18),
-            dexCap: getAssetDexCap(
-                baseAssetInPools,
-                baseAssetPriceInDAI,
-                daiReserves[baseAssetId],
-            ),
-        };
-
-        // update price samples
         for (const pool of pools[baseAssetId]) {
-            const assetDexCap = getAssetDexCap(
-                new BigNumber(pool.targetAssetReserves.toString()),
-                new BigNumber(pool.priceUSD),
-                daiReserves[baseAssetId]
-            );
-
-            if (!assetsPrices[pool.targetAssetId] || assetsPrices[pool.targetAssetId].dexCap.isLessThan(assetDexCap)) {
+            if (!assetsPrices[pool.targetAssetId] || assetsPrices[pool.targetAssetId].reserves < pool.targetAssetReserves) {
                 assetsPrices[pool.targetAssetId] = {
-                    dexCap: assetDexCap,
+                    reserves: pool.targetAssetReserves,
                     price: pool.priceUSD,
                 };
             }
         }
+        assetsPrices[baseAssetId] = {
+            reserves: BigInt(0),
+            price: baseAssetPriceInDAI.toFixed(18),
+        };
     }
 
     // update pools SB_APY
@@ -153,14 +129,6 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                     p.strategicBonusApy = strategicBonusApy.toFixed(18);
                 });
             }
-        }
-    }
-
-    // update assets prices
-    for (const [assetId, { price }] of Object.entries(assetsPrices)) {
-        // do not update price from XYK pool for synthetic assets
-        if (!syntheticAssetsIds.includes(assetId)) {
-            await assetSnapshotsStorage.updatePrice(assetId, price, blockTimestamp);
         }
     }
 

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc -b",
     "prepack": "rm -rf dist && npm build",
-    "test": "jest --coverage",
+    "test": "jest",
     "codegen": "./node_modules/.bin/subql codegen",
     "config:chainId": "node ./scripts/chainId.js",
     "generate:defs": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package sora/api-interfaces --input ./src/api-interfaces/",
