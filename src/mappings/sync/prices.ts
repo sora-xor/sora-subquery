@@ -63,7 +63,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReservesBN.multipliedBy(new BigNumber(pool.multiplier)));
 
             if (pool.targetAssetId === DAI) {
-                baseAssetPriceInDAI = baseAssetReservesBN.isZero()
+                baseAssetPriceInDAI = !baseAssetReservesBN.isZero()
                     ? targetAssetReservesBN.dividedBy(baseAssetReservesBN)
                     : new BigNumber(0);
                 daiReserves[baseAssetId] = targetAssetReservesBN
