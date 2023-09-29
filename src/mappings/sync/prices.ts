@@ -63,7 +63,9 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReservesBN.multipliedBy(new BigNumber(pool.multiplier)));
 
             if (pool.targetAssetId === DAI) {
-                baseAssetPriceInDAI = targetAssetReservesBN.div(baseAssetReservesBN);
+                baseAssetPriceInDAI = !baseAssetReservesBN.isZero()
+                    ? targetAssetReservesBN.dividedBy(baseAssetReservesBN)
+                    : new BigNumber(0);
                 daiReserves[baseAssetId] = targetAssetReservesBN
             }
 
@@ -88,9 +90,9 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             pools[baseAssetId].forEach(p => {
                 const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
                 const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
-                const daiPrice = baseAssetReserves
-                    .dividedBy(targetAssetReserves)
-                    .multipliedBy(baseAssetPriceInDAI);
+                const daiPrice = !targetAssetReserves.isZero()
+                    ? baseAssetReserves.dividedBy(targetAssetReserves).multipliedBy(baseAssetPriceInDAI)
+                    : new BigNumber(0);
 
                 p.priceUSD = daiPrice.toFixed(18);
 
