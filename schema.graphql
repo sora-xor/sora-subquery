@@ -112,3 +112,61 @@ type ReferrerReward @entity {
 	updated: Int!
 	amount: BigInt!
 }
+
+type StakingReward @entity {
+	id: ID!
+	account: String! @index
+	amount: BigInt!
+	updatedAtBlock: Int!
+	staker: StakingStaker!
+}
+
+type StakingStaker @entity {
+	id: ID!
+	eraValidators: [StakingEraValidator!]! @derivedFrom(field: "staker")
+	eraNominators: [StakingEraNominator!]! @derivedFrom(field: "staker")
+}
+
+type StakingValidator @entity {
+  id: ID!
+  bond: BigInt!
+  # apr24h: Float!
+}
+
+type StakingEraNominator @entity {
+  id: ID!
+  era: StakingEra!
+  bond: BigInt!
+  staker: StakingStaker!
+  nominations: [StakingEraNomination!]! @derivedFrom(field: "nominator")
+}
+
+type StakingEraNomination @entity {
+  id: ID!
+  era: StakingEra!
+  amount: BigInt!
+  validator: StakingEraValidator!
+  nominator: StakingEraNominator!
+}
+
+type StakingEraValidator @entity {
+  id: ID!
+  era: StakingEra!
+  # apr: Float!
+  validator: StakingValidator!
+  nominations: [StakingEraNomination!]! @derivedFrom(field: "validator")
+  ownBond: BigInt!
+  totalBond: BigInt!
+  rewardAmount: BigInt!
+	staker: StakingStaker!
+}
+
+type StakingEra @entity {
+  id: ID!
+	index: Int! @index
+	startBlock: BigInt!
+	endBlock: BigInt
+  validators: [StakingEraValidator!]! @derivedFrom(field: "era")
+	nominators: [StakingEraNominator!]! @derivedFrom(field: "era")
+  nominations: [StakingEraNomination!]! @derivedFrom(field: "era")
+}
