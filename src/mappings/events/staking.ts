@@ -24,7 +24,6 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 	}
 	await stakingEra.save();
 
-	// const exposures = await getEntityData(ctx, block, erasStakersStorage, { kind: 'storage', name: StakingErasStakersStorage.name }).getPairs(activeEra.index);
 	const exposures = await api.query.staking.erasStakers.entries();
 
 	await Promise.all(exposures.map(async (exposure) => {
