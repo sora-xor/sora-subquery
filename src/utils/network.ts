@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
-import { SnapshotSecondsMap } from './consts';
+import { getSnapshotIndex } from "./index";
 
 export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
 
@@ -65,9 +65,7 @@ class NetworkSnapshotsStorage {
 
     for (const snapshot of this.storage.values()) {
       const { type, timestamp } = snapshot;
-      const seconds = SnapshotSecondsMap[type];
-      const currentShapshotIndex =  Math.floor(blockTimestamp / seconds);
-      const currentTimestamp = currentShapshotIndex * seconds;
+      const { timestamp: currentTimestamp } = getSnapshotIndex(blockTimestamp, type);
 
       if (currentTimestamp > timestamp) {
         this.storage.delete(snapshot.id);
@@ -77,14 +75,13 @@ class NetworkSnapshotsStorage {
     logger.debug(`[NetworkSnapshotsStorage] ${this.storage.size} snaphots in storage after sync`);
   }
 
-  private getId(type: SnapshotType, index: number): string {
+  public static getId(type: SnapshotType, index: number): string {
     return [type, index].join('-');
   }
 
   async getSnapshot(type: SnapshotType, blockTimestamp: number): Promise<NetworkSnapshot> {
-    const seconds = SnapshotSecondsMap[type];
-    const shapshotIndex =  Math.floor(blockTimestamp / seconds);
-    const id = this.getId(type, shapshotIndex);
+    const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
+    const id = NetworkSnapshotsStorage.getId(type, index);
 
     if (this.storage.has(id)) {
       return this.storage.get(id);
@@ -93,8 +90,6 @@ class NetworkSnapshotsStorage {
     let snapshot = await NetworkSnapshot.get(id);
 
     if (!snapshot) {
-      const timestamp = shapshotIndex * seconds; // rounded snapshot timestamp
-
       snapshot = new NetworkSnapshot(id);
       snapshot.type = type;
       snapshot.timestamp = timestamp;

@@ -3,7 +3,46 @@ import { TextDecoder } from 'util';
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
-import { SnapshotSecondsMap, DAI } from './consts';
+import { DAI } from './consts';
+import { getSnapshotIndex } from './index';
+
+const fillIndexes = (index: number, count: number): number[] => {
+  return new Array(count).fill(index)
+    .reduce((buffer, item, idx) => {
+      const prevIndex = item - idx;
+
+      if (prevIndex >= 0) buffer.push(prevIndex);
+
+      return buffer;
+    }, []);
+};
+
+const getSnapshotsByIds = async (ids: string[]): Promise<AssetSnapshot[]> => {
+  const snapshots = await Promise.all(ids.map(id => AssetSnapshot.get(id)));
+
+  return snapshots.filter((item) => !!item);
+};
+
+const last = <T>(snapshots: T[]) => {
+  if (!snapshots.length) return null;
+  return snapshots[snapshots.length - 1];
+};
+
+const calcVolumeUSD = (snapshots: AssetSnapshot[]): string => {
+  return snapshots.reduce((buffer, snapshot) => {
+    const volumeUSD = new BigNumber(snapshot.volume.amountUSD);
+
+    return buffer.plus(volumeUSD);
+  }, new BigNumber(0)).toFixed(2);
+};
+
+const calcPriceChange = (current: BigNumber, prev: BigNumber): string => {
+  if (prev.isZero()) return current.isGreaterThan(new BigNumber(0)) ? '100' : '0';
+
+  const change = current.minus(prev).div(prev).multipliedBy(new BigNumber(100));
+
+  return change.toFixed(2);
+};
 
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
@@ -37,8 +76,9 @@ class AssetStorage {
     this.storage = new Map();
   }
 
-  async sync(): Promise<void> {
+  async sync(blockTimestamp: number): Promise<void> {
     logger.debug(`[AssetStorage] ${this.storage.size} entities sync`);
+    await this.updateStats(blockTimestamp);
     await store.bulkUpdate('Asset', [...this.storage.values()]);
   }
 
@@ -65,13 +105,62 @@ class AssetStorage {
     return asset;
   }
 
-  async updatePrice(id: string, price: string): Promise<void> {
+  async updatePrice(id: string, priceUSD: string): Promise<void> {
     const asset = await this.getAsset(id);
 
-    if (asset.priceUSD !== price) {
-      asset.priceUSD = price;
+    if (asset.priceUSD !== priceUSD) {
+      asset.priceUSD = priceUSD;
+      // update liqudiity usd with new price
+      this.calcLiquidityUSD(asset);
       // to update asset price by ws subscription instantly
       await asset.save();
+    }
+  }
+
+  async updateLiquidity(id: string, liquidity: bigint): Promise<void>  {
+    const asset = await this.getAsset(id);
+
+    asset.liquidity = liquidity;
+    // update liqudiity usd with new liquidity
+    this.calcLiquidityUSD(asset);
+  }
+
+  calcLiquidityUSD(asset: Asset): void {
+    const price = new BigNumber(asset.priceUSD);
+    const decimals = assetPrecisions.get(asset.id) ?? 18;
+    const liquidity = new BigNumber(asset.liquidity.toString(), decimals);
+
+    asset.liquidityUSD = price.multipliedBy(liquidity).toFixed(2);
+  }
+
+  async updateStats(blockTimestamp: number): Promise<void> {
+    logger.debug(`[AssetStorage] Update assets stats...`);
+
+    const { index: currentHourIndex } = getSnapshotIndex(blockTimestamp, SnapshotType.HOUR);
+    const { index: currentDayIndex } = getSnapshotIndex(blockTimestamp, SnapshotType.DAY);
+    const hoursInDayIndexes = fillIndexes(currentHourIndex, 24);
+    const daysInWeekIndexes = fillIndexes(currentDayIndex, 7);
+
+    for (const asset of this.storage.values()) {
+      const { id, priceUSD, liquidityUSD } = asset;
+      const hourIds = hoursInDayIndexes.map((idx) => AssetSnapshotsStorage.getId(id, SnapshotType.HOUR, idx));
+      const dayIds = daysInWeekIndexes.map((idx) => AssetSnapshotsStorage.getId(id, SnapshotType.DAY, idx));
+
+      const [hourSnapshots, daySnapshots] = await Promise.all([
+        getSnapshotsByIds(hourIds),
+        getSnapshotsByIds(dayIds),
+      ]);
+
+      const currentPriceUSD = new BigNumber(priceUSD);
+      const startPriceDay = new BigNumber(last(hourSnapshots)?.priceUSD?.open ?? '0');
+      const startPriceWeek = new BigNumber(last(daySnapshots)?.priceUSD?.open ?? '0');
+      const tvl = new BigNumber(liquidityUSD ?? '0');
+
+      asset.priceChangeDay = calcPriceChange(currentPriceUSD, startPriceDay);
+      asset.priceChangeWeek = calcPriceChange(currentPriceUSD, startPriceWeek);
+      asset.volumeDayUSD = calcVolumeUSD(hourSnapshots);
+      asset.volumeWeekUSD = calcVolumeUSD(daySnapshots);
+      asset.velocity = tvl.isZero() ? 0 : Number(new BigNumber(asset.volumeWeekUSD).div(tvl).toFixed(2));
     }
   }
 }
@@ -85,7 +174,7 @@ class AssetSnapshotsStorage {
     this.assetStorage = assetStorage;
   }
 
-  private getId(assetId: string, type: SnapshotType, index: number) {
+  public static getId(assetId: string, type: SnapshotType, index: number) {
     return [assetId, type, index].join('-');
   }
 
@@ -100,9 +189,7 @@ class AssetSnapshotsStorage {
 
     for (const snapshot of this.storage.values()) {
       const { type, timestamp } = snapshot;
-      const seconds = SnapshotSecondsMap[type];
-      const currentShapshotIndex =  Math.floor(blockTimestamp / seconds);
-      const currentTimestamp = currentShapshotIndex * seconds;
+      const { timestamp: currentTimestamp } = getSnapshotIndex(blockTimestamp, type);
 
       if (currentTimestamp > timestamp) {
         this.storage.delete(snapshot.id);
@@ -113,9 +200,8 @@ class AssetSnapshotsStorage {
   }
 
   async getSnapshot(assetId: string, type: SnapshotType, blockTimestamp: number): Promise<AssetSnapshot> {
-    const seconds = SnapshotSecondsMap[type];
-    const shapshotIndex = Math.floor(blockTimestamp / seconds); // rounded snapshot index (from 0)
-    const id = this.getId(assetId, type, shapshotIndex);
+    const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
+    const id = AssetSnapshotsStorage.getId(assetId, type, index);
 
     if (this.storage.has(id)) {
       return this.storage.get(id);
@@ -124,7 +210,6 @@ class AssetSnapshotsStorage {
     let snapshot = await AssetSnapshot.get(id);
 
     if (!snapshot) {
-      const timestamp = shapshotIndex * seconds; // rounded snapshot timestamp
       const asset = await this.assetStorage.getAsset(assetId);
 
       snapshot = new AssetSnapshot(id);
@@ -200,9 +285,7 @@ class AssetSnapshotsStorage {
       snapshot.liquidity = liquidity;
     }
 
-    const asset = await this.assetStorage.getAsset(assetId);
-
-    asset.liquidity = liquidity;
+    await this.assetStorage.updateLiquidity(assetId, liquidity);
   }
 
   async updateMinted(assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {
