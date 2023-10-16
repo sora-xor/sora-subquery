@@ -141,7 +141,7 @@ class AssetStorage {
     const { index } = getSnapshotIndex(blockTimestamp, type);
     const indexes = prevIndexesRow(index, snapshotsCount);
 
-    const ids = indexes.map((idx) => AssetSnapshotsStorage.getId(id, SnapshotType.HOUR, idx));
+    const ids = indexes.map((idx) => AssetSnapshotsStorage.getId(id, type, idx));
     const snapshots = await getSnapshotsByIds(ids);
 
     const currentPriceUSD = new BigNumber(priceUSD);
