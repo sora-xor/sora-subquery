@@ -205,8 +205,18 @@ dataSources:
 
         - handler: syncPoolXykPrices
           kind: substrate/BlockHandler
-
+        # once in 5 minutes
         - handler: syncModels
           kind: substrate/BlockHandler
           filter:
             modulo: 50
+        # once in 1 hour
+        - handler: updateAssetsDailyStats
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 600
+        # once in 4 hours
+        - handler: updateAssetsWeeklyStats
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 2_400
