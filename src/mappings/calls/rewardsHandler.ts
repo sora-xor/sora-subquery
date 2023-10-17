@@ -2,10 +2,10 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId } from '../../utils/assets';
 import { isAssetTransferEvent, getTransferEventData } from '../../utils/events';
+import { logCallHandler } from "../../utils/log";
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-
-    logger.debug("Caught rewards claim extrinsic")
+    logCallHandler(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 

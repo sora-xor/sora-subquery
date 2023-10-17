@@ -3,9 +3,10 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { formatU128ToBalance } from "../../utils/assets";
 import { isXorTransferEvent, getTransferEventData } from '../../utils/events';
 import { XOR } from "../../utils/consts";
+import { logCallHandler } from "../../utils/log";
 
 export async function referralUnreserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logger.debug("Caught referral unreserve extrinsic");
+    logCallHandler(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 

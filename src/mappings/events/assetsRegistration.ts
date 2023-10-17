@@ -1,8 +1,11 @@
 import { SubstrateEvent } from "@subql/types";
 
 import { assetPrecisions, getAssetId, assetStorage, getTickerSymbol, tickerSyntheticAssetId } from '../../utils/assets';
+import { logEventHandler } from "../../utils/log";
 
 export async function handleAssetRegistration(event: SubstrateEvent): Promise<void> {
+  logEventHandler(event);
+  
   const { event: { data: [asset] } } = event;
 
   const assetId: string = getAssetId(asset);
@@ -16,6 +19,8 @@ export async function handleAssetRegistration(event: SubstrateEvent): Promise<vo
 }
 
 export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promise<void> {
+  logEventHandler(event);
+  
   const { event: { data: [asset, ticker] } } = event;
 
   const assetId: string = getAssetId(asset);

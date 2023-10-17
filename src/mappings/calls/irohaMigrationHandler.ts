@@ -2,10 +2,10 @@ import { SubstrateExtrinsic } from '@subql/types';
 
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { logCallHandler } from '../../utils/log';
 
 export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Promise<void> {
-
-    logger.debug("Caught iroha migration extrinsic")
+    logCallHandler(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 

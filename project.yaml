@@ -147,12 +147,12 @@ dataSources:
             module: demeterFarmingPlatform
             method: getRewards
 
-        - handler: ethSoraTransferHandler
+        - handler: ethSoraTransferEventHandler
           kind: substrate/EventHandler
           filter:
             module: ethBridge
             method: IncomingRequestFinalized
-        - handler: ethSoraTransferHandler
+        - handler: ethSoraTransferEventHandler
           kind: substrate/EventHandler
           filter:
             module: ethBridge

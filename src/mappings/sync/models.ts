@@ -8,6 +8,9 @@ import { formatDateTimestamp } from '../../utils';
 export async function syncModels(block: SubstrateBlock): Promise<void> {
   const blockTimestamp: number = formatDateTimestamp(block.timestamp);
 
+  const blockNumber = block.block.header.number.toNumber();
+  logger.debug(`[${blockNumber}] Sync models`);
+
   await poolsStorage.sync();
   await assetSnapshotsStorage.sync(blockTimestamp);
   await assetStorage.sync();

@@ -6,6 +6,7 @@ import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../ut
 import { networkSnapshotsStorage } from '../../utils/network';
 import { XOR } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
+import { logCallHandler } from '../../utils/log';
 
 import type { Vec } from "@polkadot/types";
 import type { Enum, Struct } from "@polkadot/types/codec";
@@ -55,7 +56,6 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 }
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
-    const blockNumber = extrinsic.block.block.header.number.toNumber();
     const blockTimestamp = formatDateTimestamp(extrinsic.block.timestamp);
     const record = assignCommonHistoryElemInfo(extrinsic)
 
@@ -103,7 +103,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 }
 
 export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logger.debug("Caught swap extrinsic")
+    logCallHandler(extrinsic);
 
     await handleAndSaveExtrinsic(extrinsic);
 
@@ -111,7 +111,7 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
 }
 
 export async function handleSwapTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logger.debug("Caught swap transfer extrinsic")
+    logCallHandler(extrinsic);
 
     await handleAndSaveExtrinsic(extrinsic);
 

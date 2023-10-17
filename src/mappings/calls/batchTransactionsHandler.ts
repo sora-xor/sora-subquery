@@ -5,6 +5,7 @@ import { AnyTuple, CallBase } from '@polkadot/types/types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
+import { logCallHandler } from '../../utils/log';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -73,8 +74,7 @@ function extractCalls(
 }
 
 export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-
-    logger.debug("Caught batch transaction extrinsic")
+    logCallHandler(extrinsic);
 
     const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
     const entities = [] as Object[];

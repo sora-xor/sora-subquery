@@ -2,10 +2,10 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
+import { logCallHandler } from "../../utils/log";
 
 export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-
-    logger.debug("Caught SORA->ETH transfer extrinsic")
+    logCallHandler(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 

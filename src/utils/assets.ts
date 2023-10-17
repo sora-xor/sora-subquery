@@ -151,7 +151,7 @@ class AssetStorage {
     const priceChange = calcPriceChange(currentPriceUSD, startPriceUSD);
     const volumeUSD = calcVolumeUSD(snapshots);
     const velocity = tvl.isZero() ? 0 : toFloat(new BigNumber(volumeUSD).div(tvl));
-
+	
     return {
       priceChange,
       volumeUSD,
