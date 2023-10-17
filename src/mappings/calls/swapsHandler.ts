@@ -6,7 +6,7 @@ import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../ut
 import { networkSnapshotsStorage } from '../../utils/network';
 import { XOR } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
-import { logCallHandler } from '../../utils/log';
+import { logCallHandler } from '../../utils/logs';
 
 import type { Vec } from "@polkadot/types";
 import type { Enum, Struct } from "@polkadot/types/codec";

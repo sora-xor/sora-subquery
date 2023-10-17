@@ -5,7 +5,7 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { getDepositedEventData, getTransferEventData, isAssetDepositedEvent, isAssetTransferEvent } from '../../utils/events';
-import { logEventHandler } from '../../utils/log';
+import { logEventHandler } from '../../utils/logs';
 
 export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promise<void> {
     logEventHandler(event)

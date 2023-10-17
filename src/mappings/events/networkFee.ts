@@ -2,7 +2,7 @@ import { SubstrateEvent } from "@subql/types";
 
 import { networkSnapshotsStorage } from '../../utils/network';
 import { formatDateTimestamp } from '../../utils';
-import { logEventHandler } from "../../utils/log";
+import { logEventHandler } from "../../utils/logs";
 
 export async function handleNetworkFee(event: SubstrateEvent): Promise<void> {
   logEventHandler(event)

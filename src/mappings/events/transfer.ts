@@ -2,7 +2,7 @@ import { SubstrateEvent } from "@subql/types";
 
 import { getTransferEventData } from '../../utils/events';
 import { poolAccounts, poolsStorage, PoolsPrices } from '../../utils/pools';
-import { logEventHandler } from "../../utils/log";
+import { logEventHandler } from "../../utils/logs";
 
 export async function handleTransferEvent(event: SubstrateEvent): Promise<void> {
   logEventHandler(event)

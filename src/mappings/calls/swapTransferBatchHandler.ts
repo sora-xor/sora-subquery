@@ -6,7 +6,7 @@ import { XOR } from '../../utils/consts';
 
 import type { Vec } from "@polkadot/types";
 import { LiquiditySourceType } from './swapsHandler';
-import { logCallHandler } from '../../utils/log';
+import { logCallHandler } from '../../utils/logs';
 
 
 const getEventData = (extrinsic: SubstrateExtrinsic, method: string, section: string) => {

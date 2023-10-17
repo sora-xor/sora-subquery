@@ -16,18 +16,21 @@ function toPascalCase(str: string): string {
         .replace(/(^|\.)\w/g, match => match.toUpperCase());  // Capitalize the first character of each segment
 }
 
+export function debug(ctx: SubstrateExtrinsic | SubstrateEvent, module: string, message: string) {
+	const blockNumber = ctx.block.block.header.number.toNumber();
+	logger.debug(`[${blockNumber}][${module}] ${message}`);
+}
+
 export function logCallHandler(extrinsic: SubstrateExtrinsic) {
-	const blockNumber = extrinsic.block.block.header.number.toNumber();
 	const name = toPascalCase(`${extrinsic.extrinsic.method.section}.${extrinsic.extrinsic.method.method}`);
 	const extrinsicHash = extrinsic.extrinsic.hash.toString();
 	const extrinsicHashString = extrinsicHash ? ` found within the extrinsic '${extrinsicHash}'` : ''
-	logger.debug(`[${blockNumber}][CallHandler] Processing the '${name}' call${extrinsicHashString}`);
+	debug(extrinsic, 'CallHandler', `Processing the '${name}' call${extrinsicHashString}`);
 }
 
 export function logEventHandler(event: SubstrateEvent) {
-	const blockNumber = event.block.block.header.number.toNumber();
 	const name = toPascalCase(`${event.event.section}.${event.event.method}`);
-	const extrinsicHash = event.extrinsic?.extrinsic.hash;
+	const extrinsicHash = event.extrinsic?.extrinsic.hash.toString();
 	const extrinsicHashString = extrinsicHash ? ` found within the extrinsic '${extrinsicHash}'` : ''
-	logger.debug(`[${blockNumber}][EventHandler] Processing the '${name}' event${extrinsicHashString}`);
+	debug(event, 'EventHandler', `Processing the '${name}' event${extrinsicHashString}`);
 }

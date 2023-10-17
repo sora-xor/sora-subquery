@@ -3,7 +3,7 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
-import { logCallHandler } from "../../utils/log";
+import { logCallHandler } from "../../utils/logs";
 
 const Section = 'demeterFarmingPlatform';
 

@@ -2,7 +2,7 @@ import { SubstrateEvent } from "@subql/types";
 
 import { tickerSyntheticAssetId, assetSnapshotsStorage, getTickerSymbol, formatU128ToBalance } from '../../utils/assets';
 import { formatDateTimestamp } from '../../utils';
-import { logEventHandler } from "../../utils/log";
+import { logEventHandler } from "../../utils/logs";
 
 export async function handleBandRateUpdate(event: SubstrateEvent): Promise<void> {
   logEventHandler(event);

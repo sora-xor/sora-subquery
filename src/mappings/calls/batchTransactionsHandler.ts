@@ -5,7 +5,7 @@ import { AnyTuple, CallBase } from '@polkadot/types/types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
-import { logCallHandler } from '../../utils/log';
+import { logCallHandler } from '../../utils/logs';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>

@@ -2,7 +2,7 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId } from '../../utils/assets';
 import { isAssetTransferEvent, getTransferEventData } from '../../utils/events';
-import { logCallHandler } from "../../utils/log";
+import { logCallHandler } from "../../utils/logs";
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
     logCallHandler(extrinsic);

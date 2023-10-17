@@ -1,7 +1,7 @@
 import { SubstrateEvent } from "@subql/types";
 import { ReferrerReward } from "../../types";
 import { formatDateTimestamp } from '../../utils';
-import { logEventHandler } from "../../utils/log";
+import { logEventHandler } from "../../utils/logs";
 
 export async function referrerRewardHandler(event: SubstrateEvent): Promise<void> {
     logEventHandler(event)
