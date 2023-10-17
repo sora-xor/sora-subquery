@@ -6,7 +6,7 @@ import { Asset, SnapshotType, AssetSnapshot } from "../types";
 import { DAI } from './consts';
 import { getSnapshotIndex } from './index';
 
-const fillIndexes = (index: number, count: number): number[] => {
+const prevIndexesRow = (index: number, count: number): number[] => {
   return new Array(count).fill(index)
     .reduce((buffer, item, idx) => {
       const prevIndex = item - idx;
@@ -28,20 +28,24 @@ const last = <T>(snapshots: T[]) => {
   return snapshots[snapshots.length - 1];
 };
 
-const calcVolumeUSD = (snapshots: AssetSnapshot[]): string => {
-  return snapshots.reduce((buffer, snapshot) => {
+const toFloat = (value: BigNumber) => Number(value.toFixed(2));
+
+const calcVolumeUSD = (snapshots: AssetSnapshot[]): number => {
+  const totalVolume = snapshots.reduce((buffer, snapshot) => {
     const volumeUSD = new BigNumber(snapshot.volume.amountUSD);
 
     return buffer.plus(volumeUSD);
-  }, new BigNumber(0)).toFixed(2);
+  }, new BigNumber(0));
+
+  return toFloat(totalVolume);
 };
 
-const calcPriceChange = (current: BigNumber, prev: BigNumber): string => {
-  if (prev.isZero()) return current.isGreaterThan(new BigNumber(0)) ? '100' : '0';
+const calcPriceChange = (current: BigNumber, prev: BigNumber): number => {
+  if (prev.isZero()) return current.isGreaterThan(new BigNumber(0)) ? 100 : 0;
 
   const change = current.minus(prev).div(prev).multipliedBy(new BigNumber(100));
 
-  return change.toFixed(2);
+  return toFloat(change);
 };
 
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
@@ -76,9 +80,8 @@ class AssetStorage {
     this.storage = new Map();
   }
 
-  async sync(blockTimestamp: number): Promise<void> {
+  async sync(): Promise<void> {
     logger.debug(`[AssetStorage] ${this.storage.size} entities sync`);
-    await this.updateStats(blockTimestamp);
     await store.bulkUpdate('Asset', [...this.storage.values()]);
   }
 
@@ -128,40 +131,55 @@ class AssetStorage {
   calcLiquidityUSD(asset: Asset): void {
     const price = new BigNumber(asset.priceUSD);
     const decimals = assetPrecisions.get(asset.id) ?? 18;
-    const liquidity = new BigNumber(asset.liquidity.toString(), decimals);
+    const liquidity = new BigNumber(asset.liquidity.toString()).dividedBy(Math.pow(10, decimals));
 
-    asset.liquidityUSD = price.multipliedBy(liquidity).toFixed(2);
+    asset.liquidityUSD = toFloat(price.multipliedBy(liquidity));
   }
 
-  async updateStats(blockTimestamp: number): Promise<void> {
-    logger.debug(`[AssetStorage] Update assets stats...`);
+  private async calcAssetStats(asset: Asset, type: SnapshotType, snapshotsCount: number, blockTimestamp: number) {
+    const { id, priceUSD, liquidityUSD } = asset;
+    const { index } = getSnapshotIndex(blockTimestamp, type);
+    const indexes = prevIndexesRow(index, snapshotsCount);
 
-    const { index: currentHourIndex } = getSnapshotIndex(blockTimestamp, SnapshotType.HOUR);
-    const { index: currentDayIndex } = getSnapshotIndex(blockTimestamp, SnapshotType.DAY);
-    const hoursInDayIndexes = fillIndexes(currentHourIndex, 24);
-    const daysInWeekIndexes = fillIndexes(currentDayIndex, 7);
+    const ids = indexes.map((idx) => AssetSnapshotsStorage.getId(id, type, idx));
+    const snapshots = await getSnapshotsByIds(ids);
 
-    for (const asset of this.storage.values()) {
-      const { id, priceUSD, liquidityUSD } = asset;
-      const hourIds = hoursInDayIndexes.map((idx) => AssetSnapshotsStorage.getId(id, SnapshotType.HOUR, idx));
-      const dayIds = daysInWeekIndexes.map((idx) => AssetSnapshotsStorage.getId(id, SnapshotType.DAY, idx));
+    const currentPriceUSD = new BigNumber(priceUSD);
+    const startPriceUSD = new BigNumber(last(snapshots)?.priceUSD?.open ?? '0');
+    const tvl = new BigNumber(liquidityUSD ?? 0);
 
-      const [hourSnapshots, daySnapshots] = await Promise.all([
-        getSnapshotsByIds(hourIds),
-        getSnapshotsByIds(dayIds),
-      ]);
+    const priceChange = calcPriceChange(currentPriceUSD, startPriceUSD);
+    const volumeUSD = calcVolumeUSD(snapshots);
+    const velocity = tvl.isZero() ? 0 : toFloat(new BigNumber(volumeUSD).div(tvl));
 
-      const currentPriceUSD = new BigNumber(priceUSD);
-      const startPriceDay = new BigNumber(last(hourSnapshots)?.priceUSD?.open ?? '0');
-      const startPriceWeek = new BigNumber(last(daySnapshots)?.priceUSD?.open ?? '0');
-      const tvl = new BigNumber(liquidityUSD ?? '0');
-
-      asset.priceChangeDay = calcPriceChange(currentPriceUSD, startPriceDay);
-      asset.priceChangeWeek = calcPriceChange(currentPriceUSD, startPriceWeek);
-      asset.volumeDayUSD = calcVolumeUSD(hourSnapshots);
-      asset.volumeWeekUSD = calcVolumeUSD(daySnapshots);
-      asset.velocity = tvl.isZero() ? 0 : Number(new BigNumber(asset.volumeWeekUSD).div(tvl).toFixed(2));
+    return {
+      priceChange,
+      volumeUSD,
+      velocity,
     }
+  }
+
+  async updateDailyStats(blockTimestamp: number): Promise<void> {
+    logger.debug(`[AssetStorage] Assets Daily stats updating...`);
+    for (const asset of this.storage.values()) {
+      const { priceChange, volumeUSD } = await this.calcAssetStats(asset, SnapshotType.HOUR, 24, blockTimestamp);
+
+      asset.priceChangeDay = priceChange;
+      asset.volumeDayUSD = volumeUSD;
+    }
+    logger.debug(`[AssetStorage] Assets Daily stats updated!`);
+  }
+
+  async updateWeeklyStats(blockTimestamp: number): Promise<void> {
+    logger.debug(`[AssetStorage] Assets Weekly stats updating...`);
+    for (const asset of this.storage.values()) {
+      const { priceChange, volumeUSD, velocity } = await this.calcAssetStats(asset, SnapshotType.DAY, 7, blockTimestamp);
+
+      asset.priceChangeWeek = priceChange;
+      asset.volumeWeekUSD = volumeUSD;
+      asset.velocity = velocity;
+    }
+    logger.debug(`[AssetStorage] Assets Weekly stats updated!`);
   }
 }
 
