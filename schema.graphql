@@ -34,6 +34,12 @@ type Asset @entity {
   priceUSD: String!
   supply: BigInt!
   liquidity: BigInt! # locked in pairs (in tokens)
+  liquidityUSD: Float # locked in pairs (in USD)
+  priceChangeDay: Float
+  priceChangeWeek: Float
+  volumeDayUSD: Float
+  volumeWeekUSD: Float
+  velocity: Float # calculated in week
 }
 
 type AssetPrice @jsonField {
