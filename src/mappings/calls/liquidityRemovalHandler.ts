@@ -4,7 +4,7 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { isAssetTransferEvent } from '../../utils/events';
 import { poolsStorage } from '../../utils/pools';
-import { logStartProcessingCall } from '../../utils/logs';
+import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
@@ -43,7 +43,7 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
     await record.save();
 
-    logger.debug(`===== Saved liquidity removal with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    getCallHandlerLog(extrinsic).debug(`Saved liquidity removal`)
 
     await poolsStorage.getPool(baseAssetId, targetAssetId);
     await updateHistoryElementStats(record);

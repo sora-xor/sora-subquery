@@ -1,6 +1,6 @@
-import { SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
+import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 
-type BlockContext = SubstrateExtrinsic | SubstrateEvent
+type BlockContext = SubstrateExtrinsic | SubstrateEvent | SubstrateBlock
 
 function toPascalCase(str: string): string {
     return str
@@ -19,7 +19,8 @@ function toPascalCase(str: string): string {
 }
 
 export function getLog(ctx: BlockContext, module: string | null = null, attrs: Record<string, any> = {}) {
-	const blockHeight = ctx.block.block.header.number.toNumber()
+	const block = 'block' in ctx.block ? ctx.block.block : ctx.block
+	const blockHeight = block.header.number.toNumber()
 	const attributes: any = { blockHeight, ...attrs }
 	if (module) {
 		attributes['module'] = module

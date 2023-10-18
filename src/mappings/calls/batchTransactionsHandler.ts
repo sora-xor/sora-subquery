@@ -5,7 +5,7 @@ import { AnyTuple, CallBase } from '@polkadot/types/types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
-import { logStartProcessingCall } from '../../utils/logs';
+import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -90,7 +90,7 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
     await record.save()
     await updateHistoryElementStats(record);
 
-    logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
+    getCallHandlerLog(extrinsic).debug('Saved batch extrinsic')
 
     if (record.execution.success) {
         // If initialize pool call exists, create new Pool

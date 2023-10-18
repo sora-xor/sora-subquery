@@ -12,8 +12,6 @@ export async function referrerRewardHandler(event: SubstrateEvent): Promise<void
 		},
 	} = event;
 
-	logger.debug(`Caught referrer reward`);
-
 	const key = `${referree.toString()}-${referrer.toString()}`;
 
 	let referrerReward = await ReferrerReward.get(key);

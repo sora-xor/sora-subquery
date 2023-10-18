@@ -6,7 +6,7 @@ import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../ut
 import { networkSnapshotsStorage } from '../../utils/network';
 import { XOR } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
-import { logStartProcessingCall } from '../../utils/logs';
+import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 import type { Vec } from "@polkadot/types";
 import type { Enum, Struct } from "@polkadot/types/codec";
@@ -93,8 +93,8 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 
     // update assets volume
     if (record.execution.success) {
-        const aVolumeUSD = await assetSnapshotsStorage.updateVolume(baseAssetId, details.baseAssetAmount, blockTimestamp);
-        const bVolumeUSD = await assetSnapshotsStorage.updateVolume(targetAssetId, details.targetAssetAmount, blockTimestamp);
+        const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount, blockTimestamp);
+        const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount, blockTimestamp);
         // get the minimal volume (sell\buy)
         const volumeUSD = BigNumber.min(aVolumeUSD, bVolumeUSD);
 
@@ -107,7 +107,7 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
 
     await handleAndSaveExtrinsic(extrinsic);
 
-    logger.debug(`===== Saved swap with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    getCallHandlerLog(extrinsic).debug('Saved swap')
 }
 
 export async function handleSwapTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -115,5 +115,5 @@ export async function handleSwapTransfers(extrinsic: SubstrateExtrinsic): Promis
 
     await handleAndSaveExtrinsic(extrinsic);
 
-    logger.debug(`===== Saved swap and transfer with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    getCallHandlerLog(extrinsic).debug('Saved swap transfer')
 }

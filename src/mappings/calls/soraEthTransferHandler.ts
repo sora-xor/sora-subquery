@@ -2,7 +2,7 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
-import { logStartProcessingCall } from "../../utils/logs";
+import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
@@ -43,6 +43,6 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
     await updateHistoryElementStats(record);
     await networkSnapshotsStorage.updateBridgeOutgoingTransactionsStats(record.timestamp);
 
-    logger.debug(`===== Saved SORA->ETH transfer extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    getCallHandlerLog(extrinsic).debug(`Saved SORA->ETH transfer extrinsic`)
 
 }
