@@ -19,14 +19,41 @@ function toPascalCase(str: string): string {
 }
 
 export function getLog(ctx: BlockContext, module: string | null = null, attrs: Record<string, any> = {}) {
-	const block = 'block' in ctx.block ? ctx.block.block : ctx.block
-	const blockHeight = block.header.number.toNumber()
-	const attributes: any = { blockHeight, ...attrs }
-	if (module) {
-		attributes['module'] = module
-	}
-	return logger.child(attributes)
+    const block = 'block' in ctx.block ? ctx.block.block : ctx.block;
+    const blockHeight = block.header.number.toNumber();
+    const attributes: any = { blockHeight, ...attrs };
+    if (module) {
+        attributes['module'] = module;
+    }
+
+    const attrsToString = (attributes: Record<string, any>): string => {
+        return Object.entries(attributes).map(([key, value]) => ' '.repeat(41) + `${key}: ${value}`).join('\n');
+    };
+
+    const log = (level: 'debug' | 'info' | 'warn' | 'error') => (arg1: Record<string, any> | string, arg2?: string) => {
+        let attrs: Record<string, any> = {};
+        let message: string;
+
+        if (typeof arg1 === 'string') {
+            message = arg1;
+        } else {
+            attrs = arg1;
+            message = arg2!;
+        }
+
+        attrs = { ...attributes, ...attrs };
+
+        logger[level](`${message}\n${attrsToString(attrs)}`);
+    };
+
+    return {
+        debug: log('debug'),
+        info: log('info'),
+        warn: log('warn'),
+        error: log('error'),
+    };
 }
+
 
 export function getCallHandlerLog(extrinsic: SubstrateExtrinsic, message: string = '', attrs: Record<string, any> = {}) {
 	const extrinsicHash = extrinsic.extrinsic.hash.toString()

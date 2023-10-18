@@ -78,19 +78,12 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     getInitializeAssetsLog(block).debug('Initialize Asset entities')
 
-    const [
-        assetInfos,
-        syntheticAssets,
-        bandRates,
-        tokensIssuances,
-        xorIssuance,
-    ] = await Promise.all([
-        getAssetInfos(block),
-        getSyntheticAssets(block),
-        getBandRates(block),
-        getTokensIssuances(block),
-        getXorIssuance(block)
-    ]);
+    // We don't use Promise.all() here because we need consistent order of requests in the log
+	const assetInfos = await getAssetInfos(block)
+	const syntheticAssets = await getSyntheticAssets(block)
+	const bandRates = await getBandRates(block)
+	const tokensIssuances = await getTokensIssuances(block)
+	const xorIssuance = await getXorIssuance(block)
 
     const assets = new Map();
 
