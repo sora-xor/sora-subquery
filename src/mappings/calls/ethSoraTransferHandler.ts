@@ -5,10 +5,10 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { getDepositedEventData, getTransferEventData, isAssetDepositedEvent, isAssetTransferEvent } from '../../utils/events';
-import { logEventHandler } from '../../utils/logs';
+import { logStartProcessingEvent } from '../../utils/logs';
 
 export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promise<void> {
-    logEventHandler(event)
+    logStartProcessingEvent(event)
 
     const extrinsic = event.extrinsic
     const registeredRequestEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered' && e.event.section === 'ethBridge')

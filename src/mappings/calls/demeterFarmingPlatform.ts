@@ -3,12 +3,12 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
-import { logCallHandler } from "../../utils/logs";
+import { logStartProcessingCall } from "../../utils/logs";
 
 const Section = 'demeterFarmingPlatform';
 
 export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logCallHandler(extrinsic);
+  logStartProcessingCall(extrinsic);
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
@@ -44,7 +44,7 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
 }
 
 export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logCallHandler(extrinsic);
+  logStartProcessingCall(extrinsic);
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
@@ -80,7 +80,7 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
 }
 
 export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logCallHandler(extrinsic);
+  logStartProcessingCall(extrinsic);
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 

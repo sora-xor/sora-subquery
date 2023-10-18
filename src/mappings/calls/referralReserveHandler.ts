@@ -3,10 +3,10 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { formatU128ToBalance } from '../../utils/assets';
 import { isXorTransferEvent, getTransferEventData } from '../../utils/events';
 import { XOR } from "../../utils/consts";
-import { logCallHandler } from "../../utils/logs";
+import { logStartProcessingCall } from "../../utils/logs";
 
 export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logCallHandler(extrinsic);
+    logStartProcessingCall(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 

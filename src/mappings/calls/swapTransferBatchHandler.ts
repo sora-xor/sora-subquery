@@ -6,7 +6,7 @@ import { XOR } from '../../utils/consts';
 
 import type { Vec } from "@polkadot/types";
 import { LiquiditySourceType } from './swapsHandler';
-import { logCallHandler } from '../../utils/logs';
+import { logStartProcessingCall } from '../../utils/logs';
 
 
 const getEventData = (extrinsic: SubstrateExtrinsic, method: string, section: string) => {
@@ -75,7 +75,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
 }
 
 export async function handleSwapTransferBatch(extrinsic: SubstrateExtrinsic): Promise <void> {
-    logCallHandler(extrinsic);
+    logStartProcessingCall(extrinsic);
 
     await handleAndSaveExtrinsic(extrinsic);
 

@@ -4,10 +4,10 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
 import { isAssetTransferEvent } from '../../utils/events';
-import { logCallHandler } from '../../utils/logs';
+import { logStartProcessingCall } from '../../utils/logs';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logCallHandler(extrinsic);
+    logStartProcessingCall(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 

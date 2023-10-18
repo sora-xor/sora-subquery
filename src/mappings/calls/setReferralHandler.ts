@@ -1,9 +1,9 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
-import { logCallHandler } from "../../utils/logs";
+import { logStartProcessingCall } from "../../utils/logs";
 
 export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logCallHandler(extrinsic);
+    logStartProcessingCall(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 

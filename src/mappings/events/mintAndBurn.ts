@@ -2,10 +2,10 @@ import { SubstrateEvent } from "@subql/types";
 import { getAssetId, assetSnapshotsStorage } from '../../utils/assets';
 import { formatDateTimestamp } from '../../utils';
 import { XOR } from '../../utils/consts';
-import { logEventHandler } from "../../utils/logs";
+import { logStartProcessingEvent } from "../../utils/logs";
 
 export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
-    logEventHandler(event)
+    logStartProcessingEvent(event)
 
     const { event: { data: [ currencyId, who, balance ] } } = event;
 
@@ -17,7 +17,7 @@ export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
 }
 
 export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
-    logEventHandler(event)
+    logStartProcessingEvent(event)
     
     const { event: { data: [ who, balance ] } } = event;
 
@@ -29,7 +29,7 @@ export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
 }
 
 export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
-    logEventHandler(event)
+    logStartProcessingEvent(event)
 
     const { event: { data: [ currencyId, who, balance ] } } = event;
 
@@ -41,7 +41,7 @@ export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
 }
 
 export async function handleXorMint(event: SubstrateEvent): Promise<void> {
-    logEventHandler(event)
+    logStartProcessingEvent(event)
 
     const { event: { data: [ who, balance ] } } = event;
 

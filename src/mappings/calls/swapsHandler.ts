@@ -6,7 +6,7 @@ import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../ut
 import { networkSnapshotsStorage } from '../../utils/network';
 import { XOR } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
-import { logCallHandler } from '../../utils/logs';
+import { logStartProcessingCall } from '../../utils/logs';
 
 import type { Vec } from "@polkadot/types";
 import type { Enum, Struct } from "@polkadot/types/codec";
@@ -103,7 +103,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 }
 
 export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logCallHandler(extrinsic);
+    logStartProcessingCall(extrinsic);
 
     await handleAndSaveExtrinsic(extrinsic);
 
@@ -111,7 +111,7 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
 }
 
 export async function handleSwapTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logCallHandler(extrinsic);
+    logStartProcessingCall(extrinsic);
 
     await handleAndSaveExtrinsic(extrinsic);
 
