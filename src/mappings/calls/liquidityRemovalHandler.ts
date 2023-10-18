@@ -45,6 +45,6 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
 
     getCallHandlerLog(extrinsic).debug(`Saved liquidity removal`)
 
-    await poolsStorage.getPool(baseAssetId, targetAssetId);
+    await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
     await updateHistoryElementStats(record);
 }

@@ -17,7 +17,7 @@ export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Pro
         let referralReserveEvent = extrinsic.events.find(e => isXorTransferEvent(e));
 
         if (referralReserveEvent == undefined) {
-            logger.debug("No 'Balances.Transfer' event is found")
+            getCallHandlerLog(extrinsic).debug("No 'Balances.Transfer' event is found")
             return
         }
 
@@ -41,5 +41,5 @@ export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Pro
     await record.save();
     await updateHistoryElementStats(record);
 
-    getCallHandlerLog(extrinsic).debug(`Saved referral reserve`)
+    getCallHandlerLog(extrinsic).debug('Saved referral reserve')
 }

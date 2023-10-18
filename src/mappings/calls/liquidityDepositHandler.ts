@@ -42,6 +42,6 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
     getCallHandlerLog(extrinsic).debug(`Saved liquidity deposit`)
 
-    await poolsStorage.getPool(baseAssetId, targetAssetId);
+    await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
     await updateHistoryElementStats(record);
 }

@@ -13,7 +13,7 @@ export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
     const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
-    await assetSnapshotsStorage.updateBurned(assetId, amount, blockTimestamp);
+    await assetSnapshotsStorage.updateBurned(event.block, assetId, amount, blockTimestamp);
 }
 
 export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
@@ -25,7 +25,7 @@ export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
     const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
-    await assetSnapshotsStorage.updateBurned(assetId, amount, blockTimestamp);
+    await assetSnapshotsStorage.updateBurned(event.block, assetId, amount, blockTimestamp);
 }
 
 export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
@@ -37,7 +37,7 @@ export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
     const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
-    await assetSnapshotsStorage.updateMinted(assetId, amount, blockTimestamp);
+    await assetSnapshotsStorage.updateMinted(event.block, assetId, amount, blockTimestamp);
 }
 
 export async function handleXorMint(event: SubstrateEvent): Promise<void> {
@@ -49,5 +49,5 @@ export async function handleXorMint(event: SubstrateEvent): Promise<void> {
     const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
-    await assetSnapshotsStorage.updateMinted(assetId, amount, blockTimestamp);
+    await assetSnapshotsStorage.updateMinted(event.block, assetId, amount, blockTimestamp);
 }
