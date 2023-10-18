@@ -3,7 +3,7 @@ import { SubstrateBlock } from "@subql/types";
 import { getAssetId } from '../../utils/assets';
 import { poolAccounts, getAllReserves, getAllProperties, poolsStorage } from '../../utils/pools';
 import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
-import { getInitializePoolsLog } from "sora/utils/logs";
+import { getInitializePoolsLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
 

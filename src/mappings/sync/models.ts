@@ -4,7 +4,7 @@ import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolsStorage } from '../../utils/pools';
 import { formatDateTimestamp } from '../../utils';
-import { getSyncModelsLog } from "sora/utils/logs";
+import { getSyncModelsLog } from "../../utils/logs";
 
 export async function syncModels(block: SubstrateBlock): Promise<void> {
   const blockTimestamp: number = formatDateTimestamp(block.timestamp);

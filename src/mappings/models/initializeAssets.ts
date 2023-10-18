@@ -2,7 +2,7 @@ import type { SubstrateBlock } from "@subql/types";
 
 import { assetPrecisions, getAssetId, assetStorage, formatU128ToBalance, tickerSyntheticAssetId } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
-import { getInitializeAssetsLog } from "sora/utils/logs";
+import { getInitializeAssetsLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
 
