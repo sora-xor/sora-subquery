@@ -65,7 +65,8 @@ export function getCallHandlerLog(extrinsic: SubstrateExtrinsic, message: string
 export function getEventHandlerLog(event: SubstrateEvent, message: string = '', attrs: Record<string, any> = {}) {
 	const extrinsicHash = event.extrinsic?.extrinsic.hash.toString()
 	const eventName = toPascalCase(`${event.event.section}.${event.event.method}`);
-	const attributes: any = { ...attrs, eventName }
+	const eventId = `${event.block.block.header.number.toNumber()}-${event.idx}`
+	const attributes: any = { ...attrs, eventName, eventId }
 	if (extrinsicHash) {
 		attributes['extrinsicHash'] = extrinsicHash
 	}
