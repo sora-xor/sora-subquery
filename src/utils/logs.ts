@@ -43,7 +43,7 @@ export function getLog(ctx: BlockContext, module: string | null = null, attrs: R
 
         attrs = { ...attributes, ...attrs };
 
-        logger[level](`${message}\n${attrsToString(attrs)}`);
+        logger[level](attrs, `${message}\n${attrsToString(attrs)}`);
     };
 
     return {
