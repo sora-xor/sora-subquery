@@ -27,7 +27,7 @@ export const getSyntheticAssets = async (block: SubstrateBlock) => {
       return data;
     } catch (e) {
       getInitializeAssetsLog(block).error('Error getting Synthetic assets')
-      getInitializeAssetsLog(block).error(e as string)
+      getInitializeAssetsLog(block).error(e)
       return null;
     }
 };
@@ -40,7 +40,7 @@ export const getBandRates = async (block: SubstrateBlock) => {
       return data;
     } catch (e) {
       getInitializeAssetsLog(block).error('Error getting Band rates');
-	  getInitializeAssetsLog(block).error(e as string);
+	  getInitializeAssetsLog(block).error(e);
       return null;
     }
 };
