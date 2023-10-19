@@ -5,12 +5,12 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { getDepositedEventData, getTransferEventData, isAssetDepositedEvent, isAssetTransferEvent } from '../../utils/events';
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 
-export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: SubstrateEvent): Promise<void> {
+export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promise<void> {
+    logStartProcessingEvent(event)
 
-    logger.debug("Caught ETH->SORA transfer extrinsic")
-
-    const extrinsic = incomingRequestFinalizationEvent.extrinsic
+    const extrinsic = event.extrinsic
     const registeredRequestEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered' && e.event.section === 'ethBridge')
     const currenciesEvent = extrinsic.events.find(e => isAssetDepositedEvent(e) || isAssetTransferEvent(e));
 
@@ -39,6 +39,6 @@ export async function ethSoraTransferHandler(incomingRequestFinalizationEvent: S
     await updateHistoryElementStats(record);
     await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(record.timestamp);
 
-    logger.debug(`===== Saved ETH->SORA transfer extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    getEventHandlerLog(event).debug('Saved ETH->SORA transfer extrinsic')
 
 }

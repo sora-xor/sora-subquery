@@ -1,8 +1,11 @@
-import { SubstrateEvent } from "@subql/types";
+import { SubstrateBlock, SubstrateEvent } from "@subql/types";
 
 import { assetPrecisions, getAssetId, assetStorage, getTickerSymbol, tickerSyntheticAssetId } from '../../utils/assets';
+import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 export async function handleAssetRegistration(event: SubstrateEvent): Promise<void> {
+  logStartProcessingEvent(event);
+  
   const { event: { data: [asset] } } = event;
 
   const assetId: string = getAssetId(asset);
@@ -12,10 +15,12 @@ export async function handleAssetRegistration(event: SubstrateEvent): Promise<vo
     assetPrecisions.set(assetId, precision.toNumber());
   }
 
-  await assetStorage.getAsset(assetId);
+  await assetStorage.getAsset(event.block, assetId);
 }
 
 export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promise<void> {
+  logStartProcessingEvent(event);
+  
   const { event: { data: [asset, ticker] } } = event;
 
   const assetId: string = getAssetId(asset);
@@ -25,7 +30,7 @@ export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promis
   // synthetic assets always have 18 decimals
   assetPrecisions.set(assetId, 18);
 
-  logger.debug(`Synthetic asset enabled ${assetId}, referenceSymbol ${referenceSymbol}`);
+  getEventHandlerLog(event).debug({ assetId, referenceSymbol }, 'Synthetic asset enabled')
 
-  await assetStorage.getAsset(assetId);
+  await assetStorage.getAsset(event.block, assetId);
 }
