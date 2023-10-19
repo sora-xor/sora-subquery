@@ -27,7 +27,7 @@ export function getLog(ctx: BlockContext, module: string | null = null, attrs: R
     }
 
     const attrsToString = (attributes: Record<string, any>): string => {
-        return Object.entries(attributes).map(([key, value]) => ' '.repeat(41) + `${key}: ${value}`).join('\n');
+        return Object.entries(attributes).map(([key, value]) => ' '.repeat(41) + `\x1b[30m${key}: ${value}\x1b[0m`).join('\n');
     };
 
     const log = (level: 'debug' | 'info' | 'warn' | 'error') => (arg1: Record<string, any> | string, arg2?: string) => {
@@ -65,7 +65,7 @@ export function getCallHandlerLog(extrinsic: SubstrateExtrinsic, message: string
 export function getEventHandlerLog(event: SubstrateEvent, message: string = '', attrs: Record<string, any> = {}) {
 	const extrinsicHash = event.extrinsic?.extrinsic.hash.toString()
 	const eventName = toPascalCase(`${event.event.section}.${event.event.method}`);
-	const eventId = `${event.block.block.header.number.toNumber()}-${event.idx}`
+	const eventId = `${event.block.block.header.number.toNumber()}-${event.idx}`;
 	const attributes: any = { ...attrs, eventName, eventId }
 	if (extrinsicHash) {
 		attributes['extrinsicHash'] = extrinsicHash
