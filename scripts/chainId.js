@@ -1,13 +1,20 @@
 const fetch = require('node-fetch');
-const readYamlFile = require('read-yaml-file');
+const fs = require('fs-extra');
+const yaml = require('js-yaml');
 
 const configPath = 'project.yaml';
 
+const shouldUpdate = process.argv.includes('--update');
+
 async function main() {
   try {
-    const config = await readYamlFile(configPath);
+    // Read project.yaml
+    const fileContents = await fs.readFile(configPath, 'utf8');
+    const config = yaml.load(fileContents);
     const wsEndpoint = config.network.endpoint;
     const rpcUrl = wsEndpoint.replace(/^ws(s)?:\/\/ws/, 'http$1://rpc');
+
+    // Fetch chainId using an RPC request
     const request = {
       id: 1,
       jsonrpc: '2.0',
@@ -24,8 +31,19 @@ async function main() {
     const responseData = await response.json();
     const chainId = responseData.result;
 
-    console.log(chainId);
+    // Output the fetched chainId
+    console.log(`Fetched chainId: ${chainId}`);
+
+    // Optionally update chainId in project.yaml
+    if (shouldUpdate) {
+      config.network.chainId = chainId;
+      const updatedYaml = yaml.dump(config);
+      await fs.writeFile(configPath, updatedYaml, 'utf8');
+      console.log('ChainId updated in project.yaml.');
+    }
+
   } catch (error) {
+    console.error('An error occurred:', error);
     console.log(0);
   }
 }
