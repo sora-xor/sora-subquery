@@ -1,5 +1,3 @@
-import { TextDecoder } from 'util';
-
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
@@ -66,11 +64,6 @@ export const formatU128ToBalance = (u128: string, assetId: string): string => {
 
 export const getAssetId = (asset: any): string => {
   return (asset?.code?.code ?? asset?.code ?? asset).toHuman();
-};
-
-export const getTickerSymbol = (ticker: any): string => {
-  const result = new TextDecoder().decode(ticker);
-  return result;
 };
 
 class AssetStorage {

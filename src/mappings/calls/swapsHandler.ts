@@ -1,6 +1,7 @@
 import { SubstrateExtrinsic } from '@subql/types';
 import BigNumber from "bignumber.js";
 
+import { isExchangeEvent } from '../../utils/events';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
@@ -74,8 +75,8 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
     }
 
     if (record.execution.success) {
-        const swapEvent = extrinsic.events.find(e => e.event.method === 'Exchange' && e.event.section === 'liquidityProxy');
-        const { event: { data: [, , , , baseAssetAmount, targetAssetAmount, liquidityProviderFee] } } = swapEvent;
+        const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
+        const { event: { data: [, , , , baseAssetAmount, targetAssetAmount, liquidityProviderFee] } } = exchangeEvent;
 
         details.baseAssetAmount = formatU128ToBalance(baseAssetAmount.toString(), baseAssetId)
         details.targetAssetAmount = formatU128ToBalance(targetAssetAmount.toString(), targetAssetId)

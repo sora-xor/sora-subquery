@@ -4,6 +4,10 @@ import { Codec } from '@polkadot/types/types';
 import { getAssetId } from '../utils/assets';
 import { XOR } from './consts';
 
+export const isExchangeEvent = (e: TypedEventRecord<Codec[]): boolean => {
+  return e.event.method === 'Exchange' && e.event.section === 'liquidityProxy';
+};
+
 export const isXorTransferEvent = (e: TypedEventRecord<Codec[]>) => {
   return e.event.method === 'Transfer' && e.event.section === 'balances';
 };

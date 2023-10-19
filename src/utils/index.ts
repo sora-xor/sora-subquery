@@ -1,3 +1,5 @@
+import { TextDecoder } from 'util';
+
 import { SnapshotType } from "../types";
 
 import { SnapshotSecondsMap } from './consts';
@@ -12,3 +14,6 @@ export const getSnapshotIndex = (blockTimestamp: number, type: SnapshotType): { 
   return { index, timestamp };
 };
 
+export const bytesToString = (ticker: any): string => {
+  return new TextDecoder().decode(ticker);
+};
