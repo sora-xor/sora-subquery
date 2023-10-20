@@ -1,6 +1,6 @@
-const fetch = require('node-fetch');
-const fs = require('fs-extra');
-const yaml = require('js-yaml');
+import fetch from 'node-fetch';
+import fs from 'fs-extra';
+import yaml from 'js-yaml';
 
 const configPath = 'project.yaml';
 
