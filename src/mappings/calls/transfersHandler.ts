@@ -6,12 +6,12 @@ import { XOR } from '../../utils/consts';
 import { isExchangeEvent } from "../../utils/events";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logger.debug("Caught asset transfer extrinsic")
+  logStartProcessingCall(extrinsic);
 
   const { extrinsic: { args: [asset, to, amount] } } = extrinsic;
-
   const record = assignCommonHistoryElemInfo(extrinsic);
   const assetId = getAssetId(asset);
   const details: any = {
@@ -26,11 +26,11 @@ export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promis
   await record.save();
   await updateHistoryElementStats(record);
 
-  logger.debug(`===== Saved asset transfer with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+  getCallHandlerLog(extrinsic).debug(`Saved transfer`)
 }
 
 export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logger.debug("Caught xorless transfer extrinsic");
+  logStartProcessingCall(extrinsic);
 
   const {
     extrinsic: {
@@ -69,5 +69,5 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
   await record.save();
   await updateHistoryElementStats(record);
 
-  logger.debug(`===== Saved xorless transfer with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+  getCallHandlerLog(extrinsic).debug(`Saved xorless transfer`)
 }

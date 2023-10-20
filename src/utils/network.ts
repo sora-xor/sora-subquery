@@ -2,6 +2,8 @@ import BigNumber from "bignumber.js";
 
 import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
 import { getSnapshotIndex } from "./index";
+import { SubstrateBlock } from "@subql/types";
+import { getNetworkSnapshotsStorageLog } from "./logs";
 
 export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
 
@@ -49,8 +51,8 @@ class NetworkSnapshotsStorage {
     this.networkStatsStorage = new NetworkStatsStorage(NetworkStatsId);
   }
 
-  async sync(blockTimestamp: number): Promise<void> {
-    await this.syncSnapshots(blockTimestamp);
+  async sync(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+    await this.syncSnapshots(block, blockTimestamp);
     await this.syncStats();
   }
 
@@ -58,8 +60,8 @@ class NetworkSnapshotsStorage {
     this.networkStatsStorage.sync();
   }
 
-  private async syncSnapshots(blockTimestamp: number): Promise<void> {
-    logger.debug(`[NetworkSnapshotsStorage] ${this.storage.size} snapshots sync`);
+  private async syncSnapshots(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+    getNetworkSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots sync`);
 
     await store.bulkUpdate('NetworkSnapshot', [...this.storage.values()]);
 
@@ -72,7 +74,7 @@ class NetworkSnapshotsStorage {
       }
     }
 
-    logger.debug(`[NetworkSnapshotsStorage] ${this.storage.size} snaphots in storage after sync`);
+    getNetworkSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots in storage after sync`);
   }
 
   public static getId(type: SnapshotType, index: number): string {
