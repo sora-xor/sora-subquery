@@ -47,11 +47,16 @@ dataSources:
           filter:
             module: assets
             method: register
-        - handler: handlerTransfers
+        - handler: handleAssetTransfer
           kind: substrate/CallHandler
           filter:
             module: assets
             method: transfer
+        - handler: handleXorlessTransfer
+          kind: substrate/CallHandler
+          filter:
+            module: liquidityProxy
+            method: xorlessTransfer
         - handler: handleSwaps
           kind: substrate/CallHandler
           filter:
