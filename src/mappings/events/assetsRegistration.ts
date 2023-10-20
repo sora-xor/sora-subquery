@@ -1,6 +1,7 @@
-import { SubstrateBlock, SubstrateEvent } from "@subql/types";
+import { SubstrateEvent } from "@subql/types";
 
-import { assetPrecisions, getAssetId, assetStorage, getTickerSymbol, tickerSyntheticAssetId } from '../../utils/assets';
+import { assetPrecisions, getAssetId, assetStorage, tickerSyntheticAssetId } from '../../utils/assets';
+import { bytesToString } from '../../utils';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 export async function handleAssetRegistration(event: SubstrateEvent): Promise<void> {
@@ -24,7 +25,7 @@ export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promis
   const { event: { data: [asset, ticker] } } = event;
 
   const assetId: string = getAssetId(asset);
-  const referenceSymbol = getTickerSymbol(ticker);
+  const referenceSymbol = bytesToString(ticker);
 
   tickerSyntheticAssetId.set(referenceSymbol, assetId);
   // synthetic assets always have 18 decimals
