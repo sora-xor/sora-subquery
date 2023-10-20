@@ -45,9 +45,9 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     amount: formatU128ToBalance(amount.toString(), assetId),
     from: extrinsic.extrinsic.signer.toString(),
     to: receiver.toString(),
-    comment: bytesToString(additionalData),
-    assetFee: '0', // paid for fee in asset
-    xorFee: '0', // paid for fee in XOR
+    comment: !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null,
+    assetFee: '0', // fee paid in asset
+    xorFee: record.networkFee, // fee paid in XOR (by default 100% of network fee)
   };
 
   if (record.execution.success) {
@@ -55,13 +55,12 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
 
     if (exchangeEvent) {
       const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
-      const assetFee = formatU128ToBalance(baseAssetAmount.toString(), assetId); // formatted
-      const xorNetworkFee = record.networkFee; // already formatted
-      const xorConverted = formatU128ToBalance(targetAssetAmount.toString(), XOR); // formatted
-      const xorFee = new BigNumber(xorNetworkFee).minus(new BigNumber(xorConverted)).toString(); 
+      const assetSpended = formatU128ToBalance(baseAssetAmount.toString(), assetId); // formatted
+      const xorReceived = formatU128ToBalance(targetAssetAmount.toString(), XOR); // formatted
+      const xorSpended = new BigNumber(details.xorFee).minus(new BigNumber(xorReceived)).toString(); 
 
-      details.assetFee = assetFee;
-      details.xorFee = xorFee;
+      details.assetFee = assetSpended;
+      details.xorFee = xorSpended;
     }
   }
 
