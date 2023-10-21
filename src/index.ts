@@ -11,7 +11,7 @@ export * from './mappings/calls/irohaMigrationHandler';
 export * from './mappings/calls/batchTransactionsHandler';
 export * from './mappings/calls/assetRegistrationHandler';
 export * from './mappings/calls/soraEthTransferHandler';
-export * from './mappings/calls/ethSoraTransferHandler';
+export * from './mappings/events/ethSoraTransfer';
 export * from './mappings/calls/rewardsHandler';
 export * from "./mappings/calls/setReferralHandler";
 export * from "./mappings/calls/referralReserveHandler";

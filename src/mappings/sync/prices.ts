@@ -8,6 +8,7 @@ import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
+import { getSyncPricesLog } from "../../utils/logs";
 
 const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiReserves: BigNumber) => {
     // theoretical asset capitalization in DAI inside DEX
@@ -23,7 +24,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
     const blockNumber = block.block.header.number.toNumber();
 
-    logger.debug(`[${blockNumber}]: Update prices in PoolXYK entities`);
+    getSyncPricesLog(block).debug('Sync PoolXYK prices')
 
     const blockTimestamp: number = formatDateTimestamp(block.timestamp);
     const assetsLockedInPools = new Map<string, bigint>();
@@ -49,10 +50,10 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         let baseAssetWithDoublePools = new BigNumber(0);
         let baseAssetPriceInDAI = new BigNumber(0);
 
-        logger.debug(`[${blockNumber}]: Update ${poolsMap.size} ${baseAssetId} based pools`);
+        getSyncPricesLog(block).debug({ baseAssetId }, `Update ${poolsMap.size} pools`);
 
         for (const poolId of poolsMap.values()) {
-            const pool = await poolsStorage.getPoolById(poolId);
+            const pool = await poolsStorage.getPoolById(block, poolId);
 
             if (!pool) continue;
 
@@ -162,19 +163,19 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     for (const [assetId, { price }] of Object.entries(assetsPrices)) {
         // do not update price from XYK pool for synthetic assets
         if (!syntheticAssetsIds.includes(assetId)) {
-            await assetSnapshotsStorage.updatePrice(assetId, price, blockTimestamp);
+            await assetSnapshotsStorage.updatePrice(block, assetId, price, blockTimestamp);
         }
     }
 
     // update locked luqidity for assets
     for (const [assetId, liquidity] of assetsLockedInPools.entries()) {
-        await assetSnapshotsStorage.updateLiquidity(assetId, liquidity, blockTimestamp);
+        await assetSnapshotsStorage.updateLiquidity(block, assetId, liquidity, blockTimestamp);
     }
 
     // update total liquidity in USD
     await networkSnapshotsStorage.updateLiquidityStats(liquiditiesUSD, blockTimestamp);
 
-    logger.debug(`[${blockNumber}]: PoolXYK prices updated`);
+    getSyncPricesLog(block).debug('PoolXYK prices updated');
 
     PoolsPrices.set(false);
 }
