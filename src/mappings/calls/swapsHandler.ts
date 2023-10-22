@@ -74,7 +74,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
         details.to = to.toString()
     }
 
-    if (details.execution.success) {
+    if (historyElement.execution.success) {
         const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
         const { event: { data: [, , , , baseAssetAmount, targetAssetAmount, liquidityProviderFee] } } = exchangeEvent;
 
@@ -91,7 +91,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
     await updateHistoryElementStats(extrinsic, historyElement);
 
     // update assets volume
-    if (details.execution.success) {
+    if (historyElement.execution.success) {
         const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount, blockTimestamp);
         const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount, blockTimestamp);
         // get the minimal volume (sell\buy)
