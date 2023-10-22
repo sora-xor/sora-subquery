@@ -70,7 +70,7 @@ export function getEventHandlerLog(event: SubstrateEvent, testMode: boolean = fa
 	if (extrinsicHash) {
 		attributes['extrinsicHash'] = extrinsicHash
 	}
-	return getLog(event, 'EventHandler', {}, testMode)
+	return getLog(event, 'EventHandler', attributes, testMode)
 }
 
 export function getInitializeAssetsLog(ctx: BlockContext, testMode: boolean = false) {
