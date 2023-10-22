@@ -5,6 +5,19 @@ enum SnapshotType {
   MONTH
 }
 
+enum PayeeType {
+	STAKED
+	STASH
+	CONTROLLER,
+	ACCOUNT,
+	NONE
+}
+
+enum HistoryElementType {
+	CALL
+	EVENT
+}
+
 type NetworkStats @entity {
   id: ID!
   totalFees: BigInt!
@@ -85,7 +98,8 @@ type Account @entity {
 
 type HistoryElement @entity {
   id: ID!
-  blockHeight: BigInt!
+	type: HistoryElementType!
+  blockHeight: Int!
   blockHash: String! @index
   module: String!
   method: String!
@@ -94,6 +108,29 @@ type HistoryElement @entity {
   execution: ExecutionResult!
   timestamp: Int!
   data: HistoryElementDetails
+	dataTo: String @index
+	dataFrom: String @index
+	calls: [HistoryElementCall!]! @derivedFrom(field: "historyElement")
+	callNames: [String]!
+	updatedAtBlock: Int!
+}
+
+type HistoryElementDetails @jsonField {
+  data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
+}
+
+type HistoryElementCall @entity {
+	id: ID!
+	historyElement: HistoryElement! @index
+	module: String!
+	method: String!
+  hash: String! @index
+	data: HistoryElementCallDetails
+	updatedAtBlock: Int!
+}
+
+type HistoryElementCallDetails @jsonField {
+  data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
 }
 
 type ExecutionResult @jsonField {
@@ -107,10 +144,6 @@ type Error @jsonField {
   nonModuleErrorMessage: String
 }
 
-type HistoryElementDetails @jsonField {
-  data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
-}
-
 type ReferrerReward @entity {
 	id: ID!
 	referral: String! @index
@@ -121,26 +154,29 @@ type ReferrerReward @entity {
 
 type StakingReward @entity {
 	id: ID!
-	account: String! @index
-	amount: BigInt!
-	updatedAtBlock: Int!
+	amount: String!
 	staker: StakingStaker!
+	payee: String @index
+	era: StakingEra!
+	timestamp: Int!
 }
 
 type StakingStaker @entity {
 	id: ID!
 	eraValidators: [StakingEraValidator!]! @derivedFrom(field: "staker")
 	eraNominators: [StakingEraNominator!]! @derivedFrom(field: "staker")
+	payeeType: PayeeType!
+	payee: String
+	controller: String
 }
 
 type StakingValidator @entity {
   id: ID!
   bond: BigInt!
-  # apr24h: Float!
 }
 
 type StakingEraNominator @entity {
-  id: ID!
+	id: ID!
   era: StakingEra!
   bond: BigInt!
   staker: StakingStaker!
@@ -148,7 +184,7 @@ type StakingEraNominator @entity {
 }
 
 type StakingEraNomination @entity {
-  id: ID!
+	id: ID!
   era: StakingEra!
   amount: BigInt!
   validator: StakingEraValidator!
@@ -156,9 +192,8 @@ type StakingEraNomination @entity {
 }
 
 type StakingEraValidator @entity {
-  id: ID!
+	id: ID!
   era: StakingEra!
-  # apr: Float!
   validator: StakingValidator!
   nominations: [StakingEraNomination!]! @derivedFrom(field: "validator")
   ownBond: BigInt!
@@ -168,10 +203,9 @@ type StakingEraValidator @entity {
 }
 
 type StakingEra @entity {
-  id: ID!
+	id: ID!
 	index: Int! @index
-	startBlock: BigInt!
-	endBlock: BigInt
+	start: BigInt! @index
   validators: [StakingEraValidator!]! @derivedFrom(field: "era")
 	nominators: [StakingEraNominator!]! @derivedFrom(field: "era")
   nominations: [StakingEraNomination!]! @derivedFrom(field: "era")

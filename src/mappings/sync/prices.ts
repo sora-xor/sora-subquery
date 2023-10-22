@@ -8,7 +8,7 @@ import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
-import { getSyncPricesLog } from "../../utils/logs";
+import { getPoolsStorageLog, getSyncPricesLog } from "../../utils/logs";
 
 const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiReserves: BigNumber) => {
     // theoretical asset capitalization in DAI inside DEX
@@ -81,6 +81,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             );
 
             pools[baseAssetId].push(pool);
+            getPoolsStorageLog(block).debug({ poolId: pool.id }, 'Update pool')
         }
 
         baseAssetWithDoublePoolsPrice = baseAssetWithDoublePoolsPrice.plus(baseAssetWithDoublePools.multipliedBy(baseAssetPriceInDAI));
@@ -173,7 +174,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     }
 
     // update total liquidity in USD
-    await networkSnapshotsStorage.updateLiquidityStats(liquiditiesUSD, blockTimestamp);
+    await networkSnapshotsStorage.updateLiquidityStats(block, liquiditiesUSD, blockTimestamp);
 
     getSyncPricesLog(block).debug('PoolXYK prices updated');
 

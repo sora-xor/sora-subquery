@@ -1,11 +1,11 @@
 
 import type { SubstrateEvent } from "@subql/types";
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { getDepositedEventData, getTransferEventData, isAssetDepositedEvent, isAssetTransferEvent } from '../../utils/events';
-import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
+import { logStartProcessingEvent } from '../../utils/logs';
 
 export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promise<void> {
     logStartProcessingEvent(event)
@@ -22,7 +22,7 @@ export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promis
         ? getDepositedEventData(currenciesEvent)
         : getTransferEventData(currenciesEvent);
 
-    const record = assignCommonHistoryElemInfo(extrinsic)
+    const historyElement = await createHistoryElement(extrinsic)
 
     let entity = new Object();
 
@@ -33,12 +33,7 @@ export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promis
         to,
     }
 
-    record.data = entity
-
-    await record.save();
-    await updateHistoryElementStats(record);
-    await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(record.timestamp);
-
-    getEventHandlerLog(event).debug('Saved ETH->SORA transfer extrinsic')
-
+    await addDataToHistoryElement(extrinsic, historyElement, entity);
+    await updateHistoryElementStats(extrinsic, historyElement);
+    await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(event.block, historyElement.timestamp);
 }

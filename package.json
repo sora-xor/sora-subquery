@@ -13,7 +13,8 @@
     "generate:defs": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package sora/api-interfaces --input ./src/api-interfaces/",
     "generate:meta": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --package sora/api-interfaces --endpoint ./src/api-interfaces/sora.json --output ./src/api-interfaces",
     "process": "docker-compose pull && docker-compose up",
-    "process:clean": "rm -rf .data && npm run build && docker-compose pull && docker-compose up --force-recreate"
+    "process:clean:testLog": "export INDEXER_TEST_LOG_MODE=true && rm -rf .data && npm run build && docker-compose kill && docker-compose pull && docker-compose up",
+    "process:clean": "rm -rf .data && npm run build && docker-compose kill && docker-compose pull && docker-compose up"
   },
   "homepage": "https://github.com/subquery/subql-starter",
   "repository": "github:subquery/subql-starter",
@@ -41,6 +42,7 @@
   },
   "dependencies": {
     "@polkadot/api": "8.9.1",
-    "bignumber.js": "^9.0.1"
+    "bignumber.js": "^9.0.1",
+    "dotenv": "^16.3.1"
   }
 }
