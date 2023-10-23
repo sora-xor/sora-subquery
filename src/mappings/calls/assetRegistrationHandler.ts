@@ -32,6 +32,4 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 
     await addDataToHistoryElement(extrinsic, historyElement, details)
     await updateHistoryElementStats(extrinsic, historyElement);
-
-    getCallHandlerLog(extrinsic).debug('Saved asset registration')
 }

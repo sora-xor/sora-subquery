@@ -4,7 +4,7 @@ import { Account } from "../types";
 import { networkSnapshotsStorage } from './network';
 import { getUtilsLog } from "./logs";
 
-export const getOrCreateAccountEntity = async (extrinsic: SubstrateExtrinsic, accountAddress: string, timestamp: number) => {
+export const getAccountEntity = async (extrinsic: SubstrateExtrinsic, accountAddress: string, timestamp: number) => {
   let account = await Account.get(accountAddress);
 
   if (!account) {

@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
 import { isAssetTransferEvent } from '../../utils/events';
@@ -35,6 +35,8 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
         details.baseAssetAmount = formatU128ToBalance(amountA.toString(), baseAssetId);
         details.targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
     }
+
+    await addDataToHistoryElement(extrinsic, historyElement, details)
 
     await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
     await updateHistoryElementStats(extrinsic, historyElement);

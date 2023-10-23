@@ -1,7 +1,7 @@
 import type { SubstrateEvent, SubstrateExtrinsic } from "@subql/types";
 
 import { HistoryElement, HistoryElementCall, HistoryElementType } from "../types";
-import { getOrCreateAccountEntity } from './account';
+import { getAccountEntity } from './account';
 import { networkSnapshotsStorage } from './network';
 import { formatDateTimestamp, getEntityId } from './index';
 import { getUtilsLog } from "./logs";
@@ -22,16 +22,17 @@ const getExtrinsicNetworkFee = (extrinsic: SubstrateExtrinsic): string => {
 }
 
 function filterDataProperties(obj: Record<string, any>) {
-	const filteredObj: Record<string, any> = {}
+	const entries = []
 	for (let key in obj) {
 		if (obj.hasOwnProperty(key)) {
+			console.log('key: ', key)
 			const type = typeof obj[key]
 			if (type === 'number' || type === 'string' || type === 'bigint' || type === 'boolean') {
-				filteredObj[key] = obj[key]
+				entries.push(key + ': ' + obj[key])
 			}
 		}
 	}
-	return filteredObj
+	return entries.join(', ')
 }
 
 export const createHistoryElement = async (
@@ -80,7 +81,7 @@ export const createHistoryElement = async (
 
 	await historyElement.save()
 	const { callNames, execution, ...logArguments } = historyElement
-	getUtilsLog(ctx).debug({ ...logArguments, execution: execution.success }, 'Created history element')
+	getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element')
 
 	if (data) {
 		await addDataToHistoryElement(ctx, historyElement, data)
@@ -103,7 +104,9 @@ export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | Substrat
 	historyElement.updatedAtBlock = extrinsic.block.block.header.number.toNumber()
 
 	await historyElement.save()
-	getUtilsLog(ctx).debug({ historyElementId: historyElement.id, ...filterDataProperties(data) }, 'Updated history element with data')
+	getUtilsLog(ctx).debug({ historyElementId: historyElement.id }, 'Updated history element with data')
+    // TODO: fix data in log
+	// getUtilsLog(ctx).debug({ historyElementId: historyElement.id, data: filterDataProperties(data) }, 'Updated history element with data')
 }
 
 export const addCallsToHistoryElement = async (extrinsic: SubstrateExtrinsic, historyElement: HistoryElement, calls: HistoryElementCall[]) => {
@@ -126,12 +129,14 @@ export const updateHistoryElementStats = async (extrinsic: SubstrateExtrinsic, h
       addresses.push((history.data['to'] as string).toString());
   }
 
+  getUtilsLog(extrinsic).debug({ addresses: addresses.join(', ') }, 'addresses');
   // update accounts data
   for (const address of addresses) {
-      const account = await getOrCreateAccountEntity(extrinsic, address, timestamp);
+      const account = await getAccountEntity(extrinsic, address, timestamp);
       account.latestHistoryElementId = history.id.toString();
       await account.save();
   }
 
   await networkSnapshotsStorage.updateTransactionsStats(extrinsic.block, timestamp);
+  getUtilsLog(extrinsic).debug('Updated history element stats');
 }

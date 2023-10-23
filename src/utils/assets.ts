@@ -253,6 +253,7 @@ class AssetSnapshotsStorage {
         high: asset.priceUSD,
         low: asset.priceUSD,
       };
+			getAssetSnapshotsStorageLog(block).debug({ assetId: id }, 'Asset snapshot created and saved')
     }
 
     this.storage.set(snapshot.id, snapshot);
@@ -274,11 +275,11 @@ class AssetSnapshotsStorage {
       if (Number(snapshot.priceUSD.open) === 0) {
         snapshot.priceUSD.open = price;
       }
+      getAssetSnapshotsStorageLog(block, true).debug(
+        { assetId, newPrice: price },
+        'Asset snapshot price updated',
+      )
     }
-    getAssetSnapshotsStorageLog(block, true).debug(
-      { assetId: assetId, newPrice: price },
-      'Asset snapshot price updated',
-    )
     await this.assetStorage.updatePrice(block, assetId, price);
   }
 
@@ -294,15 +295,16 @@ class AssetSnapshotsStorage {
 
     for (const type of AssetSnapshots) {
       const snapshot = await this.getSnapshot(block, assetId, type, blockTimestamp);
+			getAssetSnapshotsStorageLog(block, true).debug({ oldVolume: snapshot.volume?.amount }, 'Updating asset snapshot volume')
 
       snapshot.volume.amount = new BigNumber(snapshot.volume.amount).plus(volume).toString();
       snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toFixed(2);
-    }
 
-    getAssetSnapshotsStorageLog(block, true).debug(
-      { assetId: assetId, newVolume: volume.toString() },
-      'Asset snapshot volume updated',
-    )
+      getAssetSnapshotsStorageLog(block, true).debug(
+        { assetId: assetId, newVolume: volume.toString() },
+        'Asset snapshot volume updated',
+      )
+    }
 
     return volumeUSD;
   }
@@ -323,6 +325,7 @@ class AssetSnapshotsStorage {
 
   async updateMinted(block: SubstrateBlock, assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {
     for (const type of AssetSnapshots) {
+			getAssetSnapshotsStorageLog(block).debug({ type }, 'Type')
       const snapshot = await this.getSnapshot(block, assetId, type, blockTimestamp);
 
       snapshot.mint = snapshot.mint + amount;
@@ -336,6 +339,7 @@ class AssetSnapshotsStorage {
     const asset = await this.assetStorage.getAsset(block, assetId);
 
     asset.supply = asset.supply + amount;
+		getAssetSnapshotsStorageLog(block).debug({ assetId: assetId, minted: amount.toString() }, 'Asset minted')
   }
 
   async updateBurned(block: SubstrateBlock, assetId: string, amount: bigint, blockTimestamp: number): Promise<void> {
@@ -353,7 +357,7 @@ class AssetSnapshotsStorage {
 
     asset.supply = asset.supply - amount;
 
-    getAssetStorageLog(block).debug({ assetId: assetId, supply: asset.supply.toString() }, 'Asset supply updated')
+    getAssetSnapshotsStorageLog(block).debug({ assetId: assetId, supply: asset.supply.toString() }, 'Asset supply updated')
   }
 }
 
