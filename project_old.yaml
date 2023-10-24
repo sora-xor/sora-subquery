@@ -738,13 +738,13 @@ dataSources:
             module: ethBridge
             method: transferToSidechain
 
-        - handler: ethSoraTransferEventHandler
+        - handler: ethSoraTransferHandler
           kind: substrate/EventHandler
           filter:
             module: ethBridge
             method: IncomingRequestFinalized
 
-        - handler: ethSoraTransferEventHandler
+        - handler: ethSoraTransferHandler
           kind: substrate/EventHandler
           filter:
             module: ethBridge

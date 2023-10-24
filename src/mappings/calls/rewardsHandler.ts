@@ -2,10 +2,10 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId } from '../../utils/assets';
 import { isAssetTransferEvent, getTransferEventData } from '../../utils/events';
-import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logStartProcessingCall(extrinsic);
+
+    logger.debug("Caught rewards claim extrinsic")
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
@@ -28,6 +28,6 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
     await record.save();
     await updateHistoryElementStats(record);
 
-    getCallHandlerLog(extrinsic).debug(`Saved reward claim extrinsic`)
+    logger.debug(`===== Saved reward claim extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 
 }

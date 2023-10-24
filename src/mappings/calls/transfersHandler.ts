@@ -1,73 +1,45 @@
-import BigNumber from "bignumber.js";
-
 import { SubstrateExtrinsic } from "@subql/types";
-import { bytesToString } from "../../utils";
-import { XOR } from '../../utils/consts';
-import { isExchangeEvent } from "../../utils/events";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
-export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logStartProcessingCall(extrinsic);
+export async function handlerTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
 
-  const { extrinsic: { args: [asset, to, amount] } } = extrinsic;
-  const record = assignCommonHistoryElemInfo(extrinsic);
-  const assetId = getAssetId(asset);
-  const details: any = {
-    assetId,
-    amount: formatU128ToBalance(amount.toString(), assetId),
-    from: extrinsic.extrinsic.signer.toString(),
-    to: to.toString(),
-  };
+    logger.debug("Caught transfer extrinsic")
 
-  record.data = details;
+    const record = assignCommonHistoryElemInfo(extrinsic)
 
-  await record.save();
-  await updateHistoryElementStats(record);
+    let details = new Object();
 
-  getCallHandlerLog(extrinsic).debug(`Saved transfer`)
-}
+    if (record.execution.success) {
 
-export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logStartProcessingCall(extrinsic);
+        let transferEvent = extrinsic.events.find(e => e.event.method === 'Transfer' && e.event.section === 'assets');
+        const { event: { data: [, to, assetId, amount] } } = transferEvent;
 
-  const {
-    extrinsic: {
-      args: [dexId, asset, receiver, amount, desiredXorAmount, maxAmountIn, selectedSources, filterMode, additionalData ]
+        details = {
+            from: extrinsic.extrinsic.signer.toString(),
+            to: to.toString(),
+            amount: formatU128ToBalance(amount.toString(), getAssetId(assetId)),
+            assetId: getAssetId(assetId)
+        }
     }
-  } = extrinsic;
 
-  const record = assignCommonHistoryElemInfo(extrinsic);
-  const assetId = getAssetId(asset);
-  const details: any = {
-    assetId,
-    amount: formatU128ToBalance(amount.toString(), assetId),
-    from: extrinsic.extrinsic.signer.toString(),
-    to: receiver.toString(),
-    comment: !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null,
-    assetFee: '0', // fee paid in asset
-    xorFee: record.networkFee, // fee paid in XOR (by default 100% of network fee)
-  };
+    else {
 
-  if (record.execution.success) {
-    const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
+        const { extrinsic: { args: [assetId, to, amount] } } = extrinsic;
 
-    if (exchangeEvent) {
-      const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
-      const assetSpended = formatU128ToBalance(baseAssetAmount.toString(), assetId); // formatted
-      const xorReceived = formatU128ToBalance(targetAssetAmount.toString(), XOR); // formatted
-      const xorSpended = new BigNumber(details.xorFee).minus(new BigNumber(xorReceived)).toString(); 
-
-      details.assetFee = assetSpended;
-      details.xorFee = xorSpended;
+        details = {
+            from: extrinsic.extrinsic.signer.toString(),
+            to: to.toString(),
+            amount: formatU128ToBalance(amount.toString(), getAssetId(assetId)),
+            assetId: getAssetId(assetId)
+        }
     }
-  }
 
-  record.data = details;
+    record.data = details
 
-  await record.save();
-  await updateHistoryElementStats(record);
+    await record.save();
+    await updateHistoryElementStats(record);
 
-  getCallHandlerLog(extrinsic).debug(`Saved xorless transfer`)
+    logger.debug(`===== Saved transfer with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+
 }

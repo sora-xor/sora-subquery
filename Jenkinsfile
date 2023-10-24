@@ -10,6 +10,5 @@ def pipeline = new org.js.AppPipeline(
     sonarProjectKey:    'sora:sora-subquery',
     preBuildCmds:       ['yarn install', 'yarn codegen'],
     dockerImageTags:    ['test': 'latest']
-    dojoProductType:    'sora'
 )
 pipeline.runPipeline()
