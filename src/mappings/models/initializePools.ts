@@ -3,7 +3,6 @@ import { SubstrateBlock } from "@subql/types";
 import { getAssetId } from '../../utils/assets';
 import { poolAccounts, getAllReserves, getAllProperties, poolsStorage } from '../../utils/pools';
 import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
-import { getInitializePoolsLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
 
@@ -12,11 +11,12 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
 
     const blockNumber = block.block.header.number.toNumber();
 
-    getInitializePoolsLog(block).debug('Initialize Pool XYK entities');
+    logger.debug(`[${blockNumber}]: Initialize Pool XYK entities`);
+
     const poolsBuffer = new Map();
 
     for (const baseAssetId of BASE_ASSETS) {
-        const [properties, reserves] = await Promise.all([getAllProperties(block, baseAssetId),getAllReserves(block, baseAssetId)]);
+        const [properties, reserves] = await Promise.all([getAllProperties(baseAssetId),getAllReserves(baseAssetId)]);
 
         if (!properties || !reserves) continue;
 
@@ -52,10 +52,10 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
 
     if (entities.length) {
         await store.bulkUpdate('PoolXYK', entities);
-        await Promise.all(entities.map(entity => poolsStorage.getPoolById(block, entity.id)));
-        getInitializePoolsLog(block).debug(`${entities.length} Pool XYKs initialized!`);
+        await Promise.all(entities.map(entity => poolsStorage.getPoolById(entity.id)));
+        logger.debug(`[${blockNumber}]: ${entities.length} Pool XYKs initialized!`);
     } else {
-        getInitializePoolsLog(block).debug('No Pool XYKs to initialize!');
+        logger.debug(`[${blockNumber}]: No Pool XYKs to initialize!`);
     }
 
     isFirstBlockIndexed = true;

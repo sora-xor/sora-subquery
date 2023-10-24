@@ -27,36 +27,35 @@ dataSources:
           kind: substrate/BlockHandler
         - handler: initializePools
           kind: substrate/BlockHandler
+
         - handler: handleAssetRegistration
           kind: substrate/EventHandler
           filter:
             module: assets
             method: AssetRegistered
+
         - handler: handleSyntheticAssetEnabled
           kind: substrate/EventHandler
           filter:
             module: xstPool
             method: SyntheticAssetEnabled
+
         - handler: handleBandRateUpdate
           kind: substrate/EventHandler
           filter:
             module: band
             method: SymbolsRelayed
+
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
           filter:
             module: assets
             method: register
-        - handler: handleAssetTransfer
+        - handler: handlerTransfers
           kind: substrate/CallHandler
           filter:
             module: assets
             method: transfer
-        - handler: handleXorlessTransfer
-          kind: substrate/CallHandler
-          filter:
-            module: liquidityProxy
-            method: xorlessTransfer
         - handler: handleSwaps
           kind: substrate/CallHandler
           filter:
@@ -147,31 +146,36 @@ dataSources:
           filter:
             module: demeterFarmingPlatform
             method: getRewards
-        - handler: ethSoraTransferEventHandler
+
+        - handler: ethSoraTransferHandler
           kind: substrate/EventHandler
           filter:
             module: ethBridge
             method: IncomingRequestFinalized
-        - handler: ethSoraTransferEventHandler
+        - handler: ethSoraTransferHandler
           kind: substrate/EventHandler
           filter:
             module: ethBridge
             method: IncomingRequestFinalizationFailed
+        # burn token
         - handler: handleTokenBurn
           kind: substrate/EventHandler
           filter:
             module: tokens
             method: Withdrawn
+        # burn XOR
         - handler: handleXorBurn
           kind: substrate/EventHandler
           filter:
             module: balances
             method: Withdraw
+        # mint token
         - handler: handleTokenMint
           kind: substrate/EventHandler
           filter:
             module: tokens
             method: Deposited
+        # mint XOR
         - handler: handleXorMint
           kind: substrate/EventHandler
           filter:
@@ -187,6 +191,7 @@ dataSources:
           filter:
             module: xorFee
             method: ReferrerRewarded
+
         - handler: handleTransferEvent
           kind: substrate/EventHandler
           filter:
@@ -197,17 +202,11 @@ dataSources:
           filter:
             module: tokens
             method: Transfer
+
         - handler: syncPoolXykPrices
           kind: substrate/BlockHandler
+
         - handler: syncModels
           kind: substrate/BlockHandler
           filter:
             modulo: 50
-        - handler: updateAssetsDailyStats
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 600
-        - handler: updateAssetsWeeklyStats
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 2400
