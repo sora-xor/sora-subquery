@@ -3,10 +3,9 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { formatU128ToBalance } from '../../utils/assets';
 import { isXorTransferEvent, getTransferEventData } from '../../utils/events';
 import { XOR } from "../../utils/consts";
-import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logStartProcessingCall(extrinsic);
+    logger.debug("Caught referral reserve extrinsic");
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 
@@ -17,7 +16,7 @@ export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Pro
         let referralReserveEvent = extrinsic.events.find(e => isXorTransferEvent(e));
 
         if (referralReserveEvent == undefined) {
-            getCallHandlerLog(extrinsic).debug("No 'Balances.Transfer' event is found")
+            logger.debug("No currencies.Transferred event is found")
             return
         }
 
@@ -41,5 +40,5 @@ export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Pro
     await record.save();
     await updateHistoryElementStats(record);
 
-    getCallHandlerLog(extrinsic).debug('Saved referral reserve')
+    logger.debug(`===== Saved referral reserve with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }
