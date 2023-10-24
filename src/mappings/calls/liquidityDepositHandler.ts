@@ -4,9 +4,10 @@ import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../ut
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
 import { isAssetTransferEvent } from '../../utils/events';
+import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logger.debug("Caught liquidity adding extrinsic")
+    logStartProcessingCall(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic);
 
@@ -39,8 +40,8 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 
     await record.save();
 
-    logger.debug(`===== Saved liquidity deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    getCallHandlerLog(extrinsic).debug(`Saved liquidity deposit`)
 
-    await poolsStorage.getPool(baseAssetId, targetAssetId);
+    await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
     await updateHistoryElementStats(record);
 }
