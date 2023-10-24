@@ -3,12 +3,11 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
-import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 const Section = 'demeterFarmingPlatform';
 
 export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logStartProcessingCall(extrinsic);
+  logger.debug("Caught demeterFarmingPlatform deposit extrinsic")
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
@@ -40,11 +39,11 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
   await record.save();
   await updateHistoryElementStats(record);
 
-  getCallHandlerLog(extrinsic).debug('Saved demeterFarmingPlatform deposit')
+  logger.debug(`===== Saved demeterFarmingPlatform deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }
 
 export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logStartProcessingCall(extrinsic);
+  logger.debug("Caught demeterFarmingPlatform withdraw extrinsic")
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
@@ -76,11 +75,11 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
   await record.save();
   await updateHistoryElementStats(record);
 
-  getCallHandlerLog(extrinsic).debug('Saved demeterFarmingPlatform withdraw')
+  logger.debug(`===== Saved demeterFarmingPlatform withdraw with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }
 
 export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logStartProcessingCall(extrinsic);
+  logger.debug("Caught demeterFarmingPlatform getRewards extrinsic")
 
   const record = assignCommonHistoryElemInfo(extrinsic);
 
@@ -108,5 +107,5 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
   await record.save();
   await updateHistoryElementStats(record);
 
-  getCallHandlerLog(extrinsic).debug(`Saved demeterFarmingPlatform getRewards`)
+  logger.debug(`===== Saved demeterFarmingPlatform getRewards with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }
