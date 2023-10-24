@@ -1,10 +1,10 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId } from '../../utils/assets';
+import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-
-    logger.debug("Caught asset registration extrinsic")
+    logStartProcessingCall(extrinsic);
 
     const record = assignCommonHistoryElemInfo(extrinsic)
 
@@ -35,6 +35,5 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
     await record.save();
     await updateHistoryElementStats(record);
 
-    logger.debug(`===== Saved asset registration with ${extrinsic.extrinsic.hash.toString()} txid =====`);
-
+    getCallHandlerLog(extrinsic).debug('Saved asset registration')
 }
