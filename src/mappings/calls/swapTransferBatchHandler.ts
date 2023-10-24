@@ -6,7 +6,6 @@ import { XOR } from '../../utils/consts';
 
 import type { Vec } from "@polkadot/types";
 import { LiquiditySourceType } from './swapsHandler';
-import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 
 const getEventData = (extrinsic: SubstrateExtrinsic, method: string, section: string) => {
@@ -75,9 +74,9 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
 }
 
 export async function handleSwapTransferBatch(extrinsic: SubstrateExtrinsic): Promise <void> {
-    logStartProcessingCall(extrinsic);
+    logger.debug("Caught swap transfer batch extrinsic")
 
     await handleAndSaveExtrinsic(extrinsic);
 
-    getCallHandlerLog(extrinsic).debug('Saved swap transfer batch');
+    logger.debug(`===== Saved swap transfer batch with ${extrinsic.extrinsic.hash.toString()} txid =====`);
 }
