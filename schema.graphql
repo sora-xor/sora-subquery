@@ -27,15 +27,10 @@ type NetworkSnapshot @entity {
   bridgeOutgoingTransactions: Int!
 }
 
-type UpdatesStreamValue @jsonField {
-  id: String!
-  value: String!
-}
-
 type UpdatesStream @entity {
   id: ID!
-  updatedAt: Int!
-  data: [UpdatesStreamValue]!
+  block: Int!
+  data: String! # stringified JSON
 }
 
 type Asset @entity {

@@ -1,23 +1,23 @@
-import { UpdatesStream, UpdatesStreamValue } from "../types";
+import { UpdatesStream } from "../types";
 
 const PriceUpdateStreamId = 'price';
 const PoolXYKApyUpdateStreamId = 'apy';
 
 class BlockUpdatesStream {
   public readonly id!: string;
-  private data!: Map<UpdatesStreamValue['id'], UpdatesStreamValue['value']>;
+  private storage!: Map<string, string>;
 
   constructor(id: string) {
     this.id = id;
-    this.data = new Map();
+    this.storage = new Map();
   }
 
-  hasUpdate(): boolean {
-    return this.data.size !== 0;
+  get hasUpdate(): boolean {
+    return this.storage.size !== 0;
   }
 
   async update(id: string, value: string) {
-    this.data.set(id, value);
+    this.storage.set(id, value);
   }
 
   async sync(blockNumber: number) {
@@ -30,8 +30,8 @@ class BlockUpdatesStream {
 
     if (!entity) {
       entity = new UpdatesStream(this.id);
-      entity.updatedAt = 0;
-      entity.data = [];
+      entity.block = 0;
+      entity.data = '';
     }
 
     return entity;
@@ -39,18 +39,20 @@ class BlockUpdatesStream {
 
   private async syncData(blockNumber: number): Promise<void> {
     const entity = await this.get();
+    const updates = {};
 
-    for (const [id, value] of this.data.entries()) {
-      entity.data.push({ id, value });
+    for (const [id, value] of this.storage.entries()) {
+      updates[id] = value;
     }
 
-    entity.updatedAt = blockNumber;
+    entity.data = JSON.stringify(updates);
+    entity.block = blockNumber;
 
     await entity.save();
   }
 
   private clear() {
-    this.data.clear();
+    this.storage.clear();
   }
 }
 
