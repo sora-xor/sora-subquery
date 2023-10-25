@@ -105,6 +105,10 @@ export function getPoolsStorageLog(ctx: BlockContext) {
 	return getLog(ctx, 'PoolsStorage')
 }
 
+export function getStreamLog(ctx: BlockContext) {
+	return getLog(ctx, 'Stream')
+}
+
 export function logStartProcessingCall(extrinsic: SubstrateExtrinsic) {
 	return getCallHandlerLog(extrinsic).debug('Start processing the call')
 }

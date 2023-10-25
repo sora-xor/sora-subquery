@@ -4,7 +4,7 @@ const PriceUpdateStreamId = 'price';
 const PoolXYKApyUpdateStreamId = 'apy';
 
 class BlockUpdatesStream {
-  private id!: string;
+  public readonly id!: string;
   private data!: Map<UpdatesStreamValue['id'], UpdatesStreamValue['value']>;
 
   constructor(id: string) {
