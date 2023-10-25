@@ -27,6 +27,17 @@ type NetworkSnapshot @entity {
   bridgeOutgoingTransactions: Int!
 }
 
+type UpdatesStreamValue @jsonField {
+  id: String!
+  value: String!
+}
+
+type UpdatesStream @entity {
+  id: ID!
+  updatedAt: Int!
+  data: [UpdatesStreamValue]!
+}
+
 type Asset @entity {
   id: ID!
   data: [AssetSnapshot!]! @derivedFrom(field: "asset")

@@ -27,3 +27,4 @@ export * from "./mappings/events/referrerRewardHandler";
 
 export * from './mappings/sync/prices';
 export * from "./mappings/sync/models";
+export * from "./mappings/sync/streams";

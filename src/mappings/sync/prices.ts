@@ -6,6 +6,7 @@ import { PoolXYK } from "../../types";
 import { formatU128ToBalance, assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
+import { poolXykApyUpdatesStream } from '../../utils/stream';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
 import { formatDateTimestamp } from '../../utils';
 import { getSyncPricesLog } from "../../utils/logs";
@@ -21,8 +22,6 @@ const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiRese
 
 export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     if (!PoolsPrices.get()) return;
-
-    const blockNumber = block.block.header.number.toNumber();
 
     getSyncPricesLog(block).debug('Sync PoolXYK prices')
 
@@ -154,6 +153,8 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                         .multipliedBy(new BigNumber(p.multiplier));
     
                     p.strategicBonusApy = strategicBonusApy.toFixed(18);
+                    // stream update
+                    poolXykApyUpdatesStream.update(p.id, p.strategicBonusApy);
                 });
             }
         }

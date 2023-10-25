@@ -199,6 +199,8 @@ dataSources:
             method: Transfer
         - handler: syncPoolXykPrices
           kind: substrate/BlockHandler
+        - handler: syncStreams
+          kind: substrate/BlockHandler
         - handler: syncModels
           kind: substrate/BlockHandler
           filter:

@@ -4,6 +4,7 @@ import { Asset, SnapshotType, AssetSnapshot } from "../types";
 import { DAI } from './consts';
 import { getSnapshotIndex } from './index';
 import { getAssetSnapshotsStorageLog, getAssetStorageLog } from './logs';
+import { priceUpdatesStream } from "./stream";
 import { SubstrateBlock } from '@subql/types';
 
 const prevIndexesRow = (index: number, count: number): number[] => {
@@ -110,6 +111,8 @@ class AssetStorage {
       asset.priceUSD = priceUSD;
       // update liqudiity usd with new price
       this.calcLiquidityUSD(asset);
+      // stream update
+      priceUpdatesStream.update(id, priceUSD);
       // to update asset price by ws subscription instantly
       await asset.save();
     }
