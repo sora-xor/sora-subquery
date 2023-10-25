@@ -1,5 +1,5 @@
 specVersion: 1.0.0
-name: sora-dev
+name: sora-predev
 version: 1.0.0
 runner:
   node:
