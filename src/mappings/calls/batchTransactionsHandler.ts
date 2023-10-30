@@ -5,6 +5,7 @@ import { AnyTuple, CallBase } from '@polkadot/types/types';
 import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
+import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -73,8 +74,7 @@ function extractCalls(
 }
 
 export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-
-    logger.debug("Caught batch transaction extrinsic")
+    logStartProcessingCall(extrinsic);
 
     const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
     const entities = [] as Object[];
@@ -90,14 +90,14 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
     await record.save()
     await updateHistoryElementStats(record);
 
-    logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
+    getCallHandlerLog(extrinsic).debug('Saved batch extrinsic')
 
     if (record.execution.success) {
         // If initialize pool call exists, create new Pool
         const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
 
         if (initializePool) {
-            await poolsStorage.getPool(initializePool.data.args.asset_a, initializePool.data.args.asset_b);
+            await poolsStorage.getPool(extrinsic.block, initializePool.data.args.asset_a, initializePool.data.args.asset_b);
         }
     }
 }
