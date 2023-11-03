@@ -88,8 +88,8 @@ type AssetSnapshot @entity {
 
 type PoolXYK @entity {
   id: ID!
-  baseAsset: Asset!
-  targetAsset: Asset!
+  baseAsset: Asset! @index
+  targetAsset: Asset! @index
   baseAssetReserves: BigInt!
   targetAssetReserves: BigInt!
   multiplier: Int!
@@ -107,8 +107,8 @@ type HistoryElement @entity {
 	type: HistoryElementType!
   blockHeight: Int!
   blockHash: String! @index
-  module: String!
-  method: String!
+  module: String! @index
+  method: String! @index
   address: String! @index
   networkFee: String!
   execution: ExecutionResult!
