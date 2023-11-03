@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
 
@@ -16,7 +16,7 @@ const getEventData = (extrinsic: SubstrateExtrinsic, method: string, section: st
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <void> => {
     const blockNumber = extrinsic.block.block.header.number.toNumber();
-    const record = assignCommonHistoryElemInfo(extrinsic);
+    const historyElement = await createHistoryElement(extrinsic);
 
     const [filterMode, liquiditySources, maxInputAmount, inputAsset, receivers] = extrinsic.extrinsic.args.slice().reverse();
     const details: any = {};
@@ -28,7 +28,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
     details.blockNumber = blockNumber;
     details.from = extrinsic.extrinsic.signer.toString();
     
-    if (record.execution.success) {
+    if (historyElement.execution.success) {
         const getData = (method: string, section: string) => getEventData(extrinsic, method, section);
 
         const [adarFee, inputAmount] = getData('BatchSwapExecuted', 'liquidityProxy');
@@ -69,9 +69,9 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
         details.exchanges = [];
         details.transfers = [];
     }
-    record.data = details
-    await record.save();
-    await updateHistoryElementStats(record);
+
+    await addDataToHistoryElement(extrinsic, historyElement, details);
+    await updateHistoryElementStats(extrinsic, historyElement);
 }
 
 export async function handleSwapTransferBatch(extrinsic: SubstrateExtrinsic): Promise <void> {

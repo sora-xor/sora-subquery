@@ -11,5 +11,5 @@ export async function handleNetworkFee(event: SubstrateEvent): Promise<void> {
   const blockTimestamp = formatDateTimestamp(event.block.timestamp);
   const formattedFee = BigInt(fee.toString());
 
-  await networkSnapshotsStorage.updateFeesStats(formattedFee, blockTimestamp);
+  await networkSnapshotsStorage.updateFeesStats(event.block, formattedFee, blockTimestamp);
 }

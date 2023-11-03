@@ -18,8 +18,11 @@ class NetworkStatsStorage {
     this.storage = null;
   }
 
-  async sync(): Promise<void> {
-    await this.storage?.save();
+  async sync(block: SubstrateBlock): Promise<void> {
+    if(this.storage) {
+      getNetworkSnapshotsStorageLog(block).debug('Network stats sync')
+      await this.storage.save();
+    }
   }
 
   async getStats(): Promise<NetworkStats> {
@@ -53,15 +56,15 @@ class NetworkSnapshotsStorage {
 
   async sync(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
     await this.syncSnapshots(block, blockTimestamp);
-    await this.syncStats();
+    await this.syncStats(block);
   }
 
-  private async syncStats(): Promise<void> {
-    this.networkStatsStorage.sync();
+  private async syncStats(block: SubstrateBlock): Promise<void> {
+    this.networkStatsStorage.sync(block);
   }
 
   private async syncSnapshots(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
-    getNetworkSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots sync`);
+    getNetworkSnapshotsStorageLog(block).debug(`Sync ${this.storage.size} snapshots`);
 
     await store.bulkUpdate('NetworkSnapshot', [...this.storage.values()]);
 
@@ -109,7 +112,8 @@ class NetworkSnapshotsStorage {
     return snapshot;
   }
 
-  async updateAccountsStats(blockTimestamp: number): Promise<void> {
+  async updateAccountsStats(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+    getNetworkSnapshotsStorageLog(block).debug('Update accounts stats in network snapshots')
     const stats = await this.networkStatsStorage.getStats();
 
     stats.totalAccounts = stats.totalAccounts + 1;
@@ -121,7 +125,9 @@ class NetworkSnapshotsStorage {
     }
   }
 
-  async updateTransactionsStats(blockTimestamp: number): Promise<void> {
+  async updateTransactionsStats(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+    getNetworkSnapshotsStorageLog(block).debug('Update transactions stats in network snapshots')
+
     const stats = await this.networkStatsStorage.getStats();
 
     stats.totalTransactions = stats.totalTransactions + 1;
@@ -133,7 +139,9 @@ class NetworkSnapshotsStorage {
     }
   }
 
-  async updateBridgeIncomingTransactionsStats(blockTimestamp: number): Promise<void> {
+  async updateBridgeIncomingTransactionsStats(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+    getNetworkSnapshotsStorageLog(block).debug('Update bridge incoming transactions stats in network snapshots')
+
     const stats = await this.networkStatsStorage.getStats();
 
     stats.totalBridgeIncomingTransactions = stats.totalBridgeIncomingTransactions + 1;
@@ -145,7 +153,9 @@ class NetworkSnapshotsStorage {
     }
   }
 
-  async updateBridgeOutgoingTransactionsStats(blockTimestamp: number): Promise<void> {
+  async updateBridgeOutgoingTransactionsStats(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+    getNetworkSnapshotsStorageLog(block).debug('Update bridge outgoing transactions stats in network snapshots')
+
     const stats = await this.networkStatsStorage.getStats();
 
     stats.totalBridgeOutgoingTransactions = stats.totalBridgeOutgoingTransactions + 1;
@@ -157,7 +167,9 @@ class NetworkSnapshotsStorage {
     }
   }
 
-  async updateFeesStats(fee: bigint, blockTimestamp: number): Promise<void> {
+  async updateFeesStats(block: SubstrateBlock, fee: bigint, blockTimestamp: number): Promise<void> {
+    getNetworkSnapshotsStorageLog(block).debug({ fee }, 'Update fee stats in network snapshots')
+
     const stats = await this.networkStatsStorage.getStats();
 
     stats.totalFees = stats.totalFees + fee;
@@ -169,7 +181,9 @@ class NetworkSnapshotsStorage {
     }
   }
 
-  async updateLiquidityStats(liquiditiesUSD: BigNumber, blockTimestamp: number): Promise<void> {
+  async updateLiquidityStats(block: SubstrateBlock, liquiditiesUSD: BigNumber, blockTimestamp: number): Promise<void> {
+    getNetworkSnapshotsStorageLog(block).debug({ liquiditiesUSD }, 'Update liquidity stats in network snapshots')
+
     for (const type of NetworkSnapshots) {
       const snapshot = await this.getSnapshot(type, blockTimestamp);
 
@@ -177,7 +191,9 @@ class NetworkSnapshotsStorage {
     }
   }
 
-  async updateVolumeStats(volumeUSD: BigNumber, blockTimestamp: number): Promise<void> {
+  async updateVolumeStats(block: SubstrateBlock, volumeUSD: BigNumber, blockTimestamp: number): Promise<void> {
+    getNetworkSnapshotsStorageLog(block).debug({ volumeUSD }, 'Update volume stats in network snapshot')
+
     for (const type of NetworkSnapshots) {
       const snapshot = await this.getSnapshot(type, blockTimestamp);
   

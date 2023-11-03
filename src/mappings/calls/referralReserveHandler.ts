@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { formatU128ToBalance } from '../../utils/assets';
 import { isXorTransferEvent, getTransferEventData } from '../../utils/events';
 import { XOR } from "../../utils/consts";
@@ -8,16 +8,15 @@ import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
 
-    const record = assignCommonHistoryElemInfo(extrinsic);
+    const historyElement = await createHistoryElement(extrinsic);
 
     let details = new Object();
 
-    if (record.execution.success) {
+    if (historyElement.execution.success) {
 
         let referralReserveEvent = extrinsic.events.find(e => isXorTransferEvent(e));
 
         if (referralReserveEvent == undefined) {
-            getCallHandlerLog(extrinsic).debug("No 'Balances.Transfer' event is found")
             return
         }
 
@@ -36,10 +35,8 @@ export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Pro
         }
     }
 
-    record.data = details
-
-    await record.save();
-    await updateHistoryElementStats(record);
+    await addDataToHistoryElement(extrinsic, historyElement, details);
+    await updateHistoryElementStats(extrinsic, historyElement);
 
     getCallHandlerLog(extrinsic).debug('Saved referral reserve')
 }

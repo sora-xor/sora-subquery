@@ -1,17 +1,17 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
+import { logStartProcessingCall } from '../../utils/logs';
 
 export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
 
-    const record = assignCommonHistoryElemInfo(extrinsic)
+    const historyElement = await createHistoryElement(extrinsic)
 
     let details = new Object();
 
-    if (record.execution.success) {
+    if (historyElement.execution.success) {
 
         let assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Deposited' && e.event.section === 'currencies')
         if (assetTransferEvent) {
@@ -35,13 +35,8 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
             }
         }
 
-        record.data = details
-
-        await record.save();
-        await updateHistoryElementStats(record);
-
-        getCallHandlerLog(extrinsic).debug(`Saved iroha migration`)
-
+        await addDataToHistoryElement(extrinsic, historyElement, details);
+        await updateHistoryElementStats(extrinsic, historyElement);
     }
 
 }
