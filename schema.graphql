@@ -40,6 +40,12 @@ type NetworkSnapshot @entity {
   bridgeOutgoingTransactions: Int!
 }
 
+type UpdatesStream @entity {
+  id: ID!
+  block: Int!
+  data: String! # stringified JSON
+}
+
 type Asset @entity {
   id: ID!
   data: [AssetSnapshot!]! @derivedFrom(field: "asset")

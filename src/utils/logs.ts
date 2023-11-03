@@ -109,6 +109,10 @@ export function getUtilsLog(ctx: BlockContext, testMode: boolean = false) {
 	return getLog(ctx, 'Utils', {}, testMode)
 }
 
+export function getStreamLog(ctx: BlockContext) {
+	return getLog(ctx, 'Stream')
+}
+
 export function logStartProcessingCall(extrinsic: SubstrateExtrinsic) {
 	return getCallHandlerLog(extrinsic).debug('Start processing the call')
 }
