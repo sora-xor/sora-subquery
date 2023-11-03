@@ -2,7 +2,7 @@ import { SubstrateEvent } from "@subql/types";
 import { getAssetId, assetSnapshotsStorage } from '../../utils/assets';
 import { formatDateTimestamp } from '../../utils';
 import { XOR } from '../../utils/consts';
-import { logStartProcessingEvent } from "../../utils/logs";
+import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
     logStartProcessingEvent(event)
@@ -37,6 +37,7 @@ export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
     const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
+	getEventHandlerLog(event).debug(`1 Minting ${amount} of ${assetId}`)
     await assetSnapshotsStorage.updateMinted(event.block, assetId, amount, blockTimestamp);
 }
 
@@ -49,5 +50,6 @@ export async function handleXorMint(event: SubstrateEvent): Promise<void> {
     const amount = BigInt(balance.toString());
     const blockTimestamp = formatDateTimestamp(event.block.timestamp);
 
+	getEventHandlerLog(event).debug(`2 Minting ${amount} of ${assetId}`)
     await assetSnapshotsStorage.updateMinted(event.block, assetId, amount, blockTimestamp);
 }
