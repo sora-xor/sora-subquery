@@ -19,7 +19,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
       pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount);
     }
 
-    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Update pool');
+    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after withdrawal')
     PoolsPrices.set(true);
   }
 
@@ -33,7 +33,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
       pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount);
     }
 
-    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Update pool');
+    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after deposit')
     PoolsPrices.set(true);
   }
 }

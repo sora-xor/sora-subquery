@@ -5,6 +5,19 @@ enum SnapshotType {
   MONTH
 }
 
+enum PayeeType {
+	STAKED
+	STASH
+	CONTROLLER,
+	ACCOUNT,
+	NONE
+}
+
+enum HistoryElementType {
+	CALL
+	EVENT
+}
+
 type NetworkStats @entity {
   id: ID!
   totalFees: BigInt!
@@ -25,6 +38,12 @@ type NetworkSnapshot @entity {
   volumeUSD: String!
   bridgeIncomingTransactions: Int!
   bridgeOutgoingTransactions: Int!
+}
+
+type UpdatesStream @entity {
+  id: ID!
+  block: Int!
+  data: String! # stringified JSON
 }
 
 type Asset @entity {
@@ -69,8 +88,8 @@ type AssetSnapshot @entity {
 
 type PoolXYK @entity {
   id: ID!
-  baseAsset: Asset!
-  targetAsset: Asset!
+  baseAsset: Asset! @index
+  targetAsset: Asset! @index
   baseAssetReserves: BigInt!
   targetAssetReserves: BigInt!
   multiplier: Int!
@@ -85,15 +104,39 @@ type Account @entity {
 
 type HistoryElement @entity {
   id: ID!
-  blockHeight: BigInt!
+	type: HistoryElementType!
+  blockHeight: Int!
   blockHash: String! @index
-  module: String!
-  method: String!
+  module: String! @index
+  method: String! @index
   address: String! @index
   networkFee: String!
   execution: ExecutionResult!
   timestamp: Int!
   data: HistoryElementDetails
+	dataTo: String @index
+	dataFrom: String @index
+	calls: [HistoryElementCall!]! @derivedFrom(field: "historyElement")
+	callNames: [String]!
+	updatedAtBlock: Int!
+}
+
+type HistoryElementDetails @jsonField {
+  data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
+}
+
+type HistoryElementCall @entity {
+	id: ID!
+	historyElement: HistoryElement! @index
+	module: String!
+	method: String!
+  hash: String! @index
+	data: HistoryElementCallDetails
+	updatedAtBlock: Int!
+}
+
+type HistoryElementCallDetails @jsonField {
+  data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
 }
 
 type ExecutionResult @jsonField {
@@ -107,14 +150,69 @@ type Error @jsonField {
   nonModuleErrorMessage: String
 }
 
-type HistoryElementDetails @jsonField {
-  data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
-}
-
 type ReferrerReward @entity {
 	id: ID!
 	referral: String! @index
 	referrer: String!
 	updated: Int!
 	amount: BigInt!
+}
+
+type StakingReward @entity {
+	id: ID!
+	amount: String!
+	staker: StakingStaker!
+	payee: String @index
+	era: StakingEra!
+	timestamp: Int!
+}
+
+type StakingStaker @entity {
+	id: ID!
+	eraValidators: [StakingEraValidator!]! @derivedFrom(field: "staker")
+	eraNominators: [StakingEraNominator!]! @derivedFrom(field: "staker")
+	payeeType: PayeeType!
+	payee: String
+	controller: String
+}
+
+type StakingValidator @entity {
+  id: ID!
+  bond: BigInt!
+}
+
+type StakingEraNominator @entity {
+	id: ID!
+  era: StakingEra!
+  bond: BigInt!
+  staker: StakingStaker!
+  nominations: [StakingEraNomination!]! @derivedFrom(field: "nominator")
+}
+
+type StakingEraNomination @entity {
+	id: ID!
+  era: StakingEra!
+  amount: BigInt!
+  validator: StakingEraValidator!
+  nominator: StakingEraNominator!
+}
+
+type StakingEraValidator @entity {
+	id: ID!
+  era: StakingEra!
+  validator: StakingValidator!
+  nominations: [StakingEraNomination!]! @derivedFrom(field: "validator")
+  ownBond: BigInt!
+  totalBond: BigInt!
+  rewardAmount: BigInt!
+	staker: StakingStaker!
+}
+
+type StakingEra @entity {
+	id: ID!
+	index: Int! @index
+	start: BigInt! @index
+  validators: [StakingEraValidator!]! @derivedFrom(field: "era")
+	nominators: [StakingEraNominator!]! @derivedFrom(field: "era")
+  nominations: [StakingEraNomination!]! @derivedFrom(field: "era")
 }

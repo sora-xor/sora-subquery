@@ -10,13 +10,13 @@ let isFirstBlockIndexed = false;
 export async function initializePools(block: SubstrateBlock): Promise<void> {
     if (isFirstBlockIndexed) return;
 
-    const blockNumber = block.block.header.number.toNumber();
-
     getInitializePoolsLog(block).debug('Initialize Pool XYK entities');
     const poolsBuffer = new Map();
 
     for (const baseAssetId of BASE_ASSETS) {
-        const [properties, reserves] = await Promise.all([getAllProperties(block, baseAssetId),getAllReserves(block, baseAssetId)]);
+        // We don't use Promise.all() here because we need consistent order of requests in the log
+        const properties = await getAllProperties(block, baseAssetId);
+        const reserves = await getAllReserves(block, baseAssetId);
 
         if (!properties || !reserves) continue;
 

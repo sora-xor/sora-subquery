@@ -17,6 +17,7 @@ export * from "./mappings/calls/setReferralHandler";
 export * from "./mappings/calls/referralReserveHandler";
 export * from "./mappings/calls/referralUnreserveHandler";
 export * from "./mappings/calls/demeterFarmingPlatform";
+export * from "./mappings/calls/staking";
 
 export * from "./mappings/events/assetsRegistration";
 export * from "./mappings/events/band";
@@ -24,6 +25,8 @@ export * from "./mappings/events/transfer";
 export * from "./mappings/events/networkFee";
 export * from './mappings/events/mintAndBurn';
 export * from "./mappings/events/referrerRewardHandler";
+export * from "./mappings/events/staking";
 
 export * from './mappings/sync/prices';
 export * from "./mappings/sync/models";
+export * from "./mappings/sync/streams";
