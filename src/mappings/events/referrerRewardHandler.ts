@@ -30,7 +30,12 @@ export async function referrerRewardHandler(event: SubstrateEvent): Promise<void
 	await referrerReward.save();
 
 	getEventHandlerLog(event).debug(
-		{ referral, referrer, amount, updated: referrerReward.updated },
+		{
+			referral: referrerReward.referral,
+			referrer: referrerReward.referrer,
+			amount: referrerReward.amount,
+			updated: referrerReward.updated
+		},
 		'Referrer reward updated',
 	)
 }

@@ -80,8 +80,8 @@ export const createHistoryElement = async (
     }
 
 	await historyElement.save()
-	const { callNames, execution, ...logArguments } = historyElement
-	getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element')
+	const { callNames, execution, data: details, ...logArguments } = historyElement
+	getUtilsLog(ctx).debug({ ...logArguments, data: details.data, executionSuccess: execution.success }, 'Created history element')
 
 	if (data) {
 		await addDataToHistoryElement(ctx, historyElement, data)
