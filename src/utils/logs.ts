@@ -25,7 +25,7 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
     const attributes: any = { blockHeight, ...attrs };
 
     const attrsToString = (attributes: Record<string, any>): string => {
-        return Object.entries(attributes).map(([key, value]) => ' '.repeat(41) + `\x1b[30m${key}: ${value}\x1b[0m`).join('\n');
+        return Object.entries(attributes).map(([key, value]) => ' '.repeat(41) + `\x1b[30m${key}: ${value.toString()}\x1b[0m`).join('\n');
     };
 
     const log = (level: 'debug' | 'info' | 'warn' | 'error') => (arg1: Record<string, any> | string, arg2?: string) => {
