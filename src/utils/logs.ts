@@ -1,7 +1,11 @@
+import type BigNumber from "bignumber.js";
+
 import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 import { testLogMode } from '../config';
 
 type BlockContext = SubstrateExtrinsic | SubstrateEvent | SubstrateBlock
+
+type LogAttr = boolean | string | number | bigint | BigNumber;
 
 function toPascalCase(str: string): string {
     return str
@@ -24,12 +28,12 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
     const blockHeight = block.header.number.toNumber();
     const attributes: any = { blockHeight, ...attrs };
 
-    const attrsToString = (attributes: Record<string, any>): string => {
-        return Object.entries(attributes).map(([key, value]) => ' '.repeat(41) + `\x1b[30m${key}: ${value}\x1b[0m`).join('\n');
+    const attrsToString = (attributes: Record<string, LogAttr>): string => {
+        return Object.entries(attributes).map(([key, value]) => ' '.repeat(41) + `\x1b[30m${key}: ${value.toString()}\x1b[0m`).join('\n');
     };
 
-    const log = (level: 'debug' | 'info' | 'warn' | 'error') => (arg1: Record<string, any> | string, arg2?: string) => {
-        let attrs: Record<string, any> = {};
+    const log = (level: 'debug' | 'info' | 'warn' | 'error') => (arg1: Record<string, LogAttr> | string, arg2?: string) => {
+        let attrs: Record<string, LogAttr> = {};
         let message: string;
 
         if (typeof arg1 === 'string') {
