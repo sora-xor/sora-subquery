@@ -105,25 +105,21 @@ class AssetStorage {
   }
 
   async updatePrice(block: SubstrateBlock, id: string, priceUSD: string): Promise<void> {
-    const asset = await this.getAsset(block ,id);
+    const asset = await this.getAsset(block, id);
 
-    if (asset.priceUSD !== priceUSD) {
-      asset.priceUSD = priceUSD;
-      // update liqudiity usd with new price
-      this.calcLiquidityUSD(asset);
-      // stream update
-      priceUpdatesStream.update(id, priceUSD);
-      // to update asset price by ws subscription instantly
-      await asset.save();
-			getAssetStorageLog(block, true).debug({ assetId: id, newPrice: priceUSD }, 'Asset price updated')
-    }
+    asset.priceUSD = priceUSD;
+    // update liquidity usd with new price
+    this.calcLiquidityUSD(asset);
+    getAssetStorageLog(block, true).debug({ assetId: id, newPrice: priceUSD }, 'Asset price updated')
+    // stream update
+    priceUpdatesStream.update(id, priceUSD);
   }
 
   async updateLiquidity(block: SubstrateBlock ,id: string, liquidity: bigint): Promise<void>  {
-    const asset = await this.getAsset(block ,id);
+    const asset = await this.getAsset(block, id);
 
     asset.liquidity = liquidity;
-    // update liqudiity usd with new liquidity
+    // update liquidity usd with new liquidity
     this.calcLiquidityUSD(asset);
     getAssetStorageLog(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidity updated')
   }

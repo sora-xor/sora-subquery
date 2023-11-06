@@ -292,6 +292,16 @@ dataSources:
           filter:
             module: staking
             method: withdrawUnbonded
+        - handler: orderBookPlaceLimitOrderHandler
+          kind: substrate/CallHandler
+          filter:
+            module: orderBook
+            method: placeLimitOrder
+        - handler: orderBookCancelLimitOrderHandler
+          kind: substrate/CallHandler
+          filter:
+            module: orderBook
+            method: cancelLimitOrder
         - handler: ethSoraTransferEventHandler
           kind: substrate/EventHandler
           filter:
