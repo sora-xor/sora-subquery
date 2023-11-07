@@ -29,17 +29,24 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
     details.from = extrinsic.extrinsic.signer.toString();
     
     if (historyElement.execution.success) {
-        const getData = (method: string, section: string) => getEventData(extrinsic, method, section);
+        const batchSwapExecutedEvent = getEventData(extrinsic, 'BatchSwapExecuted', 'liquidityProxy');
+        if (batchSwapExecutedEvent) {
+            const [adarFee, inputAmount] = batchSwapExecutedEvent;
+            details.adarFee = formatU128ToBalance(adarFee.toString(), inputAssetId);
+            details.inputAmount = formatU128ToBalance(inputAmount.toString(), inputAssetId);
+        }
 
-        const [adarFee, inputAmount] = getData('BatchSwapExecuted', 'liquidityProxy');
-        details.adarFee = formatU128ToBalance(adarFee.toString(), inputAssetId);
-        details.inputAmount = formatU128ToBalance(inputAmount.toString(), inputAssetId);
+        const feeWithdrawnEvent = getEventData(extrinsic, 'FeeWithdrawn', 'xorFee');
+        if (feeWithdrawnEvent) {
+            const [, networkFee] = feeWithdrawnEvent;
+            details.networkFee = formatU128ToBalance(networkFee.toString(), XOR);
+        }
 
-        const [, networkFee] = getData('FeeWithdrawn', 'xorFee');
-        details.networkFee = formatU128ToBalance(networkFee.toString(), XOR);
-
-        const [, actualFee] = getData('TransactionFeePaid', 'transactionPayment');
-        details.actualFee = formatU128ToBalance(actualFee.toString(), XOR);
+        const transactionFeePaidEvent = getEventData(extrinsic, 'TransactionFeePaid', 'transactionPayment');
+        if (transactionFeePaidEvent) {
+            const [, actualFee] = transactionFeePaidEvent;
+            details.actualFee = formatU128ToBalance(actualFee.toString(), XOR);
+        }
 
         const assetsTransfers = extrinsic.events.filter(e => e.event.method === 'Transfer' && e.event.section === 'assets').map(e => {
             const { event: { data: [from, to, asset, amount] } } = e;

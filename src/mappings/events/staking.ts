@@ -8,10 +8,10 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 
 	const activeStakingEra = await getActiveStakingEra(event.block)
 
-	const exposures = await api.query.staking.erasStakers.entries();
+	const exposures = await api.query.staking.erasStakers.entries(activeStakingEra.id);
 
 	for (const [[era, validator], exposure] of exposures) {
-		const exposureData =  exposure[1].toJSON() as any;
+		const exposureData =  exposure.toJSON() as any;
 		const total = BigInt(exposureData.total)
 		const own = BigInt(exposureData.own)
 		const others = exposureData.others
@@ -22,11 +22,11 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 		}
 
 		const stakingStaker = await getStakingStaker(event.block, validator.toString())
+		const stakingEraValidatorId = `${activeStakingEra.id}-${stakingStaker.id}`;
 
-		let stakingEraValidators = await store.getByField('StakingEraValidator', 'stakerId', stakingStaker.id) as any as StakingEraValidator[];
-		let stakingEraValidator = stakingEraValidators.find(eraValidator => eraValidator.eraId === activeStakingEra.id) as any as StakingEraValidator | null;
+		let stakingEraValidator = await StakingEraValidator.get(stakingEraValidatorId);
 		if (!stakingEraValidator) {
-			stakingEraValidator = new StakingEraValidator(`${activeStakingEra.id}-${stakingStaker.id}`)
+			stakingEraValidator = new StakingEraValidator(stakingEraValidatorId)
 			stakingEraValidator.eraId = activeStakingEra.id
 			stakingEraValidator.validatorId = stakingValidator.id
 			stakingEraValidator.ownBond = BigInt(0)
@@ -51,11 +51,11 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 
 		for (let nomination of others) {
 			const stakingStaker = await getStakingStaker(event.block, nomination.who.toString())
+			const stakingEraNominatorId = `${activeStakingEra.id}-${stakingStaker.id}`;
 
-			let stakingEraNominators = await store.getByField('StakingEraNominator', 'stakerId', stakingStaker.id) as any as StakingEraNominator[];
-			let stakingEraNominator = stakingEraNominators.find(eraNominator => eraNominator.eraId === activeStakingEra.id) as any as StakingEraNominator | null;
+			let stakingEraNominator = await StakingEraNominator.get(stakingEraNominatorId);
 			if (!stakingEraNominator) {
-				stakingEraNominator = new StakingEraNominator(`${activeStakingEra.id}-${stakingStaker.id}`)
+				stakingEraNominator = new StakingEraNominator(stakingEraNominatorId)
 				stakingEraNominator.eraId = activeStakingEra.id
 				stakingEraNominator.stakerId = stakingStaker.id
 				stakingEraNominator.bond = BigInt(0)

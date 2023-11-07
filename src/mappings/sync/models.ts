@@ -24,22 +24,22 @@ export async function syncModels(block: SubstrateBlock): Promise<void> {
 }
 
 export async function updateAssetsDailyStats(block: SubstrateBlock): Promise<void> {
-  getSyncModelsLog(block).debug('Update assets daily stats');
-
   const blockTimestamp: number = formatDateTimestamp(block.timestamp);
 
   if (!shouldUpdateAssetsStats(blockTimestamp)) return;
+
+  getSyncModelsLog(block).debug('Update assets daily stats');
 
   await assetStorage.updateDailyStats(block, blockTimestamp);
   await assetStorage.sync(block);
 }
 
 export async function updateAssetsWeeklyStats(block: SubstrateBlock): Promise<void> {
-  getSyncModelsLog(block).debug('Update assets weekly stats');
-
   const blockTimestamp: number = formatDateTimestamp(block.timestamp);
 
   if (!shouldUpdateAssetsStats(blockTimestamp)) return;
+
+  getSyncModelsLog(block).debug('Update assets weekly stats');
 
   await assetStorage.updateWeeklyStats(block, blockTimestamp);
   await assetStorage.sync(block);
