@@ -23,11 +23,12 @@ export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrin
     lifespan: !lifespanOption.isEmpty ? Number(lifespanOption.unwrap()) : null,
   };
 
-  if (historyElement.execution.success) {
-    const limitOrderPlacedEvent = extrinsic.events.find(e =>
-      e.event.section === 'orderBook' &&
-      e.event.method === 'LimitOrderPlaced'
-    );
+  const limitOrderPlacedEvent = extrinsic.events.find(e =>
+    e.event.section === 'orderBook' &&
+    e.event.method === 'LimitOrderPlaced'
+  );
+
+  if (limitOrderPlacedEvent) {
     const { event: { data: [orderBookId, orderId] } } = limitOrderPlacedEvent;
     details.orderId = Number(orderId.toHuman());
   }
@@ -40,17 +41,23 @@ export async function orderBookCancelLimitOrderHandler(extrinsic: SubstrateExtri
   logStartProcessingCall(extrinsic);
 
   const historyElement = await createHistoryElement(extrinsic)
+  const cancelEvents = extrinsic.events.filter(e =>
+    e.event.section === 'orderBook' &&
+    e.event.method === 'LimitOrderCanceled'
+  ) as any[];
 
-  const { extrinsic: { args: [orderBookId, orderId] } } = extrinsic as any;
+  const details = cancelEvents.reduce((buffer, cancelEvent) => {
+    const { event: { data: [orderBookId, orderId] } } = cancelEvent;
 
-  const base = getAssetId(orderBookId.base);
-  const quote = getAssetId(orderBookId.quote);
-  const details = {
-    dexId: orderBookId.dexId.toNumber(),
-    base,
-    quote,
-    orderId: Number(orderId.toHuman()),
-  };
+    buffer.push({
+      dexId: orderBookId.dexId.toNumber(),
+      base: getAssetId(orderBookId.base),
+      quote: getAssetId(orderBookId.quote),
+      orderId: Number(orderId.toHuman()),
+    });
+
+    return buffer;
+  }, []);
 
   await addDataToHistoryElement(extrinsic, historyElement, details)
   await updateHistoryElementStats(extrinsic, historyElement);

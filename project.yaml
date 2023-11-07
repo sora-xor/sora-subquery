@@ -302,6 +302,11 @@ dataSources:
           filter:
             module: orderBook
             method: cancelLimitOrder
+        - handler: orderBookCancelLimitOrderHandler
+          kind: substrate/CallHandler
+          filter:
+            module: orderBook
+            method: cancelLimitOrdersBatch
         - handler: ethSoraTransferEventHandler
           kind: substrate/EventHandler
           filter:
