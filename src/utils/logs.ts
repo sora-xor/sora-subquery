@@ -23,7 +23,7 @@ function toPascalCase(str: string): string {
         .replace(/(^|\.)\w/g, match => match.toUpperCase());  // Capitalize the first character of each segment
 }
 
-export function getLog(ctx: BlockContext, logModule: string | null = null, attrs: Record<string, any> = {}, testMode: boolean = false) {
+export function getLog(ctx: BlockContext, logModule: string | null = null, attrs: Record<string, LogAttr> = {}, testMode: boolean = false) {
     const block = 'block' in ctx.block ? ctx.block.block : ctx.block;
     const blockHeight = block.header.number.toNumber();
     const attributes: any = { blockHeight, ...attrs };
@@ -45,7 +45,7 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
 
         attrs = { ...attributes, ...attrs };
 
-        logger[level](attrs, `[${logModule}] ${message}\n${attrsToString(attrs)}`);
+        logger[level](`[${logModule}] ${message}\n${attrsToString(attrs)}`);
     };
 
     const sendMessages = testMode ? testLogMode : true
