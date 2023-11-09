@@ -217,6 +217,13 @@ type StakingEra @entity {
   nominations: [StakingEraNomination!]! @derivedFrom(field: "era")
 }
 
+enum OrderBookStatus {
+  Trade
+  PlaceAndCancel
+  OnlyCancel
+  Stop
+}
+
 enum OrderStatus {
   ACTIVE
   CANCELED
@@ -255,19 +262,30 @@ type OrderBook @entity {
   dexId: Int!
   baseAsset: Asset! @index
   quoteAsset: Asset! @index
+  status: OrderBookStatus!
   price: String!
   priceChangeDay: Float
   volumeDayUSD: Float
-  limitOrders: [OrderBookLimitOrder] @derivedFrom(field: "orderBook")
+  limitOrders: [OrderBookLimitOrder!]! @derivedFrom(field: "orderBook")
+  marketOrders: [OrderBookMarketOrder!]! @derivedFrom(field: "orderBook")
+  data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
   lastDeals: [OrderBookDeal!]!
   updatedAtBlock: Int!
-  # status ?
+}
+
+type OrderBookSnapshot @entity {
+  id: ID!
+  orderBook: OrderBook! @index
+  timestamp: Int!
+  type: SnapshotType!
+  price: AssetPrice
+  volume: AssetVolume # in quote asset
 }
 
 type OrderBookMarketOrder implements IOrderBookMarketOrder @entity {
   id: ID!
-  orderBook: OrderBook!
-  account: Account!
+  orderBook: OrderBook! @index
+  account: Account! @index
   createdAtBlock: Int!
   timestamp: Int!
   isBuy: Boolean!
@@ -277,15 +295,16 @@ type OrderBookMarketOrder implements IOrderBookMarketOrder @entity {
 
 type OrderBookLimitOrder implements IOrderBookMarketOrder @entity {
   id: ID!
-  orderBook: OrderBook!
-  account: Account!
+  orderBook: OrderBook! @index
+  account: Account! @index
   createdAtBlock: Int!
   timestamp: Int!
   isBuy: Boolean!
   amount: String!
   price: String!
   # OrderBookLimitOrder fields
-  expiration: Int! # timestamp + lifespan
+  lifespan: Int!
+  expiresAt: Int! # timestamp + lifespan
   amountFilled: String! # number like formatted
   status: OrderStatus!
   updatedAtBlock: Int!
