@@ -1,6 +1,7 @@
 //Exports all handler functions
 export * from "./mappings/models/initializeAssets";
 export * from "./mappings/models/initializePools";
+export * from "./mappings/models/initializeOrderBooks";
 
 export * from './mappings/calls/swapsHandler';
 export * from './mappings/calls/swapTransferBatchHandler';

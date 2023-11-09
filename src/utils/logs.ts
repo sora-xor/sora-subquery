@@ -85,6 +85,10 @@ export function getInitializePoolsLog(ctx: BlockContext, testMode: boolean = fal
 	return getLog(ctx, 'InitializePools', {}, testMode)
 }
 
+export function getInitializeOrderBooksLog(ctx: BlockContext, testMode: boolean = false) {
+	return getLog(ctx, 'InitializeOrderBooks', {}, testMode)
+}
+
 export function getSyncModelsLog(ctx: BlockContext, testMode: boolean = false) {
 	return getLog(ctx, 'SyncModels', {}, testMode)
 }
@@ -107,6 +111,10 @@ export function getNetworkSnapshotsStorageLog(ctx: BlockContext, testMode: boole
 
 export function getPoolsStorageLog(ctx: BlockContext, testMode: boolean = false) {
 	return getLog(ctx, 'PoolsStorage', {}, testMode)
+}
+
+export function getOrderBooksStorageLog(ctx: BlockContext, testMode: boolean = false) {
+	return getLog(ctx, 'OrderBooksStorage', {}, testMode)
 }
 
 export function getUtilsLog(ctx: BlockContext, testMode: boolean = false) {

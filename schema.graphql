@@ -262,7 +262,7 @@ type OrderBook @entity {
   dexId: Int!
   baseAsset: Asset! @index
   quoteAsset: Asset! @index
-  status: OrderBookStatus!
+  # status: OrderBookStatus!
   price: String!
   priceChangeDay: Float
   volumeDayUSD: Float
