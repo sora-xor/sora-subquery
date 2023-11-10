@@ -300,6 +300,11 @@ dataSources:
           filter:
             module: 'orderBook'
             method: 'OrderBookCreated'
+        - handler: orderBookStatusChangedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'OrderBookStatusChanged'
         - handler: limitOrderPlacedEvent
           kind: substrate/EventHandler
           filter:

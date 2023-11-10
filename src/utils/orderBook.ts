@@ -1,4 +1,4 @@
-import { OrderBook, SnapshotType, OrderBookSnapshot } from "../types";
+import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot } from "../types";
 
 import { SubstrateBlock, SubstrateExtrinsic } from '@subql/types';
 import { getInitializeOrderBooksLog, getOrderBooksStorageLog } from './logs';
@@ -76,7 +76,7 @@ class OrderBooksStorage {
       orderBook.dexId = dexId;
       orderBook.baseAssetId = baseAssetId;
       orderBook.quoteAssetId = quoteAssetId;
-      orderBook.price = '0';
+      orderBook.status = OrderBookStatus.Trade;
 
       await this.save(block, orderBook);
 

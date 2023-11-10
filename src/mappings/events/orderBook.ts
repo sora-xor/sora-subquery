@@ -34,6 +34,21 @@ export async function orderBookCreatedEvent(event: SubstrateEvent): Promise<void
   getEventHandlerLog(event).debug({ id }, 'Order Book Created');
 }
 
+export async function orderBookStatusChangedEvent(event: SubstrateEvent): Promise<void> {
+  logStartProcessingEvent(event);
+
+  const { event: { data: [orderBookCodec, statusCodec] } } = event as any;
+  const { dexId, baseAssetId, quoteAssetId } = getBookData(orderBookCodec);
+  const orderBook = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
+  const status = statusCodec.toHuman();
+
+  orderBook.status = status;
+
+  await orderBook.save();
+
+  getEventHandlerLog(event).debug({ id: orderBook.id, status }, 'Order Book Status Changed');
+}
+
 export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 

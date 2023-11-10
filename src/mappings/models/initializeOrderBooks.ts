@@ -19,16 +19,19 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
   if (orderBooks) {
     for (const [key, value] of orderBooks) {
       const { dexId: dex, base, quote } = key.args[0] as any;
+      const { status: statusCodec } = value as any;
       const dexId = Number(dex);
       const baseAssetId = getAssetId(base);
       const quoteAssetId = getAssetId(quote);
       const id = orderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
+      const status = statusCodec.toHuman();
 
       buffer.set(id, {
         id,
         dexId,
         baseAssetId,
         quoteAssetId,
+        status,
         updatedAtBlock,
       });
     }
