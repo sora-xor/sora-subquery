@@ -1,27 +1,14 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
-import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { getAssetId } from '../../utils/assets';
+import { placeLimitOrderExtrinsicData } from '../../utils/orderBook';
 import { logStartProcessingCall } from "../../utils/logs";
 
 export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
   const historyElement = await createHistoryElement(extrinsic)
-
-  const { extrinsic: { args: [orderBookId, price, amount, side, lifetimeOption] } } = extrinsic as any;
-
-  const baseAssetId = getAssetId(orderBookId.base);
-  const quoteAssetId = getAssetId(orderBookId.quote);
-  const details = {
-    dexId: orderBookId.dexId.toNumber(),
-    baseAssetId,
-    quoteAssetId,
-    orderId: null,
-    price: formatU128ToBalance(price.toString(), quoteAssetId),
-    amount: formatU128ToBalance(amount.toString(), baseAssetId),
-    side: side.toHuman(),
-    lifetime: !lifetimeOption.isEmpty ? Number(lifetimeOption.unwrap()) / 1000 : null,
-  };
+  const details = placeLimitOrderExtrinsicData(extrinsic);
 
   const limitOrderPlacedEvent = extrinsic.events.find(e =>
     e.event.section === 'orderBook' &&

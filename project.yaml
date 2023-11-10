@@ -294,26 +294,52 @@ dataSources:
           filter:
             module: staking
             method: withdrawUnbonded
-        - handler: orderBookLimitOrderPlacedEvent
+
+        - handler: orderBookCreatedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'OrderBookCreated'
+        - handler: limitOrderPlacedEvent
           kind: substrate/EventHandler
           filter:
             module: 'orderBook'
             method: 'LimitOrderPlaced'
-        - handler: orderBookLimitOrderExecutedEvent
+        - handler: limitOrderExecutedEvent
           kind: substrate/EventHandler
           filter:
             module: 'orderBook'
             method: 'LimitOrderExecuted'
-        - handler: orderBookLimitOrderFilledEvent
+        - handler: limitOrderUpdatedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'LimitOrderUpdated'
+        - handler: limitOrderFilledEvent
           kind: substrate/EventHandler
           filter:
             module: 'orderBook'
             method: 'LimitOrderFilled'
-        - handler: orderBookMarketOrderExecutedEvent
+        - handler: limitOrderCanceledEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'LimitOrderCanceled'
+        - handler: marketOrderEvent
           kind: substrate/EventHandler
           filter:
             module: 'orderBook'
             method: 'MarketOrderExecuted'
+        - handler: marketOrderEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'LimitOrderConvertedToMarketOrder'
+        - handler: marketOrderEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'LimitOrderIsSplitIntoMarketOrderAndLimitOrder'
         - handler: orderBookPlaceLimitOrderHandler
           kind: substrate/CallHandler
           filter:

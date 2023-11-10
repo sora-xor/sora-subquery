@@ -1,7 +1,8 @@
 import { OrderBook, SnapshotType, OrderBookSnapshot } from "../types";
 
-import { SubstrateBlock } from '@subql/types';
+import { SubstrateBlock, SubstrateExtrinsic } from '@subql/types';
 import { getInitializeOrderBooksLog, getOrderBooksStorageLog } from './logs';
+import { getAssetId, formatU128ToBalance } from './assets';
 
 export const getAllOrderBooks = async (block: SubstrateBlock) => {
   try {
@@ -16,9 +17,27 @@ export const getAllOrderBooks = async (block: SubstrateBlock) => {
   }
 };
 
+export const placeLimitOrderExtrinsicData = (extrinsic: SubstrateExtrinsic) => {
+  const { extrinsic: { args: [orderBookId, price, amount, side, lifetimeOption] } } = extrinsic as any;
+
+  const baseAssetId = getAssetId(orderBookId.base);
+  const quoteAssetId = getAssetId(orderBookId.quote);
+  const details = {
+    dexId: orderBookId.dexId.toNumber(),
+    baseAssetId,
+    quoteAssetId,
+    orderId: null,
+    price: formatU128ToBalance(price.toString(), quoteAssetId),
+    amount: formatU128ToBalance(amount.toString(), baseAssetId),
+    side: side.toHuman(),
+    lifetime: !lifetimeOption.isEmpty ? Number(lifetimeOption.unwrap()) / 1000 : null,
+  };
+
+  return details;
+};
+
 class OrderBooksStorage {
   private storage!: Map<string, OrderBook>;
-  private idDelimeter = '-';
 
   constructor() {
     this.storage = new Map();
@@ -30,11 +49,11 @@ class OrderBooksStorage {
   }
 
   getId(dexId: number, baseAssetId: string, quoteAssetId: string): string {
-    return [dexId, baseAssetId, quoteAssetId].join(this.idDelimeter);
+    return [dexId, baseAssetId, quoteAssetId].join('-');
   }
 
   getOrderId(orderBookId: string, orderId: string | number): string {
-    return [orderBookId, orderId].join(this.idDelimeter);
+    return [orderBookId, orderId].join('_');
   }
 
   private async save(block: SubstrateBlock, orderBook: OrderBook): Promise<void> {

@@ -217,12 +217,20 @@ type StakingEra @entity {
   nominations: [StakingEraNomination!]! @derivedFrom(field: "era")
 }
 
+enum OrderBookStatus {
+  Trade
+  PlaceAndCancel
+  OnlyCancel
+  Stop
+}
+
 enum OrderStatus {
   ACTIVE
   CANCELED
   EXPIRED
   FILLED
 }
+
 
 interface IOrderBookDeal {
   timestamp: Int! # created (and could be executed) at block timestamp
@@ -255,6 +263,7 @@ type OrderBook @entity {
   dexId: Int!
   baseAsset: Asset! @index
   quoteAsset: Asset! @index
+  # status: OrderBookStatus!
   price: String
   priceChangeDay: Float
   volumeDayUSD: Float
