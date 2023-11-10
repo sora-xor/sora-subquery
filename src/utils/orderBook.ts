@@ -33,6 +33,10 @@ class OrderBooksStorage {
     return [dexId, baseAssetId, quoteAssetId].join(this.idDelimeter);
   }
 
+  getOrderId(orderBookId: string, orderId: string | number): string {
+    return [orderBookId, orderId].join(this.idDelimeter);
+  }
+
   private async save(block: SubstrateBlock, orderBook: OrderBook): Promise<void> {
     orderBook.updatedAtBlock = block.block.header.number.toNumber();
 

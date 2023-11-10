@@ -295,6 +295,7 @@ type OrderBookLimitOrder implements IOrderBookMarketOrder @entity {
   amount: String!
   price: String!
   # OrderBookLimitOrder fields
+  orderId: Int!
   lifetime: Int!
   expiresAt: Int! # timestamp + lifetime
   amountFilled: String! # number like formatted

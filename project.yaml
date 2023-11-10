@@ -299,6 +299,21 @@ dataSources:
           filter:
             module: 'orderBook'
             method: 'LimitOrderPlaced'
+        - handler: orderBookLimitOrderExecutedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'LimitOrderExecuted'
+        - handler: orderBookLimitOrderFilledEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'LimitOrderFilled'
+        - handler: orderBookMarketOrderExecutedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'MarketOrderExecuted'
         - handler: orderBookPlaceLimitOrderHandler
           kind: substrate/CallHandler
           filter:
