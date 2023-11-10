@@ -109,6 +109,10 @@ export function getNetworkSnapshotsStorageLog(ctx: BlockContext, testMode: boole
 	return getLog(ctx, 'NetworkSnapshotsStorage', {}, testMode)
 }
 
+export function getOrderBooksSnapshotsStorageLog(ctx: BlockContext, testMode: boolean = false) {
+	return getLog(ctx, 'OrderBooksSnapshotsStorage', {}, testMode)
+}
+
 export function getPoolsStorageLog(ctx: BlockContext, testMode: boolean = false) {
 	return getLog(ctx, 'PoolsStorage', {}, testMode)
 }

@@ -1,8 +1,9 @@
 import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot } from "../types";
 
 import { SubstrateBlock, SubstrateExtrinsic } from '@subql/types';
-import { getInitializeOrderBooksLog, getOrderBooksStorageLog } from './logs';
+import { getInitializeOrderBooksLog, getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
 import { getAssetId, formatU128ToBalance } from './assets';
+import { getSnapshotIndex } from './index';
 
 export const getAllOrderBooks = async (block: SubstrateBlock) => {
   try {
@@ -89,4 +90,84 @@ class OrderBooksStorage {
   }
 }
 
+class OrderBooksSnapshotsStorage {
+  private storage!: Map<string, OrderBookSnapshot>;
+  public orderBooksStorage!: OrderBooksStorage;
+
+  constructor(orderBooksStorage: OrderBooksStorage) {
+    this.storage = new Map();
+    this.orderBooksStorage = orderBooksStorage;
+  }
+
+  public static getId(orderBookId: string, type: SnapshotType, index: number) {
+    return [orderBookId, type, index].join('-');
+  }
+
+  async sync(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+    await this.syncSnapshots(block, blockTimestamp);
+  }
+
+  private async syncSnapshots(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+    getOrderBooksSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots sync`);
+
+    await store.bulkUpdate('OrderBookSnapshot', [...this.storage.values()]);
+
+    for (const snapshot of this.storage.values()) {
+      const { type, timestamp } = snapshot;
+      const { timestamp: currentTimestamp } = getSnapshotIndex(blockTimestamp, type);
+
+      if (currentTimestamp > timestamp) {
+        this.storage.delete(snapshot.id);
+      }
+    }
+
+    getOrderBooksSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots in storage after sync`);
+  }
+
+
+  async getSnapshot(
+    block: SubstrateBlock,
+    dexId: number,
+    baseAssetId: string,
+    quoteAssetId: string,
+    type: SnapshotType,
+    blockTimestamp: number
+  ): Promise<OrderBookSnapshot> {
+    const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
+    const orderBookId = this.orderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
+    const id = OrderBooksSnapshotsStorage.getId(orderBookId, type, index);
+
+    if (this.storage.has(id)) {
+      return this.storage.get(id);
+    }
+
+    let snapshot = await OrderBookSnapshot.get(id);
+
+    if (!snapshot) {
+      const orderBook = await this.orderBooksStorage.getOrderBook(block, dexId, baseAssetId, quoteAssetId);
+
+      snapshot = new OrderBookSnapshot(id);
+      snapshot.orderBookId = orderBookId;
+      snapshot.timestamp = timestamp;
+      snapshot.type = type;
+      snapshot.volume = {
+        amount: '0',
+        amountUSD: '0'
+      };
+      snapshot.price = {
+        open: orderBook.price,
+        close: orderBook.price,
+        high: orderBook.price,
+        low: orderBook.price,
+      };
+      getOrderBooksSnapshotsStorageLog(block).debug({ id }, 'Order Book snapshot created and saved')
+    }
+
+    this.storage.set(snapshot.id, snapshot);
+
+    return snapshot;
+  }
+}
+
 export const orderBooksStorage = new OrderBooksStorage();
+export const orderBooksSnapshotsStorage = new OrderBooksSnapshotsStorage(orderBooksStorage);
