@@ -14,6 +14,7 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
   const orderBooks = await getAllOrderBooks(block);
 
   const buffer = new Map();
+  const updatedAtBlock = block.block.header.number.toNumber();
 
   if (orderBooks) {
     for (const [key, value] of orderBooks) {
@@ -28,7 +29,7 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
         dexId,
         baseAssetId,
         quoteAssetId,
-        price: '0',
+        updatedAtBlock,
       });
     }
   }

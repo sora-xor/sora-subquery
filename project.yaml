@@ -294,6 +294,11 @@ dataSources:
           filter:
             module: staking
             method: withdrawUnbonded
+        - handler: orderBookLimitOrderPlacedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: 'orderBook'
+            method: 'LimitOrderPlaced'
         - handler: orderBookPlaceLimitOrderHandler
           kind: substrate/CallHandler
           filter:

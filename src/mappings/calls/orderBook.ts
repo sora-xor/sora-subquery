@@ -8,19 +8,19 @@ export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrin
 
   const historyElement = await createHistoryElement(extrinsic)
 
-  const { extrinsic: { args: [orderBookId, price, amount, side, lifespanOption] } } = extrinsic as any;
+  const { extrinsic: { args: [orderBookId, price, amount, side, lifetimeOption] } } = extrinsic as any;
 
-  const base = getAssetId(orderBookId.base);
-  const quote = getAssetId(orderBookId.quote);
+  const baseAssetId = getAssetId(orderBookId.base);
+  const quoteAssetId = getAssetId(orderBookId.quote);
   const details = {
     dexId: orderBookId.dexId.toNumber(),
-    base,
-    quote,
+    baseAssetId,
+    quoteAssetId,
     orderId: null,
-    price: formatU128ToBalance(price.toString(), quote),
-    amount: formatU128ToBalance(amount.toString(), base),
+    price: formatU128ToBalance(price.toString(), quoteAssetId),
+    amount: formatU128ToBalance(amount.toString(), baseAssetId),
     side: side.toHuman(),
-    lifespan: !lifespanOption.isEmpty ? Number(lifespanOption.unwrap()) : null,
+    lifetime: !lifetimeOption.isEmpty ? Number(lifetimeOption.unwrap()) / 1000 : null,
   };
 
   const limitOrderPlacedEvent = extrinsic.events.find(e =>
@@ -51,8 +51,8 @@ export async function orderBookCancelLimitOrderHandler(extrinsic: SubstrateExtri
 
     buffer.push({
       dexId: orderBookId.dexId.toNumber(),
-      base: getAssetId(orderBookId.base),
-      quote: getAssetId(orderBookId.quote),
+      baseAssetId: getAssetId(orderBookId.base),
+      quoteAssetId: getAssetId(orderBookId.quote),
       orderId: Number(orderId.toHuman()),
     });
 

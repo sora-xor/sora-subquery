@@ -28,6 +28,7 @@ export * from "./mappings/events/networkFee";
 export * from './mappings/events/mintAndBurn';
 export * from "./mappings/events/referrerRewardHandler";
 export * from "./mappings/events/staking";
+export * from "./mappings/events/orderBook";
 
 export * from './mappings/sync/prices';
 export * from "./mappings/sync/models";
