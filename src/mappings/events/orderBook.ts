@@ -5,7 +5,7 @@ import { OrderBookLimitOrder, OrderBookMarketOrder, OrderStatus } from '../../ty
 
 import { formatDateTimestamp } from '../../utils';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { orderBooksStorage } from '../../utils/orderBook';
+import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 const getBookData = (orderBookCodec: any) => {
@@ -84,7 +84,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   logStartProcessingEvent(event);
 
   const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount] } } = event as any;
-  const { id, baseAssetId } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
+  const { id, dexId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
   const limitOrder = await OrderBookLimitOrder.get(id);
 
@@ -101,6 +101,9 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   } else {
     getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
   }
+
+  const newPrice = formatU128ToBalance(price.toString(), quoteAssetId);
+  await orderBooksSnapshotsStorage.updatePrice(event.block, dexId, baseAssetId, quoteAssetId, newPrice);
 }
 
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {

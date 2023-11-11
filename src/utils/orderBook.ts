@@ -1,9 +1,10 @@
+import BigNumber from "bignumber.js";
+
 import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot } from "../types";
 
-import { SubstrateBlock, SubstrateExtrinsic } from '@subql/types';
+import { SubstrateBlock } from '@subql/types';
 import { getInitializeOrderBooksLog, getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
-import { getAssetId, formatU128ToBalance } from './assets';
-import { getSnapshotIndex } from './index';
+import { formatDateTimestamp, getSnapshotIndex } from './index';
 
 export const getAllOrderBooks = async (block: SubstrateBlock) => {
   try {
@@ -18,24 +19,7 @@ export const getAllOrderBooks = async (block: SubstrateBlock) => {
   }
 };
 
-export const placeLimitOrderExtrinsicData = (extrinsic: SubstrateExtrinsic) => {
-  const { extrinsic: { args: [orderBookId, price, amount, side, lifetimeOption] } } = extrinsic as any;
-
-  const baseAssetId = getAssetId(orderBookId.base);
-  const quoteAssetId = getAssetId(orderBookId.quote);
-  const details = {
-    dexId: orderBookId.dexId.toNumber(),
-    baseAssetId,
-    quoteAssetId,
-    orderId: null,
-    price: formatU128ToBalance(price.toString(), quoteAssetId),
-    amount: formatU128ToBalance(amount.toString(), baseAssetId),
-    side: side.toHuman(),
-    lifetime: !lifetimeOption.isEmpty ? Number(lifetimeOption.unwrap()) / 1000 : null,
-  };
-
-  return details;
-};
+const OrderBooksSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
 class OrderBooksStorage {
   private storage!: Map<string, OrderBook>;
@@ -88,6 +72,14 @@ class OrderBooksStorage {
 
     return orderBook;
   }
+
+  async updatePrice(block: SubstrateBlock, dexId: number, baseAssetId: string, quoteAssetId: string, price: string): Promise<void> {
+    const orderBook = await this.getOrderBook(block, dexId, baseAssetId, quoteAssetId);
+
+    orderBook.price = price;
+
+    getOrderBooksStorageLog(block, true).debug({ dexId, baseAssetId, quoteAssetId, price }, 'OrderBook price updated')
+  }
 }
 
 class OrderBooksSnapshotsStorage {
@@ -103,14 +95,16 @@ class OrderBooksSnapshotsStorage {
     return [orderBookId, type, index].join('-');
   }
 
-  async sync(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
-    await this.syncSnapshots(block, blockTimestamp);
+  async sync(block: SubstrateBlock): Promise<void> {
+    await this.syncSnapshots(block);
   }
 
-  private async syncSnapshots(block: SubstrateBlock, blockTimestamp: number): Promise<void> {
+  private async syncSnapshots(block: SubstrateBlock): Promise<void> {
     getOrderBooksSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots sync`);
 
     await store.bulkUpdate('OrderBookSnapshot', [...this.storage.values()]);
+
+    const blockTimestamp = formatDateTimestamp(block.timestamp);
 
     for (const snapshot of this.storage.values()) {
       const { type, timestamp } = snapshot;
@@ -124,15 +118,14 @@ class OrderBooksSnapshotsStorage {
     getOrderBooksSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots in storage after sync`);
   }
 
-
   async getSnapshot(
     block: SubstrateBlock,
     dexId: number,
     baseAssetId: string,
     quoteAssetId: string,
     type: SnapshotType,
-    blockTimestamp: number
   ): Promise<OrderBookSnapshot> {
+    const blockTimestamp = formatDateTimestamp(block.timestamp);
     const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
     const orderBookId = this.orderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
     const id = OrderBooksSnapshotsStorage.getId(orderBookId, type, index);
@@ -166,6 +159,34 @@ class OrderBooksSnapshotsStorage {
     this.storage.set(snapshot.id, snapshot);
 
     return snapshot;
+  }
+
+  async updatePrice(
+    block: SubstrateBlock,
+    dexId: number,
+    baseAssetId: string,
+    quoteAssetId: string,
+    price: string,
+  ): Promise<void> {
+    const bnPrice = new BigNumber(price);
+
+    for (const type of OrderBooksSnapshots) {
+      const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
+
+      snapshot.price.close = price;
+      snapshot.price.high = BigNumber.max(new BigNumber(snapshot.price.high), bnPrice).toString();
+      snapshot.price.low = BigNumber.min(new BigNumber(snapshot.price.low), bnPrice).toString();
+
+      // set open price to current price at first update (after start or restart)
+      if (Number(snapshot.price.open) === 0) {
+        snapshot.price.open = price;
+      }
+      getOrderBooksSnapshotsStorageLog(block, true).debug(
+        { dexId, baseAssetId, quoteAssetId, price },
+        'Order Book snapshot price updated',
+      )
+    }
+    await this.orderBooksStorage.updatePrice(block, dexId, baseAssetId, quoteAssetId, price);
   }
 }
 

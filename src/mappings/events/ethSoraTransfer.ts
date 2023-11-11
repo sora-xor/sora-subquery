@@ -35,5 +35,5 @@ export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promis
 
     await addDataToHistoryElement(extrinsic, historyElement, entity);
     await updateHistoryElementStats(extrinsic, historyElement);
-    await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(event.block, historyElement.timestamp);
+    await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(event.block);
 }

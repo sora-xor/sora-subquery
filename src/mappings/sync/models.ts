@@ -6,41 +6,36 @@ import { poolsStorage } from '../../utils/pools';
 import { formatDateTimestamp } from '../../utils';
 import { getSyncModelsLog } from "../../utils/logs";
 
-const shouldUpdateAssetsStats = (blockTimestamp: number) => {
+const shouldUpdateAssetsStats = (block: SubstrateBlock) => {
+  const blockTimestamp = formatDateTimestamp(block.timestamp);
   const currentTimestamp = formatDateTimestamp(new Date());
 
   return currentTimestamp - blockTimestamp < 60 * 60;
 }
 
 export async function syncModels(block: SubstrateBlock): Promise<void> {
-  const blockTimestamp: number = formatDateTimestamp(block.timestamp);
-
   getSyncModelsLog(block).debug('Sync models');
 
   await poolsStorage.sync(block);
-  await assetSnapshotsStorage.sync(block, blockTimestamp);
+  await assetSnapshotsStorage.sync(block);
   await assetStorage.sync(block);
-  await networkSnapshotsStorage.sync(block, blockTimestamp);
+  await networkSnapshotsStorage.sync(block);
 }
 
 export async function updateAssetsDailyStats(block: SubstrateBlock): Promise<void> {
-  const blockTimestamp: number = formatDateTimestamp(block.timestamp);
-
-  if (!shouldUpdateAssetsStats(blockTimestamp)) return;
+  if (!shouldUpdateAssetsStats(block)) return;
 
   getSyncModelsLog(block).debug('Update assets daily stats');
 
-  await assetStorage.updateDailyStats(block, blockTimestamp);
+  await assetStorage.updateDailyStats(block);
   await assetStorage.sync(block);
 }
 
 export async function updateAssetsWeeklyStats(block: SubstrateBlock): Promise<void> {
-  const blockTimestamp: number = formatDateTimestamp(block.timestamp);
-
-  if (!shouldUpdateAssetsStats(blockTimestamp)) return;
+  if (!shouldUpdateAssetsStats(block)) return;
 
   getSyncModelsLog(block).debug('Update assets weekly stats');
 
-  await assetStorage.updateWeeklyStats(block, blockTimestamp);
+  await assetStorage.updateWeeklyStats(block);
   await assetStorage.sync(block);
 }

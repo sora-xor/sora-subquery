@@ -260,7 +260,7 @@ type OrderBookDeal implements IOrderBookDeal @jsonField {
 
 type OrderBook @entity {
   id: ID!
-  dexId: Int!
+  dexId: Int! @index
   baseAsset: Asset! @index
   quoteAsset: Asset! @index
   status: OrderBookStatus!

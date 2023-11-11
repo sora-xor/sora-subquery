@@ -6,7 +6,6 @@ import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStat
 import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { XOR } from '../../utils/consts';
-import { formatDateTimestamp } from '../../utils';
 import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 import type { Vec } from "@polkadot/types";
@@ -57,7 +56,6 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 }
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
-    const blockTimestamp = formatDateTimestamp(extrinsic.block.timestamp);
     const historyElement = await createHistoryElement(extrinsic)
 
     const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = extrinsic.extrinsic.args.slice().reverse();
@@ -92,12 +90,12 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 
     // update assets volume
     if (historyElement.execution.success) {
-        const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount, blockTimestamp);
-        const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount, blockTimestamp);
+        const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount);
+        const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount);
         // get the minimal volume (sell\buy)
         const volumeUSD = BigNumber.min(aVolumeUSD, bVolumeUSD);
 
-        await networkSnapshotsStorage.updateVolumeStats(extrinsic.block, volumeUSD, blockTimestamp);
+        await networkSnapshotsStorage.updateVolumeStats(extrinsic.block, volumeUSD);
     }
 }
 
