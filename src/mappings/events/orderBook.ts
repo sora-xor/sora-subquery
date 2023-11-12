@@ -88,6 +88,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
 
   const newPrice = formatU128ToBalance(price.toString(), quoteAssetId);
   const newAmount = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
+  const isBuy = side.toHuman() === 'Buy';
 
   const limitOrder = await OrderBookLimitOrder.get(id);
 
@@ -104,7 +105,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
     getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
   }
 
-  await orderBooksSnapshotsStorage.updatePriceAndVolume(event.block, dexId, baseAssetId, quoteAssetId, newPrice, newAmount);
+  await orderBooksSnapshotsStorage.updateDeal(event.block, dexId, baseAssetId, quoteAssetId, newPrice, newAmount, isBuy);
 }
 
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {

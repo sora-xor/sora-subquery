@@ -270,7 +270,7 @@ type OrderBook @entity {
   limitOrders: [OrderBookLimitOrder!]! @derivedFrom(field: "orderBook")
   marketOrders: [OrderBookMarketOrder!]! @derivedFrom(field: "orderBook")
   data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
-  lastDeals: [OrderBookDeal!]!
+  lastDeals: String
   updatedAtBlock: Int!
 }
 

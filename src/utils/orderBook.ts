@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 
-import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot } from "../types";
+import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookDeal } from "../types";
 
 import { SubstrateBlock } from '@subql/types';
 import { getInitializeOrderBooksLog, getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
@@ -24,6 +24,8 @@ const OrderBooksSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotTy
 
 class OrderBooksStorage {
   private storage!: Map<string, OrderBook>;
+
+  static readonly LAST_DEALS_LENGTH = 100;
 
   constructor() {
     this.storage = new Map();
@@ -74,12 +76,27 @@ class OrderBooksStorage {
     return orderBook;
   }
 
-  async updatePrice(block: SubstrateBlock, dexId: number, baseAssetId: string, quoteAssetId: string, price: string): Promise<void> {
+  async updateDeal(
+    block: SubstrateBlock,
+    dexId: number,
+    baseAssetId: string,
+    quoteAssetId: string,
+    price: string,
+    amount: string,
+    isBuy: boolean,
+  ): Promise<void> {
     const orderBook = await this.getOrderBook(block, dexId, baseAssetId, quoteAssetId);
+    const timestamp = formatDateTimestamp(block.timestamp);
+    const deal: OrderBookDeal = { timestamp, isBuy, amount, price };
+
+    const lastDeals: OrderBookDeal[] = orderBook.lastDeals ? JSON.parse(orderBook.lastDeals) : [];
+    lastDeals.unshift(deal);
+    lastDeals.slice(0, OrderBooksStorage.LAST_DEALS_LENGTH);
 
     orderBook.price = price;
+    orderBook.lastDeals = JSON.stringify(lastDeals);
 
-    getOrderBooksStorageLog(block, true).debug({ dexId, baseAssetId, quoteAssetId, price }, 'OrderBook price updated')
+    getOrderBooksStorageLog(block, true).debug({ dexId, baseAssetId, quoteAssetId, price }, 'OrderBook price updated');
   }
 }
 
@@ -161,13 +178,14 @@ class OrderBooksSnapshotsStorage {
     return snapshot;
   }
 
-  async updatePriceAndVolume(
+  async updateDeal(
     block: SubstrateBlock,
     dexId: number,
     baseAssetId: string,
     quoteAssetId: string,
     price: string,
     amount: string,
+    isBuy: boolean,
   ): Promise<void> {
     const quotePrice = new BigNumber(price);
     const baseAmount = new BigNumber(amount);
@@ -201,7 +219,7 @@ class OrderBooksSnapshotsStorage {
       )
     }
 
-    await this.orderBooksStorage.updatePrice(block, dexId, baseAssetId, quoteAssetId, price);
+    await this.orderBooksStorage.updateDeal(block, dexId, baseAssetId, quoteAssetId, price, amount, isBuy);
   }
 }
 

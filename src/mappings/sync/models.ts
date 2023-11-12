@@ -2,6 +2,7 @@ import type { SubstrateBlock } from "@subql/types";
 
 import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
+import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { poolsStorage } from '../../utils/pools';
 import { formatDateTimestamp } from '../../utils';
 import { getSyncModelsLog } from "../../utils/logs";
@@ -19,6 +20,8 @@ export async function syncModels(block: SubstrateBlock): Promise<void> {
   await poolsStorage.sync(block);
   await assetSnapshotsStorage.sync(block);
   await assetStorage.sync(block);
+  await orderBooksSnapshotsStorage.sync(block);
+  await orderBooksStorage.sync(block);
   await networkSnapshotsStorage.sync(block);
 }
 
