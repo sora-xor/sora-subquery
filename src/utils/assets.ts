@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
 import { DAI } from './consts';
-import { formatDateTimestamp } from './index';
+import { formatDateTimestamp, toFloat } from './index';
 import { getSnapshotIndex } from './index';
 import { getAssetSnapshotsStorageLog, getAssetStorageLog } from './logs';
 import { priceUpdatesStream } from "./stream";
@@ -29,8 +29,6 @@ const last = <T>(snapshots: T[]) => {
   if (!snapshots.length) return null;
   return snapshots[snapshots.length - 1];
 };
-
-const toFloat = (value: BigNumber) => Number(value.toFixed(2));
 
 const calcVolumeUSD = (snapshots: AssetSnapshot[]): number => {
   const totalVolume = snapshots.reduce((buffer, snapshot) => {

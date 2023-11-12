@@ -279,8 +279,10 @@ type OrderBookSnapshot @entity {
   orderBook: OrderBook! @index
   timestamp: Int!
   type: SnapshotType!
-  price: AssetPrice
-  volume: AssetVolume # in quote asset
+  price: AssetPrice!
+  baseAssetVolume: String!
+  quoteAssetVolume: String!
+  volumeUSD: Float!
 }
 
 type OrderBookMarketOrder implements IOrderBookMarketOrder @entity {

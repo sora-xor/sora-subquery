@@ -1,9 +1,13 @@
+import type BigNumber from "bignumber.js";
+
 import { TextDecoder } from 'util';
 
 import { SnapshotType } from "../types";
 
 import { SnapshotSecondsMap } from './consts';
 import { SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
+
+export const toFloat = (value: BigNumber) => Number(value.toFixed(2));
 
 export const formatDateTimestamp = (date: Date): number => parseInt((date.getTime() / 1000).toFixed(0));
 

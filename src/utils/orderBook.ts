@@ -4,7 +4,8 @@ import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot } from "../
 
 import { SubstrateBlock } from '@subql/types';
 import { getInitializeOrderBooksLog, getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
-import { formatDateTimestamp, getSnapshotIndex } from './index';
+import { formatDateTimestamp, getSnapshotIndex, toFloat } from './index';
+import { assetStorage } from './assets';
 
 export const getAllOrderBooks = async (block: SubstrateBlock) => {
   try {
@@ -143,10 +144,9 @@ class OrderBooksSnapshotsStorage {
       snapshot.orderBookId = orderBookId;
       snapshot.timestamp = timestamp;
       snapshot.type = type;
-      snapshot.volume = {
-        amount: '0',
-        amountUSD: '0'
-      };
+      snapshot.baseAssetVolume = '0';
+      snapshot.quoteAssetVolume = '0';
+      snapshot.volumeUSD = 0;
       snapshot.price = {
         open: orderBook.price,
         close: orderBook.price,
@@ -161,31 +161,46 @@ class OrderBooksSnapshotsStorage {
     return snapshot;
   }
 
-  async updatePrice(
+  async updatePriceAndVolume(
     block: SubstrateBlock,
     dexId: number,
     baseAssetId: string,
     quoteAssetId: string,
     price: string,
+    amount: string,
   ): Promise<void> {
-    const bnPrice = new BigNumber(price);
+    const quotePrice = new BigNumber(price);
+    const baseAmount = new BigNumber(amount);
+    const quoteAmount = baseAmount.multipliedBy(quotePrice);
+
+    const quoteAsset = await assetStorage.getAsset(block, quoteAssetId);
+    const quoteVolumeUSD = toFloat(new BigNumber(quoteAsset.priceUSD).multipliedBy(quoteAmount));
 
     for (const type of OrderBooksSnapshots) {
       const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
+      const baseAssetVolume = new BigNumber(snapshot.baseAssetVolume).plus(baseAmount).toString();
+      const quoteAssetVolume = new BigNumber(snapshot.quoteAssetVolume).plus(quoteAmount).toString();
+      const volumeUSD = snapshot.volumeUSD + quoteVolumeUSD;
+
+      snapshot.baseAssetVolume = baseAssetVolume;
+      snapshot.quoteAssetVolume = quoteAssetVolume;
+      snapshot.volumeUSD = volumeUSD;
 
       snapshot.price.close = price;
-      snapshot.price.high = BigNumber.max(new BigNumber(snapshot.price.high), bnPrice).toString();
-      snapshot.price.low = BigNumber.min(new BigNumber(snapshot.price.low), bnPrice).toString();
+      snapshot.price.high = BigNumber.max(new BigNumber(snapshot.price.high), quotePrice).toString();
+      snapshot.price.low = BigNumber.min(new BigNumber(snapshot.price.low), quotePrice).toString();
 
       // set open price to current price at first update (after start or restart)
       if (Number(snapshot.price.open) === 0) {
         snapshot.price.open = price;
       }
+
       getOrderBooksSnapshotsStorageLog(block, true).debug(
-        { dexId, baseAssetId, quoteAssetId, price },
-        'Order Book snapshot price updated',
+        { dexId, baseAssetId, quoteAssetId, price, baseAssetVolume, quoteAssetVolume, volumeUSD },
+        'Order Book snapshot price and volume updated',
       )
     }
+
     await this.orderBooksStorage.updatePrice(block, dexId, baseAssetId, quoteAssetId, price);
   }
 }

@@ -86,13 +86,15 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount] } } = event as any;
   const { id, dexId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
+  const newPrice = formatU128ToBalance(price.toString(), quoteAssetId);
+  const newAmount = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
+
   const limitOrder = await OrderBookLimitOrder.get(id);
 
   if (limitOrder) {
     const blockNumber = event.block.block.header.number.toNumber();
-    const amountFilled = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
 
-    limitOrder.amountFilled = new BigNumber(limitOrder.amountFilled).plus(new BigNumber(amountFilled)).toString();
+    limitOrder.amountFilled = new BigNumber(limitOrder.amountFilled).plus(new BigNumber(newAmount)).toString();
     limitOrder.updatedAtBlock = blockNumber;
 
     await limitOrder.save();
@@ -102,8 +104,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
     getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
   }
 
-  const newPrice = formatU128ToBalance(price.toString(), quoteAssetId);
-  await orderBooksSnapshotsStorage.updatePrice(event.block, dexId, baseAssetId, quoteAssetId, newPrice);
+  await orderBooksSnapshotsStorage.updatePriceAndVolume(event.block, dexId, baseAssetId, quoteAssetId, newPrice, newAmount);
 }
 
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {
