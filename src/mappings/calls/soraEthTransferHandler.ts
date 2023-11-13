@@ -39,6 +39,6 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
 
     await addDataToHistoryElement(extrinsic, historyElement, entity);
     await updateHistoryElementStats(extrinsic, historyElement);
-    await networkSnapshotsStorage.updateBridgeOutgoingTransactionsStats(extrinsic.block, historyElement.timestamp);
+    await networkSnapshotsStorage.updateBridgeOutgoingTransactionsStats(extrinsic.block);
 
 }

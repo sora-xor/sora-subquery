@@ -1,3 +1,5 @@
+import { SubstrateBlock } from '@subql/types';
+
 import { UpdatesStream } from "../types";
 
 const PriceUpdateStreamId = 'price';
@@ -20,8 +22,8 @@ class BlockUpdatesStream {
     this.storage.set(id, value);
   }
 
-  async sync(blockNumber: number) {
-    await this.syncData(blockNumber);
+  async sync(block: SubstrateBlock) {
+    await this.syncData(block);
     this.clear();
   }
 
@@ -37,7 +39,7 @@ class BlockUpdatesStream {
     return entity;
   }
 
-  private async syncData(blockNumber: number): Promise<void> {
+  private async syncData(block: SubstrateBlock): Promise<void> {
     const entity = await this.get();
     const updates = {};
 
@@ -46,7 +48,7 @@ class BlockUpdatesStream {
     }
 
     entity.data = JSON.stringify(updates);
-    entity.block = blockNumber;
+    entity.block = block.block.header.number.toNumber();
 
     await entity.save();
   }

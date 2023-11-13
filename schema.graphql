@@ -216,3 +216,102 @@ type StakingEra @entity {
 	nominators: [StakingEraNominator!]! @derivedFrom(field: "era")
   nominations: [StakingEraNomination!]! @derivedFrom(field: "era")
 }
+
+enum OrderBookStatus {
+  Trade
+  PlaceAndCancel
+  OnlyCancel
+  Stop
+}
+
+enum OrderStatus {
+  Active
+  Aligned
+  Canceled
+  Expired
+  Filled
+}
+
+
+interface IOrderBookDeal {
+  timestamp: Int! # created (and could be executed) at block timestamp
+  isBuy: Boolean! # buy or sell
+  amount: String! # number like formatted
+  price: String! # number like formatted
+}
+
+interface IOrderBookMarketOrder implements IOrderBookDeal {
+  id: ID!
+  orderBook: OrderBook! # relation to order book
+  account: Account! # account address
+  createdAtBlock: Int! # created at block number
+  # IOrderBookDeal
+  timestamp: Int!
+  isBuy: Boolean!
+  amount: String!
+  price: String!
+}
+
+type OrderBookDeal implements IOrderBookDeal @jsonField {
+  orderId: Int!
+  timestamp: Int!
+  isBuy: Boolean!
+  amount: String!
+  price: String!
+}
+
+type OrderBook @entity {
+  id: ID!
+  dexId: Int! @index
+  baseAsset: Asset! @index
+  quoteAsset: Asset! @index
+  status: OrderBookStatus!
+  price: String
+  priceChangeDay: Float
+  volumeDayUSD: String
+  limitOrders: [OrderBookLimitOrder!]! @derivedFrom(field: "orderBook")
+  marketOrders: [OrderBookMarketOrder!]! @derivedFrom(field: "orderBook")
+  data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
+  lastDeals: String
+  updatedAtBlock: Int!
+}
+
+type OrderBookSnapshot @entity {
+  id: ID!
+  orderBook: OrderBook! @index
+  timestamp: Int!
+  type: SnapshotType!
+  price: AssetPrice!
+  baseAssetVolume: String!
+  quoteAssetVolume: String!
+  volumeUSD: String!
+}
+
+type OrderBookMarketOrder implements IOrderBookMarketOrder @entity {
+  id: ID!
+  orderBook: OrderBook! @index
+  account: Account! @index
+  createdAtBlock: Int!
+  timestamp: Int!
+  isBuy: Boolean!
+  amount: String!
+  price: String!
+}
+
+type OrderBookLimitOrder implements IOrderBookMarketOrder @entity {
+  id: ID!
+  orderBook: OrderBook! @index
+  account: Account! @index
+  createdAtBlock: Int!
+  timestamp: Int!
+  isBuy: Boolean!
+  amount: String!
+  price: String!
+  # OrderBookLimitOrder fields
+  orderId: Int!
+  lifetime: Int!
+  expiresAt: Int! # timestamp + lifetime
+  amountFilled: String! # number like formatted
+  status: OrderStatus!
+  updatedAtBlock: Int!
+}

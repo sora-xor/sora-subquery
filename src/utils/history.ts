@@ -119,7 +119,6 @@ export const addCallsToHistoryElement = async (extrinsic: SubstrateExtrinsic, hi
 
 export const updateHistoryElementStats = async (extrinsic: SubstrateExtrinsic, history: HistoryElement) => {
   const addresses = [history.address.toString()];
-  const timestamp = history.timestamp;
 
   if (
       INCOMING_TRANSFER_METHODS.includes(history.method.toString()) &&
@@ -132,11 +131,11 @@ export const updateHistoryElementStats = async (extrinsic: SubstrateExtrinsic, h
   getUtilsLog(extrinsic).debug({ addresses: addresses.join(', ') }, 'addresses');
   // update accounts data
   for (const address of addresses) {
-      const account = await getAccountEntity(extrinsic, address, timestamp);
+      const account = await getAccountEntity(extrinsic, address);
       account.latestHistoryElementId = history.id.toString();
       await account.save();
   }
 
-  await networkSnapshotsStorage.updateTransactionsStats(extrinsic.block, timestamp);
+  await networkSnapshotsStorage.updateTransactionsStats(extrinsic.block);
   getUtilsLog(extrinsic).debug('Updated history element stats');
 }
