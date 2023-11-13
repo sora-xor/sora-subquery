@@ -5,7 +5,7 @@ import { OrderBookLimitOrder, OrderBookMarketOrder, OrderStatus } from '../../ty
 
 import { formatDateTimestamp } from '../../utils';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
+import { OrderBooksStorage, orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 const getBookData = (orderBookCodec: any) => {
@@ -18,8 +18,8 @@ const getBookData = (orderBookCodec: any) => {
 
 const getOrderData = (orderBookCodec: any, orderId: string) => {
   const { dexId, baseAssetId, quoteAssetId } = getBookData(orderBookCodec);
-  const orderBookId = orderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
-  const id = orderBooksStorage.getOrderId(orderBookId, orderId);
+  const orderBookId = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
+  const id = OrderBooksStorage.getOrderId(orderBookId, orderId);
 
   return { dexId, baseAssetId, quoteAssetId, orderBookId, orderId, id };
 }
@@ -83,7 +83,7 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
 export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount] } } = event as any;
+  const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, side, price, amount] } } = event as any;
   const { id, dexId, baseAssetId, quoteAssetId, orderId } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
   const newPrice = formatU128ToBalance(price.inner.toString(), quoteAssetId);
@@ -111,7 +111,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, orderIdCodec, ownerId, amount] } } = event as any;
+  const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, amount] } } = event as any;
   const { id, baseAssetId } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
   const limitOrder = await OrderBookLimitOrder.get(id);
@@ -155,7 +155,7 @@ export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void
 export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, orderIdCodec, owner, reasonCodec] } } = event as any;
+  const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, reasonCodec] } } = event as any;
   const { id } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
   const limitOrder = await OrderBookLimitOrder.get(id);

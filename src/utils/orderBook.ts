@@ -32,7 +32,7 @@ export const getAllOrderBooks = async (block: SubstrateBlock) => {
 
 const OrderBooksSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
-class OrderBooksStorage {
+export class OrderBooksStorage {
   private storage!: Map<string, OrderBook>;
 
   static readonly LAST_DEALS_LENGTH = 10;
@@ -46,11 +46,11 @@ class OrderBooksStorage {
     await store.bulkUpdate('OrderBook', [...this.storage.values()]);
   }
 
-  getId(dexId: number, baseAssetId: string, quoteAssetId: string): string {
+  static getId(dexId: number, baseAssetId: string, quoteAssetId: string): string {
     return [dexId, baseAssetId, quoteAssetId].join('-');
   }
 
-  getOrderId(orderBookId: string, orderId: string | number): string {
+  static getOrderId(orderBookId: string, orderId: string | number): string {
     return [orderBookId, orderId].join('_');
   }
 
@@ -65,7 +65,7 @@ class OrderBooksStorage {
   }
 
   async getOrderBook(block: SubstrateBlock, dexId: number, baseAssetId: string, quoteAssetId: string): Promise<OrderBook> {
-    const id  = this.getId(dexId, baseAssetId, quoteAssetId);
+    const id = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
 
     if (this.storage.has(id)) {
       return this.storage.get(id);
@@ -151,7 +151,7 @@ class OrderBooksStorage {
   }
 }
 
-class OrderBooksSnapshotsStorage {
+export class OrderBooksSnapshotsStorage {
   private storage!: Map<string, OrderBookSnapshot>;
   public orderBooksStorage!: OrderBooksStorage;
 
@@ -196,7 +196,7 @@ class OrderBooksSnapshotsStorage {
   ): Promise<OrderBookSnapshot> {
     const blockTimestamp = formatDateTimestamp(block.timestamp);
     const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
-    const orderBookId = this.orderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
+    const orderBookId = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
     const id = OrderBooksSnapshotsStorage.getId(orderBookId, type, index);
 
     if (this.storage.has(id)) {

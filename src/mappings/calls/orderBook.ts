@@ -30,7 +30,7 @@ export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrin
   );
 
   if (limitOrderPlacedEvent) {
-    const { event: { data: [orderBookId, orderId] } } = limitOrderPlacedEvent;
+    const { event: { data: [_orderBookId, orderId] } } = limitOrderPlacedEvent;
     details.orderId = Number(orderId.toHuman());
   }
 
