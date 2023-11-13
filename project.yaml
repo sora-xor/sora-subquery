@@ -428,7 +428,7 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 50
-        - handler: updateAssetsDailyStats
+        - handler: updateDailyStats
           kind: substrate/BlockHandler
           filter:
             modulo: 600

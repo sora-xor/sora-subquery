@@ -1,4 +1,6 @@
-import type BigNumber from "bignumber.js";
+import type { SubstrateBlock } from "@subql/types";
+
+import BigNumber from "bignumber.js";
 
 import { TextDecoder } from 'util';
 
@@ -9,7 +11,38 @@ import { SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 
 export const toFloat = (value: BigNumber) => Number(value.toFixed(2));
 
+export const last = <T>(snapshots: T[]) => {
+  if (!snapshots.length) return null;
+  return snapshots[snapshots.length - 1];
+};
+
+export const prevSnapshotsIndexesRow = (index: number, count: number): number[] => {
+  return new Array(count).fill(index)
+    .reduce((buffer, item, idx) => {
+      const prevIndex = item - idx;
+
+      if (prevIndex >= 0) buffer.push(prevIndex);
+
+      return buffer;
+    }, []);
+};
+
+export const calcPriceChange = (current: BigNumber, prev: BigNumber): number => {
+  if (prev.isZero()) return current.isGreaterThan(new BigNumber(0)) ? 100 : 0;
+
+  const change = current.minus(prev).div(prev).multipliedBy(new BigNumber(100));
+
+  return toFloat(change);
+};
+
 export const formatDateTimestamp = (date: Date): number => parseInt((date.getTime() / 1000).toFixed(0));
+
+export const shouldUpdate = (block: SubstrateBlock, diff = 3_600) => {
+  const blockTimestamp = formatDateTimestamp(block.timestamp);
+  const currentTimestamp = formatDateTimestamp(new Date());
+
+  return currentTimestamp - blockTimestamp < diff;
+};
 
 export const getSnapshotIndex = (blockTimestamp: number, type: SnapshotType): { index: number, timestamp: number } => {
   const seconds = SnapshotSecondsMap[type];

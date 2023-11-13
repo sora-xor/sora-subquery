@@ -4,8 +4,18 @@ import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookD
 
 import { SubstrateBlock } from '@subql/types';
 import { getInitializeOrderBooksLog, getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
-import { formatDateTimestamp, getSnapshotIndex, toFloat } from './index';
+import { formatDateTimestamp, getSnapshotIndex, toFloat, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
 import { assetStorage } from './assets';
+
+const calcVolume = (snapshots: OrderBookSnapshot[]): number => {
+  const totalVolume = snapshots.reduce((buffer, snapshot) => {
+    const volumeUSD = new BigNumber(snapshot.volumeUSD);
+
+    return buffer.plus(volumeUSD);
+  }, new BigNumber(0));
+
+  return toFloat(totalVolume);
+};
 
 export const getAllOrderBooks = async (block: SubstrateBlock) => {
   try {
@@ -47,7 +57,11 @@ class OrderBooksStorage {
   private async save(block: SubstrateBlock, orderBook: OrderBook): Promise<void> {
     orderBook.updatedAtBlock = block.block.header.number.toNumber();
 
-    await orderBook.save();
+    if (shouldUpdate(block, 60)) {
+      await orderBook.save();
+
+      getOrderBooksStorageLog(block).debug({ id: orderBook.id }, 'Order Book saved');
+    }
   }
 
   async getOrderBook(block: SubstrateBlock, dexId: number, baseAssetId: string, quoteAssetId: string): Promise<OrderBook> {
@@ -68,7 +82,7 @@ class OrderBooksStorage {
 
       await this.save(block, orderBook);
 
-      getOrderBooksStorageLog(block).debug({ orderBook: id }, 'Order Book created and saved');
+      getOrderBooksStorageLog(block).debug({ id: orderBook.id }, 'Order Book Created');
     }
 
     this.storage.set(orderBook.id, orderBook);
@@ -96,7 +110,45 @@ class OrderBooksStorage {
     orderBook.price = price;
     orderBook.lastDeals = JSON.stringify(lastDeals);
 
+    await this.save(block, orderBook);
+
     getOrderBooksStorageLog(block, true).debug({ dexId, baseAssetId, quoteAssetId, price }, 'OrderBook price updated');
+  }
+
+  private async calcStats(block: SubstrateBlock, orderBook: OrderBook, type: SnapshotType, snapshotsCount: number) {
+    const { id, price } = orderBook;
+    const blockTimestamp = formatDateTimestamp(block.timestamp);
+    const { index } = getSnapshotIndex(blockTimestamp, type);
+    const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
+
+    const ids = indexes.map((idx) => OrderBooksSnapshotsStorage.getId(id, type, idx));
+    const snapshots = await OrderBooksSnapshotsStorage.getSnapshotsByIds(ids);
+
+    const currentPrice = new BigNumber(price);
+    const startPrice = new BigNumber(last(snapshots)?.price?.open ?? '0');
+
+    const priceChange = calcPriceChange(currentPrice, startPrice);
+    const volumeUSD = calcVolume(snapshots);
+
+    return {
+      priceChange,
+      volumeUSD,
+    }
+  }
+
+  async updateDailyStats(block: SubstrateBlock): Promise<void> {
+    getOrderBooksStorageLog(block).debug(`Order Books Daily stats updating...`);
+
+    for (const orderBook of this.storage.values()) {
+      const { priceChange, volumeUSD } = await this.calcStats(block, orderBook, SnapshotType.HOUR, 24);
+
+      orderBook.priceChangeDay = priceChange;
+      orderBook.volumeDayUSD = volumeUSD;
+      getOrderBooksStorageLog(block, true).debug(
+        { orderBookId: orderBook.id, priceChange, volumeUSD },
+        'Order Book daily stats updated',
+      )
+    }
   }
 }
 
@@ -177,6 +229,12 @@ class OrderBooksSnapshotsStorage {
 
     return snapshot;
   }
+
+  static async getSnapshotsByIds(ids: string[]): Promise<OrderBookSnapshot[]> {
+    const snapshots = await Promise.all(ids.map(id => OrderBookSnapshot.get(id)));
+
+    return snapshots.filter((item) => !!item);
+  };
 
   async updateDeal(
     block: SubstrateBlock,
