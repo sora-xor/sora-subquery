@@ -225,10 +225,11 @@ enum OrderBookStatus {
 }
 
 enum OrderStatus {
-  ACTIVE
-  CANCELED
-  EXPIRED
-  FILLED
+  Active
+  Aligned
+  Canceled
+  Expired
+  Filled
 }
 
 

@@ -72,7 +72,7 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
   limitOrder.lifetime = orderLifetime;
   limitOrder.expiresAt = timestamp + orderLifetime;
   limitOrder.amountFilled = '0';
-  limitOrder.status = OrderStatus.ACTIVE;
+  limitOrder.status = OrderStatus.Active;
   limitOrder.updatedAtBlock = blockNumber;
 
   await limitOrder.save();
@@ -141,7 +141,7 @@ export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void
 
   if (limitOrder) {
     const blockNumber = event.block.block.header.number.toNumber();
-    limitOrder.status = OrderStatus.FILLED;
+    limitOrder.status = OrderStatus.Filled;
     limitOrder.updatedAtBlock = blockNumber;
 
     await limitOrder.save();
@@ -163,7 +163,7 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
   if (limitOrder) {
     const blockNumber = event.block.block.header.number.toNumber();
     const reason = reasonCodec.toHuman();
-    const status = reason === 'Manual' ? OrderStatus.CANCELED : OrderStatus.EXPIRED;
+    const status = reason === 'Manual' ? OrderStatus.Canceled : reason;
     limitOrder.status = status;
     limitOrder.updatedAtBlock = blockNumber;
 
