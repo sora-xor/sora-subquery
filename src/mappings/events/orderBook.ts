@@ -84,9 +84,9 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   logStartProcessingEvent(event);
 
   const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount] } } = event as any;
-  const { id, dexId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
+  const { id, dexId, baseAssetId, quoteAssetId, orderId } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
-  const newPrice = formatU128ToBalance(price.toString(), quoteAssetId);
+  const newPrice = formatU128ToBalance(price.inner.toString(), quoteAssetId);
   const newAmount = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
   const isBuy = side.toHuman() === 'Buy';
 
@@ -105,7 +105,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
     getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
   }
 
-  await orderBooksSnapshotsStorage.updateDeal(event.block, dexId, baseAssetId, quoteAssetId, newPrice, newAmount, isBuy);
+  await orderBooksSnapshotsStorage.updateDeal(event.block, dexId, baseAssetId, quoteAssetId, Number(orderId), newPrice, newAmount, isBuy);
 }
 
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {
@@ -118,8 +118,7 @@ export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<voi
 
   if (limitOrder) {
     const blockNumber = event.block.block.header.number.toNumber();
-    // [TODO] check
-    const newAmount = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
+    const newAmount = formatU128ToBalance(amount.inner.toString(), baseAssetId);
 
     limitOrder.amount = newAmount;
     limitOrder.updatedAtBlock = blockNumber;
@@ -199,6 +198,9 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
 
   if (price) {
     marketOrder.price = formatU128ToBalance(price.inner.toString(), quoteAssetId);
+  } else {
+    // should be added in backend
+    marketOrder.price = '0';
   }
 
   await marketOrder.save();

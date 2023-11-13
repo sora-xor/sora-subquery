@@ -252,6 +252,7 @@ interface IOrderBookMarketOrder implements IOrderBookDeal {
 }
 
 type OrderBookDeal implements IOrderBookDeal @jsonField {
+  orderId: Int!
   timestamp: Int!
   isBuy: Boolean!
   amount: String!

@@ -50,8 +50,8 @@ class AssetStorage {
     await store.bulkUpdate('Asset', [...this.storage.values()]);
   }
 
-  private async save(block: SubstrateBlock, asset: Asset): Promise<void> {
-    if (shouldUpdate(block, 60)) {
+  private async save(block: SubstrateBlock, asset: Asset, force = false): Promise<void> {
+    if (force || shouldUpdate(block, 60)) {
       await asset.save();
 
       getAssetStorageLog(block).debug({ id: asset.id }, 'Asset saved');
@@ -71,9 +71,7 @@ class AssetStorage {
       asset.priceUSD = '0';
       asset.supply = BigInt(0);
 
-      await this.save(block, asset);
-
-      getAssetStorageLog(block).debug({ assetId: id }, 'Asset created and saved');
+      await this.save(block, asset, true);
     }
 
     this.storage.set(asset.id, asset);

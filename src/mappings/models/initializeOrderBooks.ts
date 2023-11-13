@@ -1,5 +1,6 @@
 import { SubstrateBlock } from "@subql/types";
 
+import { OrderBookStatus } from '../../types'
 import { getAssetId } from '../../utils/assets';
 import { getAllOrderBooks, orderBooksStorage } from '../../utils/orderBook';
 import { getInitializeOrderBooksLog } from "../../utils/logs";
@@ -24,7 +25,7 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const baseAssetId = getAssetId(base);
       const quoteAssetId = getAssetId(quote);
       const id = orderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
-      const status = statusCodec.toHuman();
+      const status = statusCodec ? statusCodec.toHuman() : OrderBookStatus.Trade;
 
       buffer.set(id, {
         id,
