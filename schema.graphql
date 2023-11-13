@@ -267,7 +267,7 @@ type OrderBook @entity {
   status: OrderBookStatus!
   price: String
   priceChangeDay: Float
-  volumeDayUSD: Float
+  volumeDayUSD: String
   limitOrders: [OrderBookLimitOrder!]! @derivedFrom(field: "orderBook")
   marketOrders: [OrderBookMarketOrder!]! @derivedFrom(field: "orderBook")
   data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
@@ -283,7 +283,7 @@ type OrderBookSnapshot @entity {
   price: AssetPrice!
   baseAssetVolume: String!
   quoteAssetVolume: String!
-  volumeUSD: Float!
+  volumeUSD: String!
 }
 
 type OrderBookMarketOrder implements IOrderBookMarketOrder @entity {

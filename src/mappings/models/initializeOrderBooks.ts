@@ -33,6 +33,7 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
         baseAssetId,
         quoteAssetId,
         status,
+        price: '0',
         updatedAtBlock,
       });
     }

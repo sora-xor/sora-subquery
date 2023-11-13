@@ -4,17 +4,17 @@ import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookD
 
 import { SubstrateBlock } from '@subql/types';
 import { getInitializeOrderBooksLog, getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
-import { formatDateTimestamp, getSnapshotIndex, toFloat, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
+import { formatDateTimestamp, getSnapshotIndex, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
 import { assetStorage } from './assets';
 
-const calcVolume = (snapshots: OrderBookSnapshot[]): number => {
+const calcVolume = (snapshots: OrderBookSnapshot[]): BigNumber => {
   const totalVolume = snapshots.reduce((buffer, snapshot) => {
     const volumeUSD = new BigNumber(snapshot.volumeUSD);
 
     return buffer.plus(volumeUSD);
   }, new BigNumber(0));
 
-  return toFloat(totalVolume);
+  return totalVolume;
 };
 
 export const getAllOrderBooks = async (block: SubstrateBlock) => {
@@ -35,7 +35,7 @@ const OrderBooksSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotTy
 class OrderBooksStorage {
   private storage!: Map<string, OrderBook>;
 
-  static readonly LAST_DEALS_LENGTH = 100;
+  static readonly LAST_DEALS_LENGTH = 10;
 
   constructor() {
     this.storage = new Map();
@@ -127,7 +127,7 @@ class OrderBooksStorage {
     const startPrice = new BigNumber(last(snapshots)?.price?.open ?? '0');
 
     const priceChange = calcPriceChange(currentPrice, startPrice);
-    const volumeUSD = calcVolume(snapshots);
+    const volumeUSD = calcVolume(snapshots).toString();
 
     return {
       priceChange,
@@ -214,14 +214,15 @@ class OrderBooksSnapshotsStorage {
       snapshot.type = type;
       snapshot.baseAssetVolume = '0';
       snapshot.quoteAssetVolume = '0';
-      snapshot.volumeUSD = 0;
+      snapshot.volumeUSD = '0';
       snapshot.price = {
         open: orderBook.price,
         close: orderBook.price,
         high: orderBook.price,
         low: orderBook.price,
       };
-      getOrderBooksSnapshotsStorageLog(block).debug({ id }, 'Order Book snapshot created and saved')
+
+      getOrderBooksSnapshotsStorageLog(block).debug({ id }, 'Order Book snapshot created');
     }
 
     this.storage.set(snapshot.id, snapshot);
@@ -250,29 +251,31 @@ class OrderBooksSnapshotsStorage {
     const quoteAmount = baseAmount.multipliedBy(quotePrice);
 
     const quoteAsset = await assetStorage.getAsset(block, quoteAssetId);
-    const quoteVolumeUSD = toFloat(new BigNumber(quoteAsset.priceUSD).multipliedBy(quoteAmount));
+    const quoteAssetPriceUSD = quoteAsset.priceUSD ?? '0';
+    const quoteVolumeUSD = new BigNumber(quoteAssetPriceUSD).multipliedBy(quoteAmount);
 
     for (const type of OrderBooksSnapshots) {
       const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
       const baseAssetVolume = new BigNumber(snapshot.baseAssetVolume).plus(baseAmount).toString();
       const quoteAssetVolume = new BigNumber(snapshot.quoteAssetVolume).plus(quoteAmount).toString();
-      const volumeUSD = snapshot.volumeUSD + quoteVolumeUSD;
+      const volumeUSD = new BigNumber(snapshot.volumeUSD).plus(quoteVolumeUSD).toString();
 
       snapshot.baseAssetVolume = baseAssetVolume;
       snapshot.quoteAssetVolume = quoteAssetVolume;
       snapshot.volumeUSD = volumeUSD;
 
+      // set open price to current price at first update (after start or restart)
+      if (Number(snapshot.price.open) === 0) {
+        snapshot.price.open = price;
+        snapshot.price.low = price;
+      }
+
       snapshot.price.close = price;
       snapshot.price.high = BigNumber.max(new BigNumber(snapshot.price.high), quotePrice).toString();
       snapshot.price.low = BigNumber.min(new BigNumber(snapshot.price.low), quotePrice).toString();
 
-      // set open price to current price at first update (after start or restart)
-      if (Number(snapshot.price.open) === 0) {
-        snapshot.price.open = price;
-      }
-
       getOrderBooksSnapshotsStorageLog(block, true).debug(
-        { dexId, baseAssetId, quoteAssetId, price, amount, isBuy, baseAssetVolume, quoteAssetVolume, volumeUSD },
+        { dexId, baseAssetId, quoteAssetId, price, amount, isBuy, baseAssetVolume, quoteAssetVolume, volumeUSD, quoteAssetPriceUSD },
         'Order Book snapshot price and volume updated',
       )
     }
