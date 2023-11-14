@@ -244,11 +244,6 @@ dataSources:
           filter:
             module: staking
             method: setController
-        - handler: stakingSetHistoryDepthCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: setHistoryDepth
         - handler: stakingSetInvulnerablesCallHandler
           kind: substrate/CallHandler
           filter:
@@ -274,16 +269,6 @@ dataSources:
           filter:
             module: staking
             method: setValidatorCount
-        - handler: stakingSubmitElectionSolutionCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: submitElectionSolution
-        - handler: stakingSubmitElectionSolutionUnsignedCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: submitElectionSolutionUnsigned
         - handler: stakingUnbondCallHandler
           kind: substrate/CallHandler
           filter:
