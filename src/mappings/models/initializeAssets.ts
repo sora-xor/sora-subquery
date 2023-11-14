@@ -74,8 +74,6 @@ export const getXorIssuance = async (block: SubstrateBlock) => {
 export async function initializeAssets(block: SubstrateBlock): Promise<void> {
     if (isFirstBlockIndexed) return;
 
-    const blockNumber = block.block.header.number.toNumber();
-
     getInitializeAssetsLog(block).debug('Initialize Asset entities')
 
     // We don't use Promise.all() here because we need consistent order of requests in the log

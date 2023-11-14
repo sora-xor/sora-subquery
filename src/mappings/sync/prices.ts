@@ -6,9 +6,9 @@ import { PoolXYK } from "../../types";
 import { formatU128ToBalance, assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
+import { poolXykApyUpdatesStream } from '../../utils/stream';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
-import { formatDateTimestamp } from '../../utils';
-import { getSyncPricesLog } from "../../utils/logs";
+import { getPoolsStorageLog, getSyncPricesLog } from "../../utils/logs";
 
 const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiReserves: BigNumber) => {
     // theoretical asset capitalization in DAI inside DEX
@@ -22,11 +22,8 @@ const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiRese
 export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     if (!PoolsPrices.get()) return;
 
-    const blockNumber = block.block.header.number.toNumber();
-
     getSyncPricesLog(block).debug('Sync PoolXYK prices')
 
-    const blockTimestamp: number = formatDateTimestamp(block.timestamp);
     const assetsLockedInPools = new Map<string, bigint>();
 
     let pswapPriceInDAI = new BigNumber(0);
@@ -81,6 +78,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             );
 
             pools[baseAssetId].push(pool);
+            getPoolsStorageLog(block).debug({ poolId: pool.id }, 'Update pool')
         }
 
         baseAssetWithDoublePoolsPrice = baseAssetWithDoublePoolsPrice.plus(baseAssetWithDoublePools.multipliedBy(baseAssetPriceInDAI));
@@ -154,6 +152,8 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                         .multipliedBy(new BigNumber(p.multiplier));
     
                     p.strategicBonusApy = strategicBonusApy.toFixed(18);
+                    // stream update
+                    poolXykApyUpdatesStream.update(p.id, p.strategicBonusApy);
                 });
             }
         }
@@ -163,17 +163,19 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     for (const [assetId, { price }] of Object.entries(assetsPrices)) {
         // do not update price from XYK pool for synthetic assets
         if (!syntheticAssetsIds.includes(assetId)) {
-            await assetSnapshotsStorage.updatePrice(block, assetId, price, blockTimestamp);
+            await assetSnapshotsStorage.updatePrice(block, assetId, price);
         }
     }
+    getSyncPricesLog(block).debug(`${Object.entries(assetsPrices).length} asset snapshot prices updated`);
 
     // update locked luqidity for assets
     for (const [assetId, liquidity] of assetsLockedInPools.entries()) {
-        await assetSnapshotsStorage.updateLiquidity(block, assetId, liquidity, blockTimestamp);
+        await assetSnapshotsStorage.updateLiquidity(block, assetId, liquidity);
     }
+    getSyncPricesLog(block).debug(`${Object.entries(assetsPrices).length} asset snapshot liquidities updated`);
 
     // update total liquidity in USD
-    await networkSnapshotsStorage.updateLiquidityStats(liquiditiesUSD, blockTimestamp);
+    await networkSnapshotsStorage.updateLiquidityStats(block, liquiditiesUSD);
 
     getSyncPricesLog(block).debug('PoolXYK prices updated');
 

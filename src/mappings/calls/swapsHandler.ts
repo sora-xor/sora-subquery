@@ -2,11 +2,10 @@ import { SubstrateExtrinsic } from '@subql/types';
 import BigNumber from "bignumber.js";
 
 import { isExchangeEvent } from '../../utils/events';
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { XOR } from '../../utils/consts';
-import { formatDateTimestamp } from '../../utils';
 import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 import type { Vec } from "@polkadot/types";
@@ -57,8 +56,7 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 }
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
-    const blockTimestamp = formatDateTimestamp(extrinsic.block.timestamp);
-    const record = assignCommonHistoryElemInfo(extrinsic)
+    const historyElement = await createHistoryElement(extrinsic)
 
     const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = extrinsic.extrinsic.args.slice().reverse();
 
@@ -74,7 +72,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
         details.to = to.toString()
     }
 
-    if (record.execution.success) {
+    if (historyElement.execution.success) {
         const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
         const { event: { data: [, , , , baseAssetAmount, targetAssetAmount, liquidityProviderFee] } } = exchangeEvent;
 
@@ -87,19 +85,17 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
         details.liquidityProviderFee = "0"
     }
 
-    record.data = details
-
-    await record.save();
-    await updateHistoryElementStats(record);
+    await addDataToHistoryElement(extrinsic, historyElement, details);
+    await updateHistoryElementStats(extrinsic, historyElement);
 
     // update assets volume
-    if (record.execution.success) {
-        const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount, blockTimestamp);
-        const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount, blockTimestamp);
+    if (historyElement.execution.success) {
+        const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount);
+        const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount);
         // get the minimal volume (sell\buy)
         const volumeUSD = BigNumber.min(aVolumeUSD, bVolumeUSD);
 
-        await networkSnapshotsStorage.updateVolumeStats(volumeUSD, blockTimestamp);
+        await networkSnapshotsStorage.updateVolumeStats(extrinsic.block, volumeUSD);
     }
 }
 
