@@ -4,15 +4,15 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { bytesToString } from "../../utils";
 import { XOR } from '../../utils/consts';
 import { isExchangeEvent } from "../../utils/events";
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
+import { logStartProcessingCall } from "../../utils/logs";
 
 export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
   const { extrinsic: { args: [asset, to, amount] } } = extrinsic;
-  const record = assignCommonHistoryElemInfo(extrinsic);
+  const historyElement = await createHistoryElement(extrinsic);
   const assetId = getAssetId(asset);
   const details: any = {
     assetId,
@@ -21,12 +21,8 @@ export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promis
     to: to.toString(),
   };
 
-  record.data = details;
-
-  await record.save();
-  await updateHistoryElementStats(record);
-
-  getCallHandlerLog(extrinsic).debug(`Saved transfer`)
+  await addDataToHistoryElement(extrinsic, historyElement, details);
+  await updateHistoryElementStats(extrinsic, historyElement);
 }
 
 export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -38,7 +34,7 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     }
   } = extrinsic;
 
-  const record = assignCommonHistoryElemInfo(extrinsic);
+  const historyElement = await createHistoryElement(extrinsic);
   const assetId = getAssetId(asset);
   const details: any = {
     assetId,
@@ -47,10 +43,10 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     to: receiver.toString(),
     comment: !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null,
     assetFee: '0', // fee paid in asset
-    xorFee: record.networkFee, // fee paid in XOR (by default 100% of network fee)
+    xorFee: historyElement.networkFee, // fee paid in XOR (by default 100% of network fee)
   };
 
-  if (record.execution.success) {
+  if (historyElement.execution.success) {
     const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
 
     if (exchangeEvent) {
@@ -64,10 +60,6 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     }
   }
 
-  record.data = details;
-
-  await record.save();
-  await updateHistoryElementStats(record);
-
-  getCallHandlerLog(extrinsic).debug(`Saved xorless transfer`)
+  await addDataToHistoryElement(extrinsic, historyElement, details);
+  await updateHistoryElementStats(extrinsic, historyElement);
 }
