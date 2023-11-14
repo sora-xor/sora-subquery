@@ -1,24 +1,24 @@
 import { SubstrateEvent } from "@subql/types";
 import { ReferrerReward } from "../../types";
 import { formatDateTimestamp } from '../../utils';
-import { logStartProcessingEvent } from "../../utils/logs";
+import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 export async function referrerRewardHandler(event: SubstrateEvent): Promise<void> {
     logStartProcessingEvent(event)
 
 	const {
 		event: {
-			data: [referree, referrer, amount],
+			data: [referral, referrer, amount],
 		},
 	} = event;
 
-	const key = `${referree.toString()}-${referrer.toString()}`;
+	const key = `${referral.toString()}-${referrer.toString()}`;
 
 	let referrerReward = await ReferrerReward.get(key);
 
 	if (!referrerReward) {
 		referrerReward = new ReferrerReward(key);
-		referrerReward.referral = referree.toString();
+		referrerReward.referral = referral.toString();
 		referrerReward.referrer = referrer.toString();
 		referrerReward.amount = BigInt(0);
 	}
@@ -28,4 +28,14 @@ export async function referrerRewardHandler(event: SubstrateEvent): Promise<void
 	referrerReward.amount = referrerReward.amount + (BigInt(amount.toString()));
 
 	await referrerReward.save();
+
+	getEventHandlerLog(event).debug(
+		{
+			referral: referrerReward.referral,
+			referrer: referrerReward.referrer,
+			amount: referrerReward.amount,
+			updated: referrerReward.updated
+		},
+		'Referrer reward updated',
+	)
 }
