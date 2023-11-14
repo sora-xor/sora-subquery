@@ -14,7 +14,7 @@ schema:
   file: ./schema.graphql
 network:
   chainId: '0'
-  endpoint: wss://mof3.sora.org
+  endpoint: wss://mof2.sora.org
   chaintypes:
     file: ./types.json
 dataSources:
