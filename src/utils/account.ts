@@ -1,17 +1,17 @@
-import { SubstrateExtrinsic } from "@subql/types";
+import { SubstrateBlock } from "@subql/types";
 import { Account } from "../types";
 
 import { networkSnapshotsStorage } from './network';
 import { getUtilsLog } from "./logs";
 
-export const getAccountEntity = async (extrinsic: SubstrateExtrinsic, accountAddress: string) => {
+export const getAccountEntity = async (block: SubstrateBlock, accountAddress: string) => {
   let account = await Account.get(accountAddress);
 
   if (!account) {
       account = new Account(accountAddress);
       await account.save();
-      getUtilsLog(extrinsic).debug({ address: accountAddress }, 'Account created');
-      await networkSnapshotsStorage.updateAccountsStats(extrinsic.block);
+      getUtilsLog(block).debug({ address: accountAddress }, 'Account created');
+      await networkSnapshotsStorage.updateAccountsStats(block);
   }
 
   return account;

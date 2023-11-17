@@ -4,6 +4,7 @@ import { SubstrateEvent } from "@subql/types";
 import { OrderBookLimitOrder, OrderBookMarketOrder, OrderStatus } from '../../types'
 
 import { formatDateTimestamp } from '../../utils';
+import { getAccountEntity } from '../../utils/account';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { OrderBooksStorage, orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
@@ -52,17 +53,20 @@ export async function orderBookStatusChangedEvent(event: SubstrateEvent): Promis
 export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBook, orderIdCodec, ownerId, side, price, amount, lifetime] } } = event as any;
+  const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount, lifetime] } } = event as any;
 
   const blockNumber = event.block.block.header.number.toNumber();
   const timestamp = formatDateTimestamp(event.block.timestamp);
   const orderLifetime = lifetime.toNumber() / 1000;
 
-  const { baseAssetId, quoteAssetId, orderBookId, orderId, id } = getOrderData(orderBook, orderIdCodec.toHuman());
+  const { dexId, baseAssetId, quoteAssetId, orderId, id } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
+
+  const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
+  const account = await getAccountEntity(event.block, ownerId.toString());
 
   const limitOrder = new OrderBookLimitOrder(id);
-  limitOrder.orderBookId = orderBookId;
-  limitOrder.accountId = ownerId.toString();
+  limitOrder.orderBookId = book.id;
+  limitOrder.accountId = account.id;
   limitOrder.createdAtBlock = blockNumber;
   limitOrder.timestamp = timestamp;
   limitOrder.isBuy = side.toHuman() === 'Buy';
@@ -186,11 +190,14 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
   const eventIndex = event.event.index.toString();
   const orderId = `${blockNumber}-${eventIndex}`;
 
-  const { id, orderBookId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderId);
+  const { id, dexId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderId);
+
+  const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
+  const account = await getAccountEntity(event.block, ownerId.toString());
 
   const marketOrder = new OrderBookMarketOrder(id);
-  marketOrder.orderBookId = orderBookId;
-  marketOrder.accountId = ownerId.toString();
+  marketOrder.orderBookId = book.id;
+  marketOrder.accountId = account.id;
   marketOrder.createdAtBlock = blockNumber;
   marketOrder.timestamp = timestamp;
   marketOrder.isBuy = side.toHuman() === 'Buy';
