@@ -131,7 +131,7 @@ export const updateHistoryElementStats = async (extrinsic: SubstrateExtrinsic, h
   getUtilsLog(extrinsic).debug({ addresses: addresses.join(', ') }, 'addresses');
   // update accounts data
   for (const address of addresses) {
-      const account = await getAccountEntity(extrinsic, address);
+      const account = await getAccountEntity(extrinsic.block, address);
       account.latestHistoryElementId = history.id.toString();
       await account.save();
   }
