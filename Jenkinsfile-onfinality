@@ -1,4 +1,4 @@
-@Library('jenkins-library@duty/fix-sqd-lib')
+@Library('jenkins-library')
 
 def jobParams  = [
     string(defaultValue: '20000', name: 'queryTimeout', trim: true),
