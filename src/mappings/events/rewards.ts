@@ -12,7 +12,7 @@ function getRewardData(event: SubstrateEvent): { stash: string; amount: string }
 	const stash = Array.isArray(data) ? data[0] : data.stash
 	const amount = Array.isArray(data) ? data[1] : data.amount
 
-	return { stash: stash.toString(), amount: formatU128ToBalance(amount, VAL) }
+	return { stash: stash.toString(), amount: formatU128ToBalance(amount.toString(), VAL) }
 }
 
 export async function stakingRewardedEventHandler(event: SubstrateEvent): Promise<void> {
