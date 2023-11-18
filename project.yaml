@@ -45,10 +45,10 @@ dataSources:
             module: xstPool
             method: SyntheticAssetEnabled
         - handler: handleBandRateUpdate
-          kind: substrate/EventHandler
+          kind: substrate/CallHandler
           filter:
             module: band
-            method: SymbolsRelayed
+            method: relay
         - handler: assetRegistrationHandler
           kind: substrate/CallHandler
           filter:
