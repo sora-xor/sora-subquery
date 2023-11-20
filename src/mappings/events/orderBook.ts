@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateEvent } from "@subql/types";
-import { OrderBookLimitOrder, OrderBookMarketOrder, OrderStatus } from '../../types'
+import { OrderBookOrder, OrderType, OrderStatus } from '../../types'
 
 import { formatDateTimestamp } from '../../utils';
 import { getAccountEntity } from '../../utils/account';
@@ -64,7 +64,9 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
   const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
   const account = await getAccountEntity(event.block, ownerId.toString());
 
-  const limitOrder = new OrderBookLimitOrder(id);
+  const limitOrder = new OrderBookOrder(id);
+  limitOrder.type = OrderType.Limit;
+  limitOrder.orderId = Number(orderId);
   limitOrder.orderBookId = book.id;
   limitOrder.accountId = account.id;
   limitOrder.createdAtBlock = blockNumber;
@@ -72,7 +74,6 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
   limitOrder.isBuy = side.toHuman() === 'Buy';
   limitOrder.amount = formatU128ToBalance(amount.inner.toString(), baseAssetId);
   limitOrder.price = formatU128ToBalance(price.inner.toString(), quoteAssetId);
-  limitOrder.orderId = Number(orderId);
   limitOrder.lifetime = orderLifetime;
   limitOrder.expiresAt = timestamp + orderLifetime;
   limitOrder.amountFilled = '0';
@@ -94,7 +95,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   const newAmount = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
   const isBuy = side.toHuman() === 'Buy';
 
-  const limitOrder = await OrderBookLimitOrder.get(id);
+  const limitOrder = await OrderBookOrder.get(id);
 
   if (limitOrder) {
     const blockNumber = event.block.block.header.number.toNumber();
@@ -118,7 +119,7 @@ export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<voi
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, amount] } } = event as any;
   const { id, baseAssetId } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
-  const limitOrder = await OrderBookLimitOrder.get(id);
+  const limitOrder = await OrderBookOrder.get(id);
 
   if (limitOrder) {
     const blockNumber = event.block.block.header.number.toNumber();
@@ -141,7 +142,7 @@ export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void
   const { event: { data: [orderBookCodec, orderIdCodec] } } = event as any;
   const { id } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
-  const limitOrder = await OrderBookLimitOrder.get(id);
+  const limitOrder = await OrderBookOrder.get(id);
 
   if (limitOrder) {
     const blockNumber = event.block.block.header.number.toNumber();
@@ -162,7 +163,7 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, reasonCodec] } } = event as any;
   const { id } = getOrderData(orderBookCodec, orderIdCodec.toHuman());
 
-  const limitOrder = await OrderBookLimitOrder.get(id);
+  const limitOrder = await OrderBookOrder.get(id);
 
   if (limitOrder) {
     const blockNumber = event.block.block.header.number.toNumber();
@@ -182,7 +183,7 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
 export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, ownerId, side, amount, price] } } = event as any;
+  const { event: { data: [orderBookCodec, ownerId, side, amountCodec, price] } } = event as any;
 
   const blockNumber = event.block.block.header.number.toNumber();
   const timestamp = formatDateTimestamp(event.block.timestamp);
@@ -194,14 +195,22 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
 
   const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
   const account = await getAccountEntity(event.block, ownerId.toString());
+  const amount = formatU128ToBalance(amountCodec.asBase.inner.toString(), baseAssetId);
 
-  const marketOrder = new OrderBookMarketOrder(id);
+  const marketOrder = new OrderBookOrder(id);
+  marketOrder.type = OrderType.Market;
+  marketOrder.orderId = null;
   marketOrder.orderBookId = book.id;
   marketOrder.accountId = account.id;
   marketOrder.createdAtBlock = blockNumber;
   marketOrder.timestamp = timestamp;
   marketOrder.isBuy = side.toHuman() === 'Buy';
-  marketOrder.amount = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
+  marketOrder.amount = amount;
+  marketOrder.lifetime = 0;
+  marketOrder.expiresAt = timestamp;
+  marketOrder.amountFilled = amount;
+  marketOrder.status = OrderStatus.Filled;
+  marketOrder.updatedAtBlock = blockNumber;
 
   if (price) {
     marketOrder.price = formatU128ToBalance(price.inner.toString(), quoteAssetId);
