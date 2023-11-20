@@ -232,24 +232,16 @@ enum OrderStatus {
   Filled
 }
 
+enum OrderType {
+  Limit
+  Market
+}
 
 interface IOrderBookDeal {
   timestamp: Int! # created (and could be executed) at block timestamp
   isBuy: Boolean! # buy or sell
   amount: String! # number like formatted
   price: String! # number like formatted
-}
-
-interface IOrderBookMarketOrder implements IOrderBookDeal {
-  id: ID!
-  orderBook: OrderBook! # relation to order book
-  account: Account! # account address
-  createdAtBlock: Int! # created at block number
-  # IOrderBookDeal
-  timestamp: Int!
-  isBuy: Boolean!
-  amount: String!
-  price: String!
 }
 
 type OrderBookDeal implements IOrderBookDeal @jsonField {
@@ -269,8 +261,7 @@ type OrderBook @entity {
   price: String
   priceChangeDay: Float
   volumeDayUSD: String
-  limitOrders: [OrderBookLimitOrder!]! @derivedFrom(field: "orderBook")
-  marketOrders: [OrderBookMarketOrder!]! @derivedFrom(field: "orderBook")
+  orders: [OrderBookOrder!]! @derivedFrom(field: "orderBook")
   data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
   lastDeals: String
   updatedAtBlock: Int!
@@ -287,8 +278,10 @@ type OrderBookSnapshot @entity {
   volumeUSD: String!
 }
 
-type OrderBookMarketOrder implements IOrderBookMarketOrder @entity {
+type OrderBookOrder implements IOrderBookDeal @entity {
   id: ID!
+  type: OrderType!
+  orderId: Int
   orderBook: OrderBook! @index
   account: Account! @index
   createdAtBlock: Int!
@@ -296,22 +289,9 @@ type OrderBookMarketOrder implements IOrderBookMarketOrder @entity {
   isBuy: Boolean!
   amount: String!
   price: String!
-}
-
-type OrderBookLimitOrder implements IOrderBookMarketOrder @entity {
-  id: ID!
-  orderBook: OrderBook! @index
-  account: Account! @index
-  createdAtBlock: Int!
-  timestamp: Int!
-  isBuy: Boolean!
-  amount: String!
-  price: String!
-  # OrderBookLimitOrder fields
-  orderId: Int!
   lifetime: Int!
-  expiresAt: Int! # timestamp + lifetime
-  amountFilled: String! # number like formatted
+  expiresAt: Int!
+  amountFilled: String!
   status: OrderStatus!
   updatedAtBlock: Int!
 }
