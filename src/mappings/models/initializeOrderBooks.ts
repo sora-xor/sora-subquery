@@ -33,7 +33,6 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
         baseAssetId,
         quoteAssetId,
         status,
-        price: '0',
         updatedAtBlock,
       });
     }
@@ -42,8 +41,14 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
   const entities = [...buffer.values()];
 
   if (entities.length) {
-    await store.bulkUpdate('OrderBook', entities);
-    await Promise.all(entities.map(({ dexId, baseAssetId, quoteAssetId }) => orderBooksStorage.getOrderBook(block, dexId, baseAssetId, quoteAssetId)));
+    // get or create entities in DB & memory
+    const created = await Promise.all(entities.map(({ dexId, baseAssetId, quoteAssetId }) => orderBooksStorage.getOrderBook(block, dexId, baseAssetId, quoteAssetId)));
+    // update data in memory storage
+    created.forEach((entity) => {
+      Object.assign(entity, buffer.get(entity.id))
+    });
+    // save in DB
+    await store.bulkUpdate('OrderBook', created);
     getInitializeOrderBooksLog(block).debug(`${entities.length} Order Books initialized!`);
   } else {
     getInitializeOrderBooksLog(block).debug('No Order Books to initialize!');
