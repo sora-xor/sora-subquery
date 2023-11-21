@@ -30,8 +30,6 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
                 id: poolAccountId,
                 baseAssetId,
                 targetAssetId,
-                baseAssetReserves: BigInt(0),
-                targetAssetReserves: BigInt(0),
                 multiplier: baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1,
             })
         }
@@ -51,8 +49,14 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     const entities = [...poolsBuffer.values()];
 
     if (entities.length) {
-        await store.bulkUpdate('PoolXYK', entities);
-        await Promise.all(entities.map(entity => poolsStorage.getPoolById(block, entity.id)));
+        // get or create entities in DB & memory
+        const created = await Promise.all(entities.map(entity => poolsStorage.getPoolById(block, entity.id)));
+        // update data in memory storage
+        created.forEach((entity) => {
+            Object.assign(entity, poolsBuffer.get(entity.id))
+        });
+        // save in DB
+        await store.bulkUpdate('PoolXYK', created);
         getInitializePoolsLog(block).debug(`${entities.length} Pool XYKs initialized!`);
     } else {
         getInitializePoolsLog(block).debug('No Pool XYKs to initialize!');
