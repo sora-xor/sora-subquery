@@ -89,9 +89,6 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         if (!assets.has(assetId)) {
             assets.set(assetId, {
                 id: assetId,
-                liquidity: BigInt(0),
-                priceUSD: '0',
-                supply: BigInt(0),
             });
         }
     };
@@ -159,8 +156,14 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
     const entities = [...assets.values()];
 
     if (entities.length) {
-        await store.bulkUpdate('Asset', entities);
-        await Promise.all(entities.map(entity => assetStorage.getAsset(block, entity.id)));
+        // get or create entities in DB & memory
+        const created = await Promise.all(entities.map(entity => assetStorage.getAsset(block, entity.id)));
+        // update data in memory storage
+        created.forEach((entity) => {
+            Object.assign(entity, assets.get(entity.id))
+        });
+        // save in DB
+        await store.bulkUpdate('Asset', created);
         getInitializeAssetsLog(block).debug(`${entities.length} Assets initialized!`);
     } else {
         getInitializeAssetsLog(block).debug('No Assets to initialize!');
