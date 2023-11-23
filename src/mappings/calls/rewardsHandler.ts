@@ -1,15 +1,14 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
-import { getAssetId } from '../../utils/assets';
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { isAssetTransferEvent, getTransferEventData } from '../../utils/events';
+import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
+    logStartProcessingCall(extrinsic);
 
-    logger.debug("Caught rewards claim extrinsic")
+    const historyElement = await createHistoryElement(extrinsic)
 
-    const record = assignCommonHistoryElemInfo(extrinsic)
-
-    if (record.execution.success) {
+    if (historyElement.execution.success) {
 
         let details = new Object();
         const rewards = extrinsic.events.reduce((buffer, e) => {
@@ -21,13 +20,11 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
         }, []);
 
         details = rewards
-        record.data = details
-
+        await addDataToHistoryElement(extrinsic, historyElement, details);
     }
 
-    await record.save();
-    await updateHistoryElementStats(record);
+    await updateHistoryElementStats(extrinsic, historyElement);
 
-    logger.debug(`===== Saved reward claim extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    getCallHandlerLog(extrinsic).debug(`Saved reward claim extrinsic`)
 
 }

@@ -1,15 +1,16 @@
 import { SubstrateExtrinsic } from "@subql/types";
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
+import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 const Section = 'demeterFarmingPlatform';
 
 export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logger.debug("Caught demeterFarmingPlatform deposit extrinsic")
+  logStartProcessingCall(extrinsic);
 
-  const record = assignCommonHistoryElemInfo(extrinsic);
+  const historyElement = await createHistoryElement(extrinsic);
 
   const [desiredAmount, isFarm, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
@@ -34,18 +35,14 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
     details.amount = formatU128ToBalance(desiredAmount.toString(), details.assetId);
   }
 
-  record.data = details;
-
-  await record.save();
-  await updateHistoryElementStats(record);
-
-  logger.debug(`===== Saved demeterFarmingPlatform deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+  await addDataToHistoryElement(extrinsic, historyElement, details);
+  await updateHistoryElementStats(extrinsic, historyElement);
 }
 
 export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logger.debug("Caught demeterFarmingPlatform withdraw extrinsic")
+  logStartProcessingCall(extrinsic);
 
-  const record = assignCommonHistoryElemInfo(extrinsic);
+  const historyElement = await createHistoryElement(extrinsic);
 
   const [isFarm, desiredAmount, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
@@ -70,18 +67,14 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
     details.amount = formatU128ToBalance(desiredAmount.toString(), details.assetId);
   }
 
-  record.data = details;
-
-  await record.save();
-  await updateHistoryElementStats(record);
-
-  logger.debug(`===== Saved demeterFarmingPlatform withdraw with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+  await addDataToHistoryElement(extrinsic, historyElement, details);
+  await updateHistoryElementStats(extrinsic, historyElement);
 }
 
 export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logger.debug("Caught demeterFarmingPlatform getRewards extrinsic")
+  logStartProcessingCall(extrinsic);
 
-  const record = assignCommonHistoryElemInfo(extrinsic);
+  const historyElement = await createHistoryElement(extrinsic);
 
   const [isFarm, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
@@ -102,10 +95,8 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
     details.amount = '0';
   }
 
-  record.data = details;
+  await addDataToHistoryElement(extrinsic, historyElement, details);
+  await updateHistoryElementStats(extrinsic, historyElement);
 
-  await record.save();
-  await updateHistoryElementStats(record);
-
-  logger.debug(`===== Saved demeterFarmingPlatform getRewards with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+  getCallHandlerLog(extrinsic).debug(`Saved demeterFarmingPlatform getRewards`)
 }

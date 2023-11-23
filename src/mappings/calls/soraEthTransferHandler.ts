@@ -1,19 +1,19 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
+import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
+    logStartProcessingCall(extrinsic);
 
-    logger.debug("Caught SORA->ETH transfer extrinsic")
-
-    const record = assignCommonHistoryElemInfo(extrinsic)
+    const historyElement = await createHistoryElement(extrinsic)
 
     const { extrinsic: { args: [assetId, sidechainAddress, amount, ] } } = extrinsic;
 
     let entity = new Object();
 
-    if (record.execution.success) {
+    if (historyElement.execution.success) {
 
         let soraEthTransferEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered');
         const { event: { data: [requestHash] } } = soraEthTransferEvent;
@@ -37,12 +37,8 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
 
     }
 
-    record.data = entity
-
-    await record.save();
-    await updateHistoryElementStats(record);
-    await networkSnapshotsStorage.updateBridgeOutgoingTransactionsStats(record.timestamp);
-
-    logger.debug(`===== Saved SORA->ETH transfer extrinsic with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    await addDataToHistoryElement(extrinsic, historyElement, entity);
+    await updateHistoryElementStats(extrinsic, historyElement);
+    await networkSnapshotsStorage.updateBridgeOutgoingTransactionsStats(extrinsic.block);
 
 }

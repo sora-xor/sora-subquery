@@ -3,20 +3,20 @@ import { SubstrateBlock } from "@subql/types";
 import { getAssetId } from '../../utils/assets';
 import { poolAccounts, getAllReserves, getAllProperties, poolsStorage } from '../../utils/pools';
 import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
+import { getInitializePoolsLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
 
 export async function initializePools(block: SubstrateBlock): Promise<void> {
     if (isFirstBlockIndexed) return;
 
-    const blockNumber = block.block.header.number.toNumber();
-
-    logger.debug(`[${blockNumber}]: Initialize Pool XYK entities`);
-
+    getInitializePoolsLog(block).debug('Initialize Pool XYK entities');
     const poolsBuffer = new Map();
 
     for (const baseAssetId of BASE_ASSETS) {
-        const [properties, reserves] = await Promise.all([getAllProperties(baseAssetId),getAllReserves(baseAssetId)]);
+        // We don't use Promise.all() here because we need consistent order of requests in the log
+        const properties = await getAllProperties(block, baseAssetId);
+        const reserves = await getAllReserves(block, baseAssetId);
 
         if (!properties || !reserves) continue;
 
@@ -30,8 +30,6 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
                 id: poolAccountId,
                 baseAssetId,
                 targetAssetId,
-                baseAssetReserves: BigInt(0),
-                targetAssetReserves: BigInt(0),
                 multiplier: baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1,
             })
         }
@@ -51,11 +49,17 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     const entities = [...poolsBuffer.values()];
 
     if (entities.length) {
-        await store.bulkUpdate('PoolXYK', entities);
-        await Promise.all(entities.map(entity => poolsStorage.getPoolById(entity.id)));
-        logger.debug(`[${blockNumber}]: ${entities.length} Pool XYKs initialized!`);
+        // get or create entities in DB & memory
+        const created = await Promise.all(entities.map(entity => poolsStorage.getPoolById(block, entity.id)));
+        // update data in memory storage
+        created.forEach((entity) => {
+            Object.assign(entity, poolsBuffer.get(entity.id))
+        });
+        // save in DB
+        await store.bulkUpdate('PoolXYK', created);
+        getInitializePoolsLog(block).debug(`${entities.length} Pool XYKs initialized!`);
     } else {
-        logger.debug(`[${blockNumber}]: No Pool XYKs to initialize!`);
+        getInitializePoolsLog(block).debug('No Pool XYKs to initialize!');
     }
 
     isFirstBlockIndexed = true;
