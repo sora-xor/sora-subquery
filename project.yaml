@@ -25,7 +25,7 @@ dataSources:
     # 40: 2422935
     # 42: 2592952
     # 69: 8108482
-    startBlock: 2592952
+    startBlock: 1
     mapping:
       file: ./dist/index.js
       handlers:
