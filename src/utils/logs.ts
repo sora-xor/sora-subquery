@@ -48,7 +48,8 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
         logger[level](`[${logModule}] ${message}\n${attrsToString(attrs)}`);
     };
 
-    const sendMessages = testMode ? testLogMode : true
+    // Removed for Stand
+    const sendMessages = false;
 
     return {
         debug: sendMessages ? log('debug') : () => {},
