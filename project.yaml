@@ -1,5 +1,5 @@
 specVersion: 1.0.0
-name: sora-prod-sub4
+name: sora-prod
 version: 1.0.0
 runner:
   node:
@@ -19,7 +19,7 @@ network:
     file: ./types.json
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 12069760
+    startBlock: 13305123
     mapping:
       file: ./dist/index.js
       handlers:
