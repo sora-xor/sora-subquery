@@ -4,6 +4,7 @@ import { UpdatesStream } from "../types";
 
 const PriceUpdateStreamId = 'price';
 const PoolXYKApyUpdateStreamId = 'apy';
+const AssetRegistrationStreamId = 'assetRegistration';
 
 class BlockUpdatesStream {
   public readonly id!: string;
@@ -60,3 +61,4 @@ class BlockUpdatesStream {
 
 export const priceUpdatesStream = new BlockUpdatesStream(PriceUpdateStreamId);
 export const poolXykApyUpdatesStream = new BlockUpdatesStream(PoolXYKApyUpdateStreamId);
+export const assetRegistrationStream = new BlockUpdatesStream(AssetRegistrationStreamId);
