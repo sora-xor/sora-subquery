@@ -17,7 +17,10 @@ export async function referrerRewardHandler(event: SubstrateEvent): Promise<void
 	let referrerReward = await ReferrerReward.get(key);
 
 	if (!referrerReward) {
-		referrerReward = new ReferrerReward(key, referral.toString(), referrer.toString(), formatDateTimestamp(event.block.timestamp), BigInt(0));
+		referrerReward = new ReferrerReward(key);
+		referrerReward.referral = referral.toString();
+		referrerReward.referrer = referrer.toString();
+		referrerReward.amount = BigInt(0);
 	}
 
 	referrerReward.updated = formatDateTimestamp(event.block.timestamp);

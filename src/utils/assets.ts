@@ -65,7 +65,10 @@ class AssetStorage {
     let asset = await Asset.get(id);
 
     if (!asset) {
-      asset = new Asset(id, '0', BigInt(0), BigInt(0));
+      asset = new Asset(id);
+      asset.liquidity = BigInt(0);
+      asset.priceUSD = '0';
+      asset.supply = BigInt(0);
 
       await this.save(block, asset, true);
     }
@@ -209,8 +212,15 @@ class AssetSnapshotsStorage {
     if (!snapshot) {
       const asset = await this.assetStorage.getAsset(block ,assetId);
 
-      snapshot = new AssetSnapshot(id, assetId, timestamp, type, asset.supply, BigInt(0), BigInt(0));
+      snapshot = new AssetSnapshot(id);
+      snapshot.assetId = assetId;
+      snapshot.timestamp = timestamp;
+      snapshot.type = type;
+      // set current asset supply & liquidity on creation
       snapshot.liquidity = asset.liquidity;
+      snapshot.supply = asset.supply;
+      snapshot.mint = BigInt(0);
+      snapshot.burn = BigInt(0);
       snapshot.volume = {
         amount: '0',
         amountUSD: '0'

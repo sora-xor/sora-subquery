@@ -87,17 +87,13 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
     );
 
     const historyElementCalls = entities.map((call: any) => {
-        const historyElementCall = new HistoryElementCall(
-            call.callId,
-            historyElement.id,
-            call.module,
-            call.method,
-            call.hash,
-            extrinsic.block.block.header.number.toNumber()
-        );
-
+        const historyElementCall = new HistoryElementCall(call.callId);
+		historyElementCall.historyElementId = historyElement.id;
+		historyElementCall.module = call.module;
+		historyElementCall.method = call.method;
 		historyElementCall.data = call.data;
-
+        historyElementCall.hash = call.hash;
+		historyElementCall.updatedAtBlock = extrinsic.block.block.header.number.toNumber();
         return historyElementCall;
     })
 

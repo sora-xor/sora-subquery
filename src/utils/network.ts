@@ -31,7 +31,12 @@ class NetworkStatsStorage {
     let entity = await NetworkStats.get(this.id);
 
     if (!entity) {
-      entity = new NetworkStats(this.id, BigInt(0), 0, 0, 0, 0);
+      entity = new NetworkStats(this.id);
+      entity.totalFees = BigInt(0);
+      entity.totalAccounts = 0;
+      entity.totalTransactions = 0;
+      entity.totalBridgeIncomingTransactions = 0;
+      entity.totalBridgeOutgoingTransactions = 0;
     }
 
     this.storage = entity;
@@ -93,18 +98,16 @@ class NetworkSnapshotsStorage {
     let snapshot = await NetworkSnapshot.get(id);
 
     if (!snapshot) {
-      snapshot = new NetworkSnapshot(
-        id,
-        type,
-        timestamp,
-        0,
-        0,
-        BigInt(0),
-        '0',
-        '0',
-        0,
-        0,
-      );
+      snapshot = new NetworkSnapshot(id);
+      snapshot.type = type;
+      snapshot.timestamp = timestamp;
+      snapshot.accounts = 0;
+      snapshot.transactions = 0;
+      snapshot.fees = BigInt(0);
+      snapshot.liquidityUSD = '0';
+      snapshot.volumeUSD = '0';
+      snapshot.bridgeIncomingTransactions = 0;
+      snapshot.bridgeOutgoingTransactions = 0;
     }
 
     this.storage.set(snapshot.id, snapshot);
