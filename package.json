@@ -30,6 +30,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@polkadot/typegen": "9.14.2",
+    "@sora-substrate/types": "1.27.2",
     "@subql/cli": "4.2.3",
     "@subql/node": "3.4.7",
     "@subql/types": "3.3.0",
@@ -44,5 +45,8 @@
     "@polkadot/api": "9.14.2",
     "bignumber.js": "^9.0.1",
     "dotenv": "^16.3.1"
+  },
+  "exports": {
+    "chaintypes": "./src/chaintypes.ts"
   }
 }
