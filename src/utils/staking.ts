@@ -12,11 +12,11 @@ export const getActiveStakingEra = async (block: SubstrateBlock): Promise<Stakin
 
 	let stakingEra = await StakingEra.get(activeEra.index.toString())
 	if (!stakingEra) {
-		stakingEra = new StakingEra(activeEra.index.toString())
-		stakingEra.index = activeEra.index
-		if (activeEra.start) {
-			stakingEra.start = activeEra.start
-		}
+		stakingEra = new StakingEra(
+			activeEra.index.toString(),
+			activeEra.index,
+			activeEra.start
+		)
 		await stakingEra.save()
 		getUtilsLog(block).debug({ index: activeEra.index }, 'Staking era saved')
 	}
@@ -27,8 +27,10 @@ export const getActiveStakingEra = async (block: SubstrateBlock): Promise<Stakin
 export const getStakingStaker = async (block: SubstrateBlock, address: string): Promise<StakingStaker> => {
 	let stakingStaker = await StakingStaker.get(address)
 	if (!stakingStaker) {
-		stakingStaker = new StakingStaker(address)
-		stakingStaker.payeeType = PayeeType.STASH
+		stakingStaker = new StakingStaker(
+			address,
+			PayeeType.STASH
+		)
 		stakingStaker.payee = address
 		await stakingStaker.save()
 		getUtilsLog(block).debug({ id: address }, 'Staking staker saved')
