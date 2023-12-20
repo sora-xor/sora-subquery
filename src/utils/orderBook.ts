@@ -5,7 +5,8 @@ import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookD
 import { SubstrateBlock } from '@subql/types';
 import { getInitializeOrderBooksLog, getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
 import { formatDateTimestamp, getSnapshotIndex, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
-import { assetStorage } from './assets';
+import { assetStorage, assetPrecisions } from './assets';
+import { networkSnapshotsStorage } from "./network";
 
 const calcVolume = (snapshots: OrderBookSnapshot[]): BigNumber => {
   const totalVolume = snapshots.reduce((buffer, snapshot) => {
@@ -149,6 +150,30 @@ export class OrderBooksStorage {
       )
     }
   }
+
+  public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
+    let lockedUSD = new BigNumber(0);
+
+    for (const orderBook of this.storage.values()) {
+      const [baseAsset, quoteAsset] = await Promise.all([
+        assetStorage.getAsset(block, orderBook.baseAssetId),
+        assetStorage.getAsset(block, orderBook.quoteAssetId),
+      ]);
+      const baseAssetLocked = orderBook.baseAssetLocked || BigInt(0);
+      const baseAssetLockedUSD = new BigNumber(baseAssetLocked.toString())
+        .multipliedBy(new BigNumber(baseAsset.priceUSD))
+        .dividedBy(Math.pow(10, assetPrecisions.get(baseAsset.id)));
+
+      const quoteAssetLocked = orderBook.quoteAssetLocked || BigInt(0);
+      const quoteAssetLockedUSD = new BigNumber(quoteAssetLocked.toString())
+        .multipliedBy(new BigNumber(quoteAsset.priceUSD))
+        .dividedBy(Math.pow(10, assetPrecisions.get(quoteAsset.id)));
+
+      lockedUSD = lockedUSD.plus(baseAssetLockedUSD).plus(quoteAssetLockedUSD);
+    }
+
+    return lockedUSD;
+  }
 }
 
 export class OrderBooksSnapshotsStorage {
@@ -281,6 +306,8 @@ export class OrderBooksSnapshotsStorage {
     }
 
     await this.orderBooksStorage.updateDeal(block, dexId, baseAssetId, quoteAssetId, orderId, price, amount, isBuy);
+
+    await networkSnapshotsStorage.updateVolumeStats(block, quoteVolumeUSD);
   }
 }
 

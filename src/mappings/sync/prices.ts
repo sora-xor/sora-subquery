@@ -3,8 +3,9 @@ import BigNumber from "bignumber.js";
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../../types";
 
-import { formatU128ToBalance, assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
+import { assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
+import { orderBooksStorage } from '../../utils/orderBook';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
 import { poolXykApyUpdatesStream } from '../../utils/stream';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
@@ -27,8 +28,6 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     const assetsLockedInPools = new Map<string, bigint>();
 
     let pswapPriceInDAI = new BigNumber(0);
-    let liquiditiesUSD = new BigNumber(0);
-
     let baseAssetWithDoublePoolsPrice = new BigNumber(0);
 
     const pools: Record<string, PoolXYK[]> = {};
@@ -102,15 +101,6 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             });
         }
 
-        const baseAssetInPoolsFormatted = formatU128ToBalance(baseAssetInPools.toFixed(0), baseAssetId);
-
-        // update liquidities data
-        liquiditiesUSD = liquiditiesUSD.plus(
-            new BigNumber(baseAssetInPoolsFormatted)
-                .multipliedBy(baseAssetPriceInDAI)
-                .multipliedBy(new BigNumber(2))
-        );
-
         // update price samples
         assetsPrices[baseAssetId] = {
             price: baseAssetPriceInDAI.toFixed(18),
@@ -173,6 +163,13 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         await assetSnapshotsStorage.updateLiquidity(block, assetId, liquidity);
     }
     getSyncPricesLog(block).debug(`${Object.entries(assetsPrices).length} asset snapshot liquidities updated`);
+
+
+    const locksUSD = await Promise.all([
+        poolsStorage.getLockedLiquidityUSD(block),
+        orderBooksStorage.getLockedLiquidityUSD(block),
+    ]);
+    const liquiditiesUSD = locksUSD.reduce((acc, item) => acc.plus(item), new BigNumber(0));
 
     // update total liquidity in USD
     await networkSnapshotsStorage.updateLiquidityStats(block, liquiditiesUSD);

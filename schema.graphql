@@ -258,6 +258,8 @@ type OrderBook @entity {
   baseAsset: Asset! @index
   quoteAsset: Asset! @index
   status: OrderBookStatus!
+  baseAssetLocked: BigInt
+  quoteAssetLocked: BigInt
   price: String
   priceChangeDay: Float
   volumeDayUSD: String

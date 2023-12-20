@@ -5,7 +5,7 @@ import { OrderBookOrder, OrderType, OrderStatus } from '../../types'
 
 import { formatDateTimestamp } from '../../utils';
 import { getAccountEntity } from '../../utils/account';
-import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { getAssetId, formatU128ToBalance, assetPrecisions } from '../../utils/assets';
 import { OrderBooksStorage, orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
@@ -63,6 +63,9 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
 
   const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
   const account = await getAccountEntity(event.block, ownerId.toString());
+  const amountU128 = amount.inner.toString();
+  const priceU128 = price.inner.toString();
+  const isBuy = side.toHuman() === 'Buy';
 
   const limitOrder = new OrderBookOrder(id);
   limitOrder.type = OrderType.Limit;
@@ -71,9 +74,9 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
   limitOrder.accountId = account.id;
   limitOrder.createdAtBlock = blockNumber;
   limitOrder.timestamp = timestamp;
-  limitOrder.isBuy = side.toHuman() === 'Buy';
-  limitOrder.amount = formatU128ToBalance(amount.inner.toString(), baseAssetId);
-  limitOrder.price = formatU128ToBalance(price.inner.toString(), quoteAssetId);
+  limitOrder.isBuy = isBuy;
+  limitOrder.amount = formatU128ToBalance(amountU128, baseAssetId);
+  limitOrder.price = formatU128ToBalance(priceU128, quoteAssetId);
   limitOrder.lifetime = orderLifetime;
   limitOrder.expiresAt = timestamp + orderLifetime;
   limitOrder.amountFilled = '0';
@@ -83,6 +86,13 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
   await limitOrder.save();
 
   getEventHandlerLog(event).debug({ id }, 'Limit Order Saved');
+
+  // update locked
+  if (isBuy) {
+    book.quoteAssetLocked = (book.quoteAssetLocked || BigInt(0)) + BigInt(amountU128) * BigInt(priceU128);
+  } else {
+    book.baseAssetLocked = (book.baseAssetLocked || BigInt(0)) + BigInt(amountU128);
+  }
 }
 
 export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<void> {
@@ -91,9 +101,12 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, side, price, amount] } } = event as any;
   const { id, dexId, baseAssetId, quoteAssetId, orderId } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
 
-  const newPrice = formatU128ToBalance(price.inner.toString(), quoteAssetId);
-  const newAmount = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
+  const amountU128 = amount.asBase.inner.toString();
+  const priceU128 = price.inner.toString();
   const isBuy = side.toHuman() === 'Buy';
+
+  const newPrice = formatU128ToBalance(priceU128, quoteAssetId);
+  const newAmount = formatU128ToBalance(amountU128, baseAssetId);
 
   const limitOrder = await OrderBookOrder.get(id);
 
@@ -111,6 +124,17 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   }
 
   await orderBooksSnapshotsStorage.updateDeal(event.block, dexId, baseAssetId, quoteAssetId, Number(orderId), newPrice, newAmount, isBuy);
+
+  // update locked
+  const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
+
+  if (isBuy) {
+    const result = (book.quoteAssetLocked || BigInt(0)) - BigInt(amountU128) * BigInt(priceU128);
+    book.quoteAssetLocked = result > 0 ? result : BigInt(0);
+  } else {
+    const result = (book.baseAssetLocked || BigInt(0)) - BigInt(amountU128);
+    book.baseAssetLocked = result > 0 ? result : BigInt(0);
+  }
 }
 
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {
@@ -161,7 +185,7 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
   logStartProcessingEvent(event);
 
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, reasonCodec] } } = event as any;
-  const { id } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
+  const { id, dexId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
 
   const limitOrder = await OrderBookOrder.get(id);
 
@@ -177,6 +201,26 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
     getEventHandlerLog(event).debug({ id, reason }, 'Limit Order Canceled');
   } else {
     getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
+  }
+
+  // locked
+  if (limitOrder) {
+    const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
+
+    const baseAmount = new BigNumber(limitOrder.amount).minus(new BigNumber(limitOrder.amountFilled));
+    const baseDecimals = assetPrecisions.get(book.baseAssetId);
+    const quotePrice = new BigNumber(limitOrder.price);
+    const quoteDecimals = assetPrecisions.get(book.quoteAssetId);
+    const amount = BigInt(baseAmount.multipliedBy(Math.pow(10, baseDecimals)).toString());
+    const price = BigInt(quotePrice.multipliedBy(Math.pow(10, quoteDecimals)).toString());
+
+    if (limitOrder.isBuy) {
+      const result = (book.quoteAssetLocked || BigInt(0)) - amount * price;
+      book.quoteAssetLocked = result > 0 ? result : BigInt(0);
+    } else {
+      const result = (book.baseAssetLocked || BigInt(0)) - amount;
+      book.baseAssetLocked = result > 0 ? result : BigInt(0);
+    }
   }
 }
 

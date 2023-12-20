@@ -1,6 +1,9 @@
+import BigNumber from "bignumber.js";
+
 import { SubstrateBlock } from '@subql/types';
 import { PoolXYK } from '../types';
 import { XOR, DOUBLE_PRICE_POOL } from './consts';
+import { assetStorage, assetPrecisions } from "./assets";
 import { getInitializePoolsLog, getPoolsStorageLog } from './logs';
 
 // getters & setter for flag, should we sync poolXYK reserves
@@ -163,6 +166,30 @@ class PoolsStorage {
     this.storage.set(poolId, pool);
 
     return pool;
+  }
+
+  public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
+    let lockedUSD = new BigNumber(0);
+
+    for (const entity of this.storage.values()) {
+      const [baseAsset, targetAsset] = await Promise.all([
+        assetStorage.getAsset(block, entity.baseAssetId),
+        assetStorage.getAsset(block, entity.targetAssetId),
+      ]);
+      const baseAssetLocked = entity.baseAssetReserves || BigInt(0);
+      const baseAssetLockedUSD = new BigNumber(baseAssetLocked.toString())
+        .multipliedBy(new BigNumber(baseAsset.priceUSD))
+        .dividedBy(Math.pow(10, assetPrecisions.get(baseAsset.id)));
+
+      const targetAssetLocked = entity.targetAssetReserves || BigInt(0);
+      const targetAssetLockedUSD = new BigNumber(targetAssetLocked.toString())
+        .multipliedBy(new BigNumber(targetAsset.priceUSD))
+        .dividedBy(Math.pow(10, assetPrecisions.get(targetAsset.id)));
+
+      lockedUSD = lockedUSD.plus(baseAssetLockedUSD).plus(targetAssetLockedUSD);
+    }
+
+    return lockedUSD;
   }
 }
 
