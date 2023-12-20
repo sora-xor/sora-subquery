@@ -2,15 +2,30 @@ import { SubstrateBlock } from "@subql/types";
 
 import { OrderBookStatus } from '../../types'
 import { getAssetId } from '../../utils/assets';
+import { XOR } from "../../utils/consts";
 import { getAllOrderBooks, OrderBooksStorage, orderBooksStorage } from '../../utils/orderBook';
 import { getInitializeOrderBooksLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
 
+const getOrderBookAssetBalance = async (accountId: string, assetId: string) => {
+  let data!: any;
+
+  if (assetId === XOR) {
+    data = (await api.query.system.account(accountId) as any).data;
+  } else {
+    data = await api.query.tokens.accounts(accountId, assetId);
+  }
+
+  return BigInt(data.free.toString());
+};
+
 export async function initializeOrderBooks(block: SubstrateBlock): Promise<void> {
   if (isFirstBlockIndexed) return;
 
   getInitializeOrderBooksLog(block).debug('Initialize Order Books entities');
+
+  await orderBooksStorage.updateAccountIds();
 
   const orderBooks = await getAllOrderBooks(block);
 
@@ -26,12 +41,19 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const quoteAssetId = getAssetId(quote);
       const id = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
       const status = statusCodec ? statusCodec.toHuman() : OrderBookStatus.Trade;
+      const accountId = orderBooksStorage.accountIds.get(id);
+      const [baseAssetLocked, quoteAssetLocked] = await Promise.all([
+        getOrderBookAssetBalance(accountId, baseAssetId),
+        getOrderBookAssetBalance(accountId, quoteAssetId),
+      ]);
 
       buffer.set(id, {
         id,
         dexId,
         baseAssetId,
         quoteAssetId,
+        baseAssetLocked,
+        quoteAssetLocked,
         status,
         updatedAtBlock,
       });

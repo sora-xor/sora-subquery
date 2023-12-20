@@ -7,6 +7,7 @@ import { getInitializeOrderBooksLog, getOrderBooksStorageLog, getOrderBooksSnaps
 import { formatDateTimestamp, getSnapshotIndex, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
 import { assetStorage, assetPrecisions } from './assets';
 import { networkSnapshotsStorage } from "./network";
+import { predefinedAssets } from './consts';
 
 const calcVolume = (snapshots: OrderBookSnapshot[]): BigNumber => {
   const totalVolume = snapshots.reduce((buffer, snapshot) => {
@@ -31,15 +32,47 @@ export const getAllOrderBooks = async (block: SubstrateBlock) => {
   }
 };
 
+const getAssetIdFromTech = (techAsset: any) => {
+  if (techAsset.wrapped) {
+    return predefinedAssets[techAsset.wrapped];
+  } else {
+    return techAsset.escaped;
+  }
+}
+
 const OrderBooksSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
 export class OrderBooksStorage {
   private storage!: Map<string, OrderBook>;
+  public accountIds!: Map<string, string>;
 
   static readonly LAST_DEALS_LENGTH = 10;
 
   constructor() {
     this.storage = new Map();
+    this.accountIds = new Map();
+  }
+
+  async updateAccountIds() {
+    const entries = await api.query.technical.techAccounts.entries();
+
+    for (const [key, techAccountId] of entries) {
+      const accountId = key.args[0].toString();
+      const data = techAccountId.toJSON() as any;
+
+      if (data.pure) {
+        const [dexId, techPurpose] = data.pure;
+
+        if (techPurpose.orderBookLiquidityKeeper) {
+          const { baseAssetId, targetAssetId } = techPurpose.orderBookLiquidityKeeper;
+          const quoteAsset = getAssetIdFromTech(baseAssetId);
+          const baseAsset = getAssetIdFromTech(targetAssetId);
+          const orderBookId = OrderBooksStorage.getId(dexId, baseAsset, quoteAsset);
+
+          this.accountIds.set(orderBookId, accountId);
+        }
+      }
+    }
   }
 
   async sync(block: SubstrateBlock): Promise<void> {
