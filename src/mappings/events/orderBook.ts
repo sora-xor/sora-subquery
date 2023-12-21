@@ -5,7 +5,7 @@ import { OrderBookOrder, OrderType, OrderStatus } from '../../types'
 
 import { formatDateTimestamp } from '../../utils';
 import { getAccountEntity } from '../../utils/account';
-import { getAssetId, formatU128ToBalance, assetPrecisions } from '../../utils/assets';
+import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { OrderBooksStorage, orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
@@ -86,13 +86,6 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
   await limitOrder.save();
 
   getEventHandlerLog(event).debug({ id }, 'Limit Order Saved');
-
-  // update locked
-  if (isBuy) {
-    book.quoteAssetLocked = (book.quoteAssetLocked || BigInt(0)) + BigInt(amountU128) * BigInt(priceU128);
-  } else {
-    book.baseAssetLocked = (book.baseAssetLocked || BigInt(0)) + BigInt(amountU128);
-  }
 }
 
 export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<void> {
@@ -124,17 +117,6 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   }
 
   await orderBooksSnapshotsStorage.updateDeal(event.block, dexId, baseAssetId, quoteAssetId, Number(orderId), newPrice, newAmount, isBuy);
-
-  // update locked
-  const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
-
-  if (isBuy) {
-    const result = (book.quoteAssetLocked || BigInt(0)) - BigInt(amountU128) * BigInt(priceU128);
-    book.quoteAssetLocked = result > 0 ? result : BigInt(0);
-  } else {
-    const result = (book.baseAssetLocked || BigInt(0)) - BigInt(amountU128);
-    book.baseAssetLocked = result > 0 ? result : BigInt(0);
-  }
 }
 
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {
@@ -201,26 +183,6 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
     getEventHandlerLog(event).debug({ id, reason }, 'Limit Order Canceled');
   } else {
     getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
-  }
-
-  // locked
-  if (limitOrder) {
-    const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
-
-    const baseAmount = new BigNumber(limitOrder.amount).minus(new BigNumber(limitOrder.amountFilled));
-    const baseDecimals = assetPrecisions.get(book.baseAssetId);
-    const quotePrice = new BigNumber(limitOrder.price);
-    const quoteDecimals = assetPrecisions.get(book.quoteAssetId);
-    const amount = BigInt(baseAmount.multipliedBy(Math.pow(10, baseDecimals)).toString());
-    const price = BigInt(quotePrice.multipliedBy(Math.pow(10, quoteDecimals)).toString());
-
-    if (limitOrder.isBuy) {
-      const result = (book.quoteAssetLocked || BigInt(0)) - amount * price;
-      book.quoteAssetLocked = result > 0 ? result : BigInt(0);
-    } else {
-      const result = (book.baseAssetLocked || BigInt(0)) - amount;
-      book.baseAssetLocked = result > 0 ? result : BigInt(0);
-    }
   }
 }
 

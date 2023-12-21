@@ -2,6 +2,7 @@ import { SubstrateEvent } from "@subql/types";
 
 import { getTransferEventData } from '../../utils/events';
 import { poolAccounts, poolsStorage, PoolsPrices } from '../../utils/pools';
+import { orderBooksStorage } from "../../utils/orderBook";
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 export async function handleTransferEvent(event: SubstrateEvent): Promise<void> {
@@ -22,7 +23,6 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
     getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after withdrawal')
     PoolsPrices.set(true);
   }
-
   // deposit token to pool
   if (poolAccounts.has(to)) {
     const pool = await poolsStorage.getPoolById(event.block, to);
@@ -35,5 +35,30 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
 
     getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after deposit')
     PoolsPrices.set(true);
+  }
+
+  // withdraw token from order book
+  if (orderBooksStorage.accountIds.has(from)) {
+    const book = await orderBooksStorage.getOrderBookByAccountId(event.block, from);
+
+    if (book.baseAssetId === assetId) {
+      book.baseAssetLocked = book.baseAssetLocked - BigInt(amount);
+    } else if (book.quoteAssetId === assetId) {
+      book.quoteAssetLocked = book.quoteAssetLocked - BigInt(amount);
+    }
+
+    getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after withdrawal');
+  }
+  // deposit token to order book
+  if (orderBooksStorage.accountIds.has(to)) {
+    const book = await orderBooksStorage.getOrderBookByAccountId(event.block, to)
+
+    if (book.baseAssetId === assetId) {
+      book.baseAssetLocked = book.baseAssetLocked + BigInt(amount);
+    } else if (book.quoteAssetId === assetId) {
+      book.quoteAssetLocked = book.quoteAssetLocked + BigInt(amount);
+    }
+
+    getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after deposit')
   }
 }
