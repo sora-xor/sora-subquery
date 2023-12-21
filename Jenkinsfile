@@ -13,7 +13,8 @@ def pipeline = new org.js.AppPipeline(
         "hash=\$(yarn config:chainId | grep -oE '0.*' | grep -v 's'); \
         sed -i '/chainId:/s/'0'/'\$hash'/' project.yaml; \
         cat project.yaml; \
-        yarn codegen"
+        yarn codegen; \
+        yarn build"
     ],
     dockerImageTags:    ['dev': 'dev'],
     dojoProductType:    'sora'
