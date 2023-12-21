@@ -83,7 +83,7 @@ export class OrderBooksStorage {
   private storage!: Map<string, OrderBook>;
   public accountIds!: Map<string, string>;
 
-  static readonly LAST_DEALS_LENGTH = 10;
+  static readonly LAST_DEALS_LENGTH = 20;
 
   constructor() {
     this.storage = new Map();
