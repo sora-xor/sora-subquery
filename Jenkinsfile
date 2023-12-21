@@ -15,7 +15,7 @@ def pipeline = new org.js.AppPipeline(
         cat project.yaml; \
         yarn codegen"
     ],
-    dockerImageTags:    ['dev': 'dev', 'test_build': 'predev'],
+    dockerImageTags:    ['dev': 'dev'],
     dojoProductType:    'sora'
 )
 pipeline.runPipeline()
