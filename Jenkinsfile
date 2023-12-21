@@ -8,8 +8,8 @@ def pipeline = new org.js.AppPipeline(
     buildDockerImage:   'docker.soramitsu.co.jp/build-tools/node:20-alpine',
     sonarProjectName:   'sora-subquery',
     sonarProjectKey:    'sora:sora-subquery',
-    preBuildCmds:       ['yarn install', 'cat project.yaml'],
-    buildCmds:          ['sed -i "s/chainId:'0'/chainId:\$(yarn config:chainId | grep -oE "0.*" | grep -v "s")/" project.yaml', 'cat project.yaml',
+    preBuildCmds:       ['yarn install', 'HASH="\$(yarn config:chainId | grep -oE "0.*" | grep -v "s")/" project.yaml"'],
+    buildCmds:          ["sed -i 's/chainId: 0/chainId: '\$HASH'", 'cat project.yaml',
                         'yarn codegen'],
     dockerImageTags:    ['dev': 'dev', 'test_build': 'predev'],
     dojoProductType:    'sora'
