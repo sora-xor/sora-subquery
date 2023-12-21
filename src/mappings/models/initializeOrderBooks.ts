@@ -30,7 +30,7 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const status = statusCodec ? statusCodec.toHuman() : OrderBookStatus.Trade;
       const accountId = await orderBooksStorage.getAccountId(block, id);
 
-      const [baseAssetLocked, quoteAssetLocked] = await Promise.all([
+      const [baseAssetReserves, quoteAssetReserves] = await Promise.all([
         getOrderBookAssetBalance(block, accountId, baseAssetId),
         getOrderBookAssetBalance(block, accountId, quoteAssetId),
       ]);
@@ -40,8 +40,8 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
         dexId,
         baseAssetId,
         quoteAssetId,
-        baseAssetLocked,
-        quoteAssetLocked,
+        baseAssetReserves,
+        quoteAssetReserves,
         status,
         updatedAtBlock,
       });

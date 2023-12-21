@@ -181,6 +181,8 @@ export class OrderBooksStorage {
       orderBook.dexId = dexId;
       orderBook.baseAssetId = baseAssetId;
       orderBook.quoteAssetId = quoteAssetId;
+      orderBook.baseAssetReserves = BigInt(0);
+      orderBook.quoteAssetReserves = BigInt(0);
       orderBook.status = OrderBookStatus.Trade;
       orderBook.price = '0';
 
@@ -277,13 +279,12 @@ export class OrderBooksStorage {
         assetStorage.getAsset(block, orderBook.baseAssetId),
         assetStorage.getAsset(block, orderBook.quoteAssetId),
       ]);
-      const baseAssetLocked = orderBook.baseAssetLocked || BigInt(0);
-      const baseAssetLockedUSD = new BigNumber(baseAssetLocked.toString())
+
+      const baseAssetLockedUSD = new BigNumber(orderBook.baseAssetReserves.toString())
         .multipliedBy(new BigNumber(baseAsset.priceUSD))
         .dividedBy(Math.pow(10, assetPrecisions.get(baseAsset.id)));
 
-      const quoteAssetLocked = orderBook.quoteAssetLocked || BigInt(0);
-      const quoteAssetLockedUSD = new BigNumber(quoteAssetLocked.toString())
+      const quoteAssetLockedUSD = new BigNumber(orderBook.quoteAssetReserves.toString())
         .multipliedBy(new BigNumber(quoteAsset.priceUSD))
         .dividedBy(Math.pow(10, assetPrecisions.get(quoteAsset.id)));
 

@@ -176,13 +176,12 @@ class PoolsStorage {
         assetStorage.getAsset(block, entity.baseAssetId),
         assetStorage.getAsset(block, entity.targetAssetId),
       ]);
-      const baseAssetLocked = entity.baseAssetReserves || BigInt(0);
-      const baseAssetLockedUSD = new BigNumber(baseAssetLocked.toString())
+
+      const baseAssetLockedUSD = new BigNumber(entity.baseAssetReserves.toString())
         .multipliedBy(new BigNumber(baseAsset.priceUSD))
         .dividedBy(Math.pow(10, assetPrecisions.get(baseAsset.id)));
 
-      const targetAssetLocked = entity.targetAssetReserves || BigInt(0);
-      const targetAssetLockedUSD = new BigNumber(targetAssetLocked.toString())
+      const targetAssetLockedUSD = new BigNumber(entity.targetAssetReserves.toString())
         .multipliedBy(new BigNumber(targetAsset.priceUSD))
         .dividedBy(Math.pow(10, assetPrecisions.get(targetAsset.id)));
 

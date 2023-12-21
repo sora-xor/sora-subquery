@@ -42,9 +42,9 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
     const book = await orderBooksStorage.getOrderBookByAccountId(event.block, from);
 
     if (book.baseAssetId === assetId) {
-      book.baseAssetLocked = book.baseAssetLocked - BigInt(amount);
+      book.baseAssetReserves = book.baseAssetReserves - BigInt(amount);
     } else if (book.quoteAssetId === assetId) {
-      book.quoteAssetLocked = book.quoteAssetLocked - BigInt(amount);
+      book.quoteAssetReserves = book.quoteAssetReserves - BigInt(amount);
     }
 
     getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after withdrawal');
@@ -54,9 +54,9 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
     const book = await orderBooksStorage.getOrderBookByAccountId(event.block, to)
 
     if (book.baseAssetId === assetId) {
-      book.baseAssetLocked = book.baseAssetLocked + BigInt(amount);
+      book.baseAssetReserves = book.baseAssetReserves + BigInt(amount);
     } else if (book.quoteAssetId === assetId) {
-      book.quoteAssetLocked = book.quoteAssetLocked + BigInt(amount);
+      book.quoteAssetReserves = book.quoteAssetReserves + BigInt(amount);
     }
 
     getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after deposit')
