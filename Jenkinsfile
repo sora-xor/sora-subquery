@@ -10,7 +10,7 @@ def pipeline = new org.js.AppPipeline(
     sonarProjectKey:    'sora:sora-subquery',
     preBuildCmds:       ['yarn install', 'cat project.yaml'],
     buildCmds:          ['HASH="\$(yarn config:chainId | grep -oE "0.*" | grep -v "s")"', 
-                        "sed -i 's/chainId: 0/chainId: \$HASH/' project.yaml", 'cat project.yaml',
+                        "sed -i '/chainId:/s/'0'/'\$HASH'/' project-onfinality.yaml", 'cat project.yaml',
                         'yarn codegen'],
     dockerImageTags:    ['dev': 'dev', 'test_build': 'predev'],
     dojoProductType:    'sora'
