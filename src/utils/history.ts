@@ -51,7 +51,7 @@ export const createHistoryElement = async (
 	historyElement.address = extrinsic.extrinsic.signer.toString()
 	historyElement.networkFee = getExtrinsicNetworkFee(extrinsic)
 	historyElement.timestamp = formatDateTimestamp(extrinsic.block.timestamp)
-	historyElement.updatedAtBlock =historyElement.blockHeight
+	historyElement.updatedAtBlock = historyElement.blockHeight
 	historyElement.callNames = []
 
     let failedEvent = extrinsic.events.find(e => e.event.method === 'ExtrinsicFailed');
