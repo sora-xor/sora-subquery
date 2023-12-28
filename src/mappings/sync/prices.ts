@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../../types";
 
-import { assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
+import { assetStorage, assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { orderBooksStorage } from '../../utils/orderBook';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
@@ -24,8 +24,6 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     if (!PoolsPrices.get()) return;
 
     getSyncPricesLog(block).debug('Sync PoolXYK prices')
-
-    const assetsLockedInPools = new Map<string, bigint>();
 
     let pswapPriceInDAI = new BigNumber(0);
     let baseAssetWithDoublePoolsPrice = new BigNumber(0);
@@ -65,16 +63,6 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                     : new BigNumber(0);
                 daiReserves[baseAssetId] = targetAssetReservesBN
             }
-
-            assetsLockedInPools.set(
-                pool.baseAssetId,
-                (assetsLockedInPools.get(pool.baseAssetId) || BigInt(0)) + pool.baseAssetReserves,
-            );
-
-            assetsLockedInPools.set(
-                pool.targetAssetId,
-                (assetsLockedInPools.get(pool.targetAssetId) || BigInt(0)) + pool.targetAssetReserves,
-            );
 
             pools[baseAssetId].push(pool);
             getPoolsStorageLog(block).debug({ poolId: pool.id }, 'Update pool')
@@ -158,18 +146,9 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     }
     getSyncPricesLog(block).debug(`${Object.entries(assetsPrices).length} asset snapshot prices updated`);
 
-    // update locked luqidity for assets
-    for (const [assetId, liquidity] of assetsLockedInPools.entries()) {
-        await assetSnapshotsStorage.updateLiquidity(block, assetId, liquidity);
-    }
-    getSyncPricesLog(block).debug(`${Object.entries(assetsPrices).length} asset snapshot liquidities updated`);
-
-
-    const locksUSD = await Promise.all([
-        poolsStorage.getLockedLiquidityUSD(block),
-        orderBooksStorage.getLockedLiquidityUSD(block),
-    ]);
-    const liquiditiesUSD = locksUSD.reduce((acc, item) => acc.plus(item), new BigNumber(0));
+    const poolsLockedUSD = await poolsStorage.getLockedLiquidityUSD(block);
+    const booksLockedUSD = await orderBooksStorage.getLockedLiquidityUSD(block);
+    const liquiditiesUSD = poolsLockedUSD.plus(booksLockedUSD);
 
     // update total liquidity in USD
     await networkSnapshotsStorage.updateLiquidityStats(block, liquiditiesUSD);

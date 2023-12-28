@@ -17,7 +17,9 @@ const calcVolumeUSD = (snapshots: AssetSnapshot[]): number => {
   return toFloat(totalVolume);
 };
 
-const calcTvlUSD = (asset: Asset, reserves: bigint): BigNumber => {
+const calcTvlUSD = (asset: Asset, reserves?: bigint): BigNumber => {
+  if (!reserves) return new BigNumber(0);
+
   const price = new BigNumber(asset.priceUSD);
   const decimals = assetPrecisions.get(asset.id) ?? 18;
   const amount = new BigNumber(reserves.toString()).dividedBy(Math.pow(10, decimals));
@@ -74,7 +76,6 @@ class AssetStorage {
 
     if (!asset) {
       asset = new Asset(id);
-      asset.liquidity = BigInt(0);
       asset.priceUSD = '0';
       asset.supply = BigInt(0);
 
@@ -96,12 +97,24 @@ class AssetStorage {
     await this.save(block, asset);
   }
 
-  async updateLiquidity(block: SubstrateBlock ,id: string, liquidity: bigint): Promise<void>  {
+  async updateLiquidity(block: SubstrateBlock ,id: string, liquidity: bigint): Promise<Asset> {
     const asset = await this.getAsset(block, id);
 
     asset.liquidity = liquidity;
 
-    getAssetStorageLog(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidity updated')
+    getAssetStorageLog(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidity updated');
+
+    return asset;
+  }
+
+  async updateLiquidityBooks(block: SubstrateBlock ,id: string, liquidity: bigint): Promise<Asset> {
+    const asset = await this.getAsset(block, id);
+
+    asset.liquidityBooks = liquidity;
+
+    getAssetStorageLog(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidity in order books updated');
+
+    return asset;
   }
 
   private async calcStats(block: SubstrateBlock, asset: Asset, type: SnapshotType, snapshotsCount: number) {
@@ -115,7 +128,9 @@ class AssetStorage {
 
     const currentPriceUSD = new BigNumber(priceUSD);
     const startPriceUSD = new BigNumber(last(snapshots)?.priceUSD?.open ?? '0');
-    const tvl = calcTvlUSD(asset, asset.liquidity);
+    const tvlPools = calcTvlUSD(asset, asset.liquidity);
+    const tvlOrderBooks = calcTvlUSD(asset, asset.liquidityBooks);
+    const tvl = tvlPools.plus(tvlOrderBooks);
 
     const priceChange = calcPriceChange(currentPriceUSD, startPriceUSD);
     const volumeUSD = calcVolumeUSD(snapshots);
@@ -213,8 +228,7 @@ class AssetSnapshotsStorage {
       snapshot.assetId = assetId;
       snapshot.timestamp = timestamp;
       snapshot.type = type;
-      // set current asset supply & liquidity on creation
-      snapshot.liquidity = asset.liquidity;
+      // set current asset supply
       snapshot.supply = asset.supply;
       snapshot.mint = BigInt(0);
       snapshot.burn = BigInt(0);
@@ -291,20 +305,6 @@ class AssetSnapshotsStorage {
     }
 
     return volumeUSD;
-  }
-
-  async updateLiquidity(block: SubstrateBlock, assetId: string, liquidity: bigint): Promise<void> {
-    for (const type of AssetSnapshots) {
-      const snapshot = await this.getSnapshot(block, assetId, type);
-
-      snapshot.liquidity = liquidity;
-      getAssetSnapshotsStorageLog(block, true).debug(
-        { assetId: assetId, newLiquidity: liquidity.toString() },
-        'Asset snapshot liquidity updated',
-      )
-    }
-
-    await this.assetStorage.updateLiquidity(block, assetId, liquidity);
   }
 
   async updateMinted(block: SubstrateBlock, assetId: string, amount: bigint): Promise<void> {

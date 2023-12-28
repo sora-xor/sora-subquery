@@ -169,23 +169,26 @@ class PoolsStorage {
   }
 
   public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
+    const lockedAssets = new Map<string, bigint>();
+
+    for (const { baseAssetId, targetAssetId, baseAssetReserves, targetAssetReserves } of this.storage.values()) {
+      const a = lockedAssets.get(baseAssetId);
+      const b = lockedAssets.get(targetAssetId);
+
+      lockedAssets.set(baseAssetId, (a || BigInt(0)) + baseAssetReserves);
+      lockedAssets.set(targetAssetId, (b || BigInt(0)) + targetAssetReserves);
+    }
+
     let lockedUSD = new BigNumber(0);
 
-    for (const entity of this.storage.values()) {
-      const [baseAsset, targetAsset] = await Promise.all([
-        assetStorage.getAsset(block, entity.baseAssetId),
-        assetStorage.getAsset(block, entity.targetAssetId),
-      ]);
+    // update locked luqidity for assets
+    for (const [assetId, liquidity] of lockedAssets.entries()) {
+      const asset = await assetStorage.updateLiquidity(block, assetId, liquidity);
+      const assetLockedUSD = new BigNumber(asset.liquidity.toString())
+        .multipliedBy(new BigNumber(asset.priceUSD))
+        .dividedBy(Math.pow(10, assetPrecisions.get(asset.id)));
 
-      const baseAssetLockedUSD = new BigNumber(entity.baseAssetReserves.toString())
-        .multipliedBy(new BigNumber(baseAsset.priceUSD))
-        .dividedBy(Math.pow(10, assetPrecisions.get(baseAsset.id)));
-
-      const targetAssetLockedUSD = new BigNumber(entity.targetAssetReserves.toString())
-        .multipliedBy(new BigNumber(targetAsset.priceUSD))
-        .dividedBy(Math.pow(10, assetPrecisions.get(targetAsset.id)));
-
-      lockedUSD = lockedUSD.plus(baseAssetLockedUSD).plus(targetAssetLockedUSD);
+      lockedUSD = lockedUSD.plus(assetLockedUSD);
     }
 
     return lockedUSD;
