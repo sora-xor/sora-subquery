@@ -5,7 +5,7 @@ import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookD
 import { SubstrateBlock } from '@subql/types';
 import { getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
 import { formatDateTimestamp, getSnapshotIndex, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
-import { assetStorage, assetSnapshotsStorage, assetPrecisions } from './assets';
+import { assetStorage, assetSnapshotsStorage, assetPrecisions, calcTvlUSD } from './assets';
 import { XOR } from "./consts";
 import { networkSnapshotsStorage } from "./network";
 import { predefinedAssets } from './consts';
@@ -274,24 +274,27 @@ export class OrderBooksStorage {
   public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
     const lockedAssets = new Map<string, bigint>();
 
-    for (const { baseAssetId, quoteAssetId, baseAssetReserves, quoteAssetReserves } of this.storage.values()) {
+    let lockedUSD = new BigNumber(0);
+
+    for (const { dexId, baseAssetId, quoteAssetId, baseAssetReserves, quoteAssetReserves } of this.storage.values()) {
       const a = lockedAssets.get(baseAssetId);
       const b = lockedAssets.get(quoteAssetId);
 
       lockedAssets.set(baseAssetId, (a || BigInt(0)) + baseAssetReserves);
       lockedAssets.set(quoteAssetId, (b || BigInt(0)) + quoteAssetReserves);
-    }
 
-    let lockedUSD = new BigNumber(0);
+      const baseAsset = await assetStorage.getAsset(block, baseAssetId);
+      const quoteAsset = await assetStorage.getAsset(block, quoteAssetId);
+      const baseAssetLiquidityUSD = calcTvlUSD(baseAsset, baseAssetReserves);
+      const quoteAssetLiquidityUSD = calcTvlUSD(quoteAsset, quoteAssetReserves);
+      const liquidityUSD = baseAssetLiquidityUSD.plus(quoteAssetLiquidityUSD);
+
+      await orderBooksSnapshotsStorage.updateLiquidityUSD(block, dexId, baseAssetId, quoteAssetId, liquidityUSD);
+    }
 
     // update locked luqidity for assets
     for (const [assetId, liquidity] of lockedAssets.entries()) {
-      const asset = await assetStorage.updateLiquidityBooks(block, assetId, liquidity);
-      const assetLockedUSD = new BigNumber(asset.liquidity.toString())
-        .multipliedBy(new BigNumber(asset.priceUSD))
-        .dividedBy(Math.pow(10, assetPrecisions.get(asset.id)));
-
-      lockedUSD = lockedUSD.plus(assetLockedUSD);
+      await assetStorage.updateLiquidityBooks(block, assetId, liquidity);
     }
 
     return lockedUSD;
@@ -362,6 +365,7 @@ export class OrderBooksSnapshotsStorage {
       snapshot.baseAssetVolume = '0';
       snapshot.quoteAssetVolume = '0';
       snapshot.volumeUSD = '0';
+      snapshot.liquidityUSD = '0';
       snapshot.price = {
         open: orderBook.price,
         close: orderBook.price,
@@ -432,6 +436,20 @@ export class OrderBooksSnapshotsStorage {
     await assetSnapshotsStorage.updateVolume(block, baseAssetId, baseAmount.toString());
     await assetSnapshotsStorage.updateVolume(block, quoteAssetId, quoteAmount.toString());
     await networkSnapshotsStorage.updateVolumeStats(block, quoteVolumeUSD);
+  }
+
+  async updateLiquidityUSD(
+    block: SubstrateBlock,
+    dexId: number,
+    baseAssetId: string,
+    quoteAssetId: string,
+    liquidityUSD: BigNumber,
+  ): Promise<void> {
+    for (const type of OrderBooksSnapshots) {
+      const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
+
+      snapshot.liquidityUSD = liquidityUSD.toFixed(2);
+    }
   }
 }
 

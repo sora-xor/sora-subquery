@@ -17,7 +17,7 @@ const calcVolumeUSD = (snapshots: AssetSnapshot[]): number => {
   return toFloat(totalVolume);
 };
 
-const calcTvlUSD = (asset: Asset, reserves?: bigint): BigNumber => {
+export const calcTvlUSD = (asset: Asset, reserves?: bigint): BigNumber => {
   if (!reserves) return new BigNumber(0);
 
   const price = new BigNumber(asset.priceUSD);
