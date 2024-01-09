@@ -90,15 +90,21 @@ class AssetStorage {
   async updatePrice(block: SubstrateBlock, id: string, priceUSD: string): Promise<void> {
     const asset = await this.getAsset(block, id);
 
+    if (asset.priceUSD === priceUSD) return;
+
     asset.priceUSD = priceUSD;
-    getAssetStorageLog(block, true).debug({ assetId: id, newPrice: priceUSD }, 'Asset price updated')
     // stream update
     priceUpdatesStream.update(id, priceUSD);
+
+    getAssetStorageLog(block, true).debug({ assetId: id, newPrice: priceUSD }, 'Asset price updated');
+
     await this.save(block, asset);
   }
 
   async updateLiquidity(block: SubstrateBlock ,id: string, liquidity: bigint): Promise<Asset> {
     const asset = await this.getAsset(block, id);
+
+    if (asset.liquidity === liquidity) return;
 
     asset.liquidity = liquidity;
 

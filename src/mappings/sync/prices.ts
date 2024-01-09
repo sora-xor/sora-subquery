@@ -7,7 +7,6 @@ import { assetStorage, assetSnapshotsStorage, tickerSyntheticAssetId } from '../
 import { networkSnapshotsStorage } from '../../utils/network';
 import { orderBooksStorage } from '../../utils/orderBook';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
-import { poolXykApyUpdatesStream } from '../../utils/stream';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
 import { getPoolsStorageLog, getSyncPricesLog } from "../../utils/logs";
 
@@ -122,17 +121,16 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
         for (const baseAssetId of BASE_ASSETS) {
             if (Array.isArray(pools[baseAssetId])) {
-                pools[baseAssetId].forEach(p => {
+                for (const p of pools[baseAssetId]) {
                     const strategicBonusApy =
                         pswapPriceInDAI.multipliedBy(pswapsPerDay)
                         .dividedBy(baseAssetWithDoublePoolsPrice.dividedBy(Math.pow(10, 18)))
                         .multipliedBy(new BigNumber(365 / 2))
-                        .multipliedBy(new BigNumber(p.multiplier));
-    
-                    p.strategicBonusApy = strategicBonusApy.toFixed(18);
-                    // stream update
-                    poolXykApyUpdatesStream.update(p.id, p.strategicBonusApy);
-                });
+                        .multipliedBy(new BigNumber(p.multiplier))
+                        .toFixed(18);
+
+                    await poolsStorage.updateApy(block, p.id, strategicBonusApy);
+                }
             }
         }
     }
