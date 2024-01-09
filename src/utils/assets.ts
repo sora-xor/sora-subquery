@@ -17,6 +17,16 @@ const calcVolumeUSD = (snapshots: AssetSnapshot[]): number => {
   return toFloat(totalVolume);
 };
 
+const calcTvlUSD = (asset: Asset, reserves?: bigint): BigNumber => {
+  if (!reserves) return new BigNumber(0);
+
+  const price = new BigNumber(asset.priceUSD);
+  const decimals = assetPrecisions.get(asset.id) ?? 18;
+  const amount = new BigNumber(reserves.toString()).dividedBy(Math.pow(10, decimals));
+
+  return price.multipliedBy(amount);
+};
+
 export const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
 export let assetPrecisions = new Map<string, number>();
@@ -81,34 +91,29 @@ class AssetStorage {
   async updatePrice(block: SubstrateBlock, id: string, priceUSD: string): Promise<void> {
     const asset = await this.getAsset(block, id);
 
+    if (asset.priceUSD === priceUSD) return;
+
     asset.priceUSD = priceUSD;
-    getAssetStorageLog(block, true).debug({ assetId: id, newPrice: priceUSD }, 'Asset price updated')
-    // update liquidity usd with new price
-    this.calcLiquidityUSD(asset);
     // stream update
     priceUpdatesStream.update(id, priceUSD);
+
+    getAssetStorageLog(block, true).debug({ assetId: id, newPrice: priceUSD }, 'Asset price updated');
+
     await this.save(block, asset);
   }
 
   async updateLiquidity(block: SubstrateBlock ,id: string, liquidity: bigint): Promise<void>  {
     const asset = await this.getAsset(block, id);
 
+    if (asset.liquidity === liquidity) return;
+
     asset.liquidity = liquidity;
-    // update liquidity usd with new liquidity
-    this.calcLiquidityUSD(asset);
+
     getAssetStorageLog(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidity updated')
   }
 
-  calcLiquidityUSD(asset: Asset): void {
-    const price = new BigNumber(asset.priceUSD);
-    const decimals = assetPrecisions.get(asset.id) ?? 18;
-    const liquidity = new BigNumber(asset.liquidity.toString()).dividedBy(Math.pow(10, decimals));
-
-    asset.liquidityUSD = toFloat(price.multipliedBy(liquidity));
-  }
-
   private async calcStats(block: SubstrateBlock, asset: Asset, type: SnapshotType, snapshotsCount: number) {
-    const { id, priceUSD, liquidityUSD } = asset;
+    const { id, priceUSD } = asset;
     const blockTimestamp = formatDateTimestamp(block.timestamp);
     const { index } = getSnapshotIndex(blockTimestamp, type);
     const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
@@ -118,7 +123,8 @@ class AssetStorage {
 
     const currentPriceUSD = new BigNumber(priceUSD);
     const startPriceUSD = new BigNumber(last(snapshots)?.priceUSD?.open ?? '0');
-    const tvl = new BigNumber(liquidityUSD ?? 0);
+    const tvlPools = calcTvlUSD(asset, asset.liquidity);
+    const tvl = tvlPools;
 
     const priceChange = calcPriceChange(currentPriceUSD, startPriceUSD);
     const volumeUSD = calcVolumeUSD(snapshots);
