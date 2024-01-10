@@ -3723,10 +3723,10 @@
     jwt-decode "^3.1.2"
     lru-cache "^10.0.1"
 
-"@subql/node-core@4.2.6":
-  version "4.2.6"
-  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-4.2.6.tgz#2a843a89241617bd8081fb613c4bcb4c691fa0d7"
-  integrity sha512-BNCCZCj0gNVa8p/PyMS8/RLBrMI8qTCPI5eXIFpFqMlW94tzcQuihD7mjYJX4V8lXCQ6MQeq+hFgP7vFVMZXSw==
+"@subql/node-core@4.2.8":
+  version "4.2.8"
+  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-4.2.8.tgz#c45720aa185919392348b3fa8bc9855e67325127"
+  integrity sha512-M6RcqQCfkYMbm0wuePzWvgEvFHCx5KHFHCyJJY8ef6U0XZi448ebMS7JXdW7nr4aLrINyJiKG0ImkUrxJN8SzA==
   dependencies:
     "@apollo/client" "^3.7.16"
     "@nestjs/common" "^9.4.0"
@@ -3753,10 +3753,10 @@
     vm2 "^3.9.19"
     yargs "^16.2.0"
 
-"@subql/node@2.12.6":
-  version "2.12.6"
-  resolved "https://registry.yarnpkg.com/@subql/node/-/node-2.12.6.tgz#73c4d1f051ff902613e1d87445f45e753e65cfca"
-  integrity sha512-MKcJHU0BiyJ8dwqWwpo+65f7tDBCnee+8XDQ+SbL5nMmhTLfq4yyngz7WXXk6ihU/I0qJ0rD+HZEad7a6Q9BGQ==
+"@subql/node@2.12.8":
+  version "2.12.8"
+  resolved "https://registry.yarnpkg.com/@subql/node/-/node-2.12.8.tgz#2f488d9a99fe43bdd9d6292b808161a8f1f7953f"
+  integrity sha512-5I9ex3iI+5ZVaQp1ny7zOCEiY1viC2or10TjfkrFx2dcuYJIf/wTepGYLF9TfYnbqKF2LTyvgsnpVIe+H+9wvg==
   dependencies:
     "@nestjs/common" "^9.4.0"
     "@nestjs/core" "^9.4.0"
@@ -3766,12 +3766,11 @@
     "@polkadot/api" "10.7.1"
     "@subql/common" "2.6.0"
     "@subql/common-substrate" "^2.4.0"
-    "@subql/node-core" "4.2.6"
+    "@subql/node-core" "4.2.8"
     "@subql/testing" "^2.0.2"
     "@subql/types" "^2.2.0"
     "@subql/utils" "^2.4.3"
     "@subql/x-sequelize" "6.32.0-0.0.2"
-    "@willsoto/nestjs-prometheus" "^4.4.0"
     cron-converter "^1.0.2"
     eventemitter2 "^6.4.5"
     fetch-h2 "3.0.2"
@@ -4398,11 +4397,6 @@
   dependencies:
     "@webassemblyjs/ast" "1.11.6"
     "@xtuc/long" "4.2.2"
-
-"@willsoto/nestjs-prometheus@^4.4.0":
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/@willsoto/nestjs-prometheus/-/nestjs-prometheus-4.7.0.tgz#62985e9e0f7f0ad32641ab36ade2754cb3f2f440"
-  integrity sha512-o/NvemIfcM5eQfqeIrHPQv/DfRuHfldqnu/eaiDfbUrDUltxKxJN4bVkMpItBiBFXqdcjcCgePzLV0DIOoWZgA==
 
 "@willsoto/nestjs-prometheus@^5.1.1":
   version "5.5.1"

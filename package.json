@@ -30,7 +30,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@subql/cli": "2.1.0",
-    "@subql/node": "2.12.6",
+    "@subql/node": "2.12.8",
     "@subql/types": "2.1.0",
     "fs-extra": "^10.0.0",
     "js-yaml": "^4.1.0",
