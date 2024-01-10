@@ -14,7 +14,7 @@ export async function stakingBondCallHandler(extrinsic: SubstrateExtrinsic): Pro
     const { extrinsic: { args: [controller, value, payee] }} = extrinsic as any;
     const details = {
         controller: controller.toString(),
-        payee: payee.__kind === 'Account' ? { kind: payee.__kind, value: payee.value } : { kind: payee.__kind },
+        payee: payee.isAccount ? { kind: payee.type, value: payee.asAccount.toString() } : { kind: payee.type },
 		amount: formatU128ToBalance(value.toString(), XOR),
     }
 
@@ -330,14 +330,14 @@ export async function stakingSetPayeeCallHandler(extrinsic: SubstrateExtrinsic):
 
 	const extrinsicSigner = extrinsic.extrinsic.signer.toString()
 	const stakingStaker = await getStakingStaker(extrinsic.block, extrinsicSigner)
-    const kind = args[0].__kind.toUpperCase()
-	const payeeType = kind === 'STAKED' || kind === 'NONE' ? PayeeType.STASH : kind as PayeeType
+    const kind = args[0];
+	const payeeType = kind.isStaked || kind.isNone ? PayeeType.STASH : kind.type.toUpperCase() as PayeeType
 	let payee = null
-	if (args[0].__kind === 'Account') {
-		payee = args[0].value.toString()
-	} else if (payeeType === PayeeType.STASH) {
+	if (kind.isAccount) {
+		payee = kind.asAccount.toString()
+	} else if (kind.isStash) {
 		payee = stakingStaker.id
-	} else if (payeeType === PayeeType.CONTROLLER) {
+	} else if (kind.isController) {
 		payee = stakingStaker.controller
 	}
 
@@ -366,12 +366,12 @@ export async function stakingSetStakingConfigsCallHandler(extrinsic: SubstrateEx
 	
     const createDetailObject = (key: keyof typeof args) => {
 		const value = args[key]
-		return value.__kind === 'Set'
+		return value.isSet
 			? {
-					kind: value.__kind,
-					value: typeof value.value === 'bigint' ? formatU128ToBalance(value.value, XOR) : value.value,
+					kind: value.type,
+					value: formatU128ToBalance(value.asSet.toString(), XOR),
 			  }
-			: { kind: value.__kind }
+			: { kind: value.type }
 	}
 
 	const details = {
