@@ -2,7 +2,7 @@ version: '3'
 
 services:
   postgres:
-    image: postgres:12-alpine
+    image: postgres:16-alpine
     ports:
       - 5432:5432
     volumes:
@@ -28,6 +28,7 @@ services:
       - ./:/app
     command:
       - -f=/app
+      - --log-level=debug
       - --disable-historical=true
       - --subscription
 
