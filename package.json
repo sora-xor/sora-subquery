@@ -29,7 +29,7 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@subql/cli": "4.2.3",
+    "@subql/cli": "4.2.5",
     "@subql/node": "2.10.0",
     "@subql/types": "3.3.0",
     "fs-extra": "^11.2.0",
