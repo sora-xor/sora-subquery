@@ -29,10 +29,9 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@polkadot/typegen": "8.9.1",
-    "@subql/cli": "1.10.1",
-    "@subql/node": "1.17.1",
-    "@subql/types": "1.7.0",
+    "@subql/cli": "2.1.0",
+    "@subql/node": "2.10.0",
+    "@subql/types": "2.2.0",
     "fs-extra": "^10.0.0",
     "js-yaml": "^4.1.0",
     "node-fetch": "^3.1.0",
@@ -41,7 +40,6 @@
     "write-yaml-file": "^4.2.0"
   },
   "dependencies": {
-    "@polkadot/api": "8.9.1",
     "bignumber.js": "^9.0.1",
     "dotenv": "^16.3.1"
   }
