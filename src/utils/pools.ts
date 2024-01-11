@@ -2,6 +2,7 @@ import { SubstrateBlock } from '@subql/types';
 import { PoolXYK } from '../types';
 import { XOR, DOUBLE_PRICE_POOL } from './consts';
 import { getInitializePoolsLog, getPoolsStorageLog } from './logs';
+import { poolXykApyUpdatesStream } from "./stream";
 
 // getters & setter for flag, should we sync poolXYK reserves
 // and then calc asset prices
@@ -159,6 +160,16 @@ class PoolsStorage {
     this.storage.set(poolId, pool);
 
     return pool;
+  }
+
+  async updateApy(block: SubstrateBlock, id: string, strategicBonusApy: string): Promise<void> {
+    const pool = await this.getPoolById(block, id);
+
+    if (pool.strategicBonusApy === strategicBonusApy) return;
+
+    pool.strategicBonusApy = strategicBonusApy;
+    // stream update
+    poolXykApyUpdatesStream.update(id, strategicBonusApy);
   }
 }
 
