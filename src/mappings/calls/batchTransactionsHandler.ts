@@ -2,9 +2,11 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addCallsToHistoryElement, addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
+import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
+import { HistoryElementCall } from '../../types';
 
 function formatSpecificCalls(
     call: CallBase<AnyTuple>
@@ -62,7 +64,7 @@ function extractCalls(
         callId: `${parentCallId}-${id}`,
         method: call.method,
         module: call.section,
-        hash: call.hash,
+        hash: call.hash.toString(),
         data: formatSpecificCalls(call)
     }
 
@@ -73,31 +75,38 @@ function extractCalls(
 }
 
 export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-
-    logger.debug("Caught batch transaction extrinsic")
+    logStartProcessingCall(extrinsic);
 
     const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
     const entities = [] as Object[];
 
-    const record = assignCommonHistoryElemInfo(extrinsic);
+    const historyElement = await createHistoryElement(extrinsic);
 
     entities.concat(
-        calls.map((call, idx) => extractCalls(call, idx, record.blockHeight.toString(), entities))
+        calls.map((call, idx) => extractCalls(call, idx, historyElement.blockHeight.toString(), entities))
     );
 
-    record.data = entities as Object
+    const historyElementCalls = entities.map((call: any) => {
+        const historyElementCall = new HistoryElementCall(call.callId);
+		historyElementCall.historyElementId = historyElement.id;
+		historyElementCall.module = call.module;
+		historyElementCall.method = call.method;
+		historyElementCall.data = call.data;
+        historyElementCall.hash = call.hash;
+		historyElementCall.updatedAtBlock = extrinsic.block.block.header.number.toNumber();
+        return historyElementCall;
+    })
 
-    await record.save()
-    await updateHistoryElementStats(record);
+	await addCallsToHistoryElement(extrinsic, historyElement, historyElementCalls);
+	await addDataToHistoryElement(extrinsic, historyElement, entities);
+    await updateHistoryElementStats(extrinsic, historyElement);
 
-    logger.debug(`===== Saved batch extrinsic with ${record.id.toString()} txid =====`)
-
-    if (record.execution.success) {
+    if (historyElement.execution.success) {
         // If initialize pool call exists, create new Pool
         const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
 
         if (initializePool) {
-            await poolsStorage.getPool(initializePool.data.args.asset_a, initializePool.data.args.asset_b);
+            await poolsStorage.getPool(extrinsic.block, initializePool.data.args.asset_a, initializePool.data.args.asset_b);
         }
     }
 }

@@ -1,5 +1,7 @@
+import { SubstrateBlock } from '@subql/types';
 import { PoolXYK } from '../types';
 import { XOR, DOUBLE_PRICE_POOL } from './consts';
+import { getInitializePoolsLog, getPoolsStorageLog } from './logs';
 
 // getters & setter for flag, should we sync poolXYK reserves
 // and then calc asset prices
@@ -13,46 +15,45 @@ export const PoolsPrices = {
   },
 };
 
-export const getAllReserves = async (baseAssetId: string) => {
+export const getAllReserves = async (block: SubstrateBlock, baseAssetId: string) => {
   try {
-    logger.debug(`[${baseAssetId}] Pools XYK Reserves request...`);
+    getInitializePoolsLog(block).debug({ baseAssetId }, 'Pools XYK Reserves request...');
     const reserves = await api.query.poolXYK.reserves.entries(baseAssetId);
-    logger.debug(`[${baseAssetId}] Pools XYK Reserves request completed.`);
+    getInitializePoolsLog(block).debug({ baseAssetId }, 'Pools XYK Reserves request completed');
     return reserves;
   } catch (e) {
-    logger.error("Error getting Reserves");
-    logger.error(e);
+    getInitializePoolsLog(block).error('Error getting Reserves');
+		getInitializePoolsLog(block).error(e);
     return null;
   }
 };
 
-export const getAllProperties = async (baseAssetId: string) => {
+export const getAllProperties = async (block: SubstrateBlock, baseAssetId: string) => {
   try {
-    logger.debug(`[${baseAssetId}] Pools XYK Properties request...`);
+    getInitializePoolsLog(block).debug({ baseAssetId }, 'Pools XYK Properties request...');
     const properties = await api.query.poolXYK.properties.entries(baseAssetId);
-    logger.debug(`[${baseAssetId}] Pools XYK Properties request completed.`);
+    getInitializePoolsLog(block).debug(`'${baseAssetId}' Pools XYK Properties request completed`);
     return properties;
   } catch (e) {
-    logger.error("Error getting Properties");
-    logger.error(e);
+    getInitializePoolsLog(block).error('Error getting Reserves')
+		getInitializePoolsLog(block).error(e);
     return null;
   }
 };
 
-export const getPoolProperties = async (baseAssetId: string, targetAssetId: string): Promise<string | null> => {
+export const getPoolProperties = async (block: SubstrateBlock, baseAssetId: string, targetAssetId: string): Promise<string | null> => {
   try {
-    logger.debug(`[${baseAssetId};${targetAssetId}] Pool properties request...`);
+    getInitializePoolsLog(block).debug({ baseAssetId, targetAssetId }, 'Pool properties request...');
     const props = (await api.query.poolXYK.properties(baseAssetId, targetAssetId)).toJSON() as any;
-    logger.debug(`[${baseAssetId};${targetAssetId}] Pool properties request completed`);
-
+    getInitializePoolsLog(block).debug({ baseAssetId, targetAssetId }, 'Pool properties request completed');
     if (!Array.isArray(props)) return null;
 
     const poolAccountId = props[0];
 
     return poolAccountId;
   } catch (error) {
-    logger.error("Error getting pool properties");
-    logger.error(error);
+    getInitializePoolsLog(block).error('Error getting pool properties');
+		getInitializePoolsLog(block).error(error);
     return null;
   }
 }
@@ -90,17 +91,17 @@ class PoolAccountsStorage {
     return this.accountIds.has(poolAccountId);
   }
 
-  async getPoolAccountId (baseAssetId: string, targetAssetId: string): Promise<string | null> {
+  async getPoolAccountId (block: SubstrateBlock, baseAssetId: string, targetAssetId: string): Promise<string | null> {
     const id = this.get(baseAssetId, targetAssetId);
 
     if (id) return id;
 
-    const poolAccountId = await getPoolProperties(baseAssetId, targetAssetId);
+    const poolAccountId = await getPoolProperties(block, baseAssetId, targetAssetId);
 
     if (poolAccountId) {
       this.add(baseAssetId, targetAssetId, poolAccountId);
     } else {
-      logger.error(`Cannot find pool id ${baseAssetId}:${targetAssetId}`);
+      getInitializePoolsLog(block).debug({ baseAssetId, targetAssetId }, 'Cannot find pool id');
     }
 
     return poolAccountId;
@@ -114,7 +115,7 @@ class PoolsStorage {
     this.storage = new Map();
   }
 
-  async getPoolById(poolId: string): Promise<PoolXYK | null> {
+  async getPoolById(block: SubstrateBlock, poolId: string): Promise<PoolXYK | null> {
     if (this.storage.has(poolId)) {
       return this.storage.get(poolId);
     }
@@ -122,19 +123,19 @@ class PoolsStorage {
     const adresses = poolAccounts.getById(poolId);
 
     if (adresses) {
-      return await this.getPool(...adresses);
+      return await this.getPool(block ,...adresses);
     }
 
     return null;
   }
 
-  async sync(): Promise<void> {
-    logger.debug(`[PoolsStorage] ${this.storage.size} entities sync`);
+  async sync(block: SubstrateBlock, ): Promise<void> {
+    getPoolsStorageLog(block).debug(`Sync ${this.storage.size} pools`);
     await store.bulkUpdate('PoolXYK', [...this.storage.values()]);
   }
 
-  async getPool(baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> {
-    const poolId = await poolAccounts.getPoolAccountId(baseAssetId, targetAssetId);
+  async getPool(block: SubstrateBlock, baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> {
+    const poolId = await poolAccounts.getPoolAccountId(block, baseAssetId, targetAssetId);
 
     if (!poolId) return null;
 
@@ -156,7 +157,7 @@ class PoolsStorage {
 
       await pool.save();
 
-      logger.debug(`[${poolId}] Created Pool XYK`);
+      getPoolsStorageLog(block).debug({ poolId }, 'Created Pool XYK');
     }
 
     this.storage.set(poolId, pool);

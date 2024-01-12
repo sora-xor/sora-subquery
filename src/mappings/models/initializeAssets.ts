@@ -2,70 +2,71 @@ import type { SubstrateBlock } from "@subql/types";
 
 import { assetPrecisions, getAssetId, assetStorage, formatU128ToBalance, tickerSyntheticAssetId } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
+import { getInitializeAssetsLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
 
-export const getAssetInfos = async () => {
+export const getAssetInfos = async (block: SubstrateBlock) => {
     try {
-      logger.debug(`Asset infos request...`);
+      getInitializeAssetsLog(block).debug('Asset infos request...');
       const data = await api.query.assets.assetInfos.entries();
-      logger.debug(`Asset infos request completed.`);
+      getInitializeAssetsLog(block).debug('Asset infos request completed');
       return data;
     } catch (e) {
-      logger.error("Error getting Asset infos");
-      logger.error(e);
+      getInitializeAssetsLog(block).error('Error getting Asset infos')
+	  getInitializeAssetsLog(block).error(e)
       return null;
     }
 };
 
-export const getSyntheticAssets = async () => {
+export const getSyntheticAssets = async (block: SubstrateBlock) => {
     try {
-      logger.debug(`Synthetic assets request...`);
+      getInitializeAssetsLog(block).debug('Synthetic assets request...')
       const data = await api.query.xstPool.enabledSynthetics.entries();
-      logger.debug(`Synthetic assets request completed.`);
+      getInitializeAssetsLog(block).debug('Synthetic assets request completed')
       return data;
     } catch (e) {
-      logger.error("Error getting Synthetic assets");
-      logger.error(e);
+      getInitializeAssetsLog(block).error('Error getting Synthetic assets')
+      getInitializeAssetsLog(block).error(e)
       return null;
     }
 };
 
-export const getBandRates = async () => {
+export const getBandRates = async (block: SubstrateBlock) => {
     try {
-      logger.debug(`Band rates request...`);
+      getInitializeAssetsLog(block).debug('Band rates request...');
       const data = await api.query.band.symbolRates.entries();
-      logger.debug(`Band rates request completed.`);
+      getInitializeAssetsLog(block).debug('Band rates request completed');
       return data;
     } catch (e) {
-      logger.error("Error getting Band rates");
-      logger.error(e);
+      getInitializeAssetsLog(block).error('Error getting Band rates');
+	  getInitializeAssetsLog(block).error(e);
       return null;
     }
 };
 
-export const getTokensIssuances = async () => {
+export const getTokensIssuances = async (block: SubstrateBlock) => {
     try {
-      logger.debug(`Tokens issuances request...`);
+      getInitializeAssetsLog(block).debug('Tokens issuances request...');
       const data = await api.query.tokens.totalIssuance.entries();
-      logger.debug(`Tokens issuances request completed.`);
+      getInitializeAssetsLog(block).debug('Tokens issuances request completed');
       return data;
     } catch (e) {
-      logger.error("Error getting Tokens issuances");
-      logger.error(e);
+      getInitializeAssetsLog(block).error('Error getting Tokens issuances');
+      getInitializeAssetsLog(block).error(e);
       return null;
     }
 };
 
-export const getXorIssuance = async () => {
+export const getXorIssuance = async (block: SubstrateBlock) => {
     try {
-      logger.debug(`XOR issuance request...`);
+      getInitializeAssetsLog(block).debug('XOR issuance request...');
       const data = await api.query.balances.totalIssuance();
-      logger.debug(`XOR issuance request completed.`);
+      getInitializeAssetsLog(block).debug('XOR issuance request completed');
       return data;
     } catch (e) {
-      logger.error("Error getting XOR issuance");
-      logger.error(e);
+      getInitializeAssetsLog(block).error('Error getting XOR issuance');
+	  getInitializeAssetsLog(block).error(e);
       return null;
     }
 };
@@ -73,23 +74,14 @@ export const getXorIssuance = async () => {
 export async function initializeAssets(block: SubstrateBlock): Promise<void> {
     if (isFirstBlockIndexed) return;
 
-    const blockNumber = block.block.header.number.toNumber();
+    getInitializeAssetsLog(block).debug('Initialize Asset entities')
 
-    logger.debug(`[${blockNumber}]: Initialize Asset entities`);
-
-    const [
-        assetInfos,
-        syntheticAssets,
-        bandRates,
-        tokensIssuances,
-        xorIssuance,
-    ] = await Promise.all([
-        getAssetInfos(),
-        getSyntheticAssets(),
-        getBandRates(),
-        getTokensIssuances(),
-        getXorIssuance()
-    ]);
+    // We don't use Promise.all() here because we need consistent order of requests in the log
+	const assetInfos = await getAssetInfos(block)
+	const syntheticAssets = await getSyntheticAssets(block)
+	const bandRates = await getBandRates(block)
+	const tokensIssuances = await getTokensIssuances(block)
+	const xorIssuance = await getXorIssuance(block)
 
     const assets = new Map();
 
@@ -97,9 +89,6 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         if (!assets.has(assetId)) {
             assets.set(assetId, {
                 id: assetId,
-                liquidity: BigInt(0),
-                priceUSD: '0',
-                supply: BigInt(0),
             });
         }
     };
@@ -123,8 +112,7 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
             assetPrecisions.set(assetId, 18);
             tickerSyntheticAssetId.set(referenceSymbol, assetId);
 
-            logger.debug(`[${blockNumber}]: ${referenceSymbol} ticker and synthetic asset ${assetId} added`);
-
+            getInitializeAssetsLog(block).debug(`'${referenceSymbol}' ticker and synthetic asset '${assetId}' added`)
             create(assetId);
         }
     }
@@ -143,7 +131,7 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
             const price = (data as any).value.value.toString();
             const priceUSD = formatU128ToBalance(price, assetId);
 
-            logger.debug(`${referenceSymbol} ticker price: ${priceUSD}`);
+            getInitializeAssetsLog(block).debug(`'${referenceSymbol}' ticker price: ${priceUSD}`)
 
             assets.get(assetId).priceUSD = priceUSD;
         }
@@ -168,11 +156,17 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
     const entities = [...assets.values()];
 
     if (entities.length) {
-        await store.bulkUpdate('Asset', entities);
-        await Promise.all(entities.map(entity => assetStorage.getAsset(entity.id)));
-        logger.debug(`[${blockNumber}]: ${entities.length} Assets initialized!`);
+        // get or create entities in DB & memory
+        const created = await Promise.all(entities.map(entity => assetStorage.getAsset(block, entity.id)));
+        // update data in memory storage
+        created.forEach((entity) => {
+            Object.assign(entity, assets.get(entity.id))
+        });
+        // save in DB
+        await store.bulkUpdate('Asset', created);
+        getInitializeAssetsLog(block).debug(`${entities.length} Assets initialized!`);
     } else {
-        logger.debug(`[${blockNumber}]: No Assets to initialize!`);
+        getInitializeAssetsLog(block).debug('No Assets to initialize!');
     }
 
     isFirstBlockIndexed = true;

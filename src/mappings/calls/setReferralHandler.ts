@@ -1,24 +1,23 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 
 export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-	logger.debug("Caught set referral extrinsic");
+    logStartProcessingCall(extrinsic);
 
-    const record = assignCommonHistoryElemInfo(extrinsic);
+    const historyElement = await createHistoryElement(extrinsic);
 
     let details = new Object();
     const { extrinsic: { args: [referrer] } } = extrinsic;
 
     details = {
-        from: record.address,
+        from: historyElement.address,
         to: referrer.toString()
     }
 
-    record.data = details
+    await addDataToHistoryElement(extrinsic, historyElement, details);
+    await updateHistoryElementStats(extrinsic, historyElement);
 
-    await record.save();
-    await updateHistoryElementStats(record);
-
-    logger.debug(`===== Saved set referral with ${extrinsic.extrinsic.hash.toString()} txid =====`);
+    getCallHandlerLog(extrinsic).debug('Saved set referral')
 
 }

@@ -1,14 +1,15 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { assignCommonHistoryElemInfo, updateHistoryElementStats } from "../../utils/history";
+import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
 import { isAssetTransferEvent } from '../../utils/events';
+import { logStartProcessingCall } from '../../utils/logs';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logger.debug("Caught liquidity adding extrinsic")
+    logStartProcessingCall(extrinsic);
 
-    const record = assignCommonHistoryElemInfo(extrinsic);
+    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args: [, assetAId, assetBId, assetADesired, assetBDesired] } } = extrinsic;
 
@@ -35,12 +36,8 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
         details.targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
     }
 
-    record.data = details as any;
+    await addDataToHistoryElement(extrinsic, historyElement, details)
 
-    await record.save();
-
-    logger.debug(`===== Saved liquidity deposit with ${extrinsic.extrinsic.hash.toString()} txid =====`);
-
-    await poolsStorage.getPool(baseAssetId, targetAssetId);
-    await updateHistoryElementStats(record);
+    await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
+    await updateHistoryElementStats(extrinsic, historyElement);
 }

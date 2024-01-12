@@ -15,7 +15,8 @@ services:
   subquery-node:
     image: onfinality/subql-node:v1.17.1
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: always
     environment:
       DB_USER: ${DB_USER}
@@ -36,7 +37,8 @@ services:
     ports:
       - 3000:3000
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: always
     environment:
       DB_USER: ${DB_USER}
