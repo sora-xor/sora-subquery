@@ -33,3 +33,8 @@ export const SnapshotSecondsMap = {
   [SnapshotType.DAY]: 86_400, // day
   [SnapshotType.MONTH]: 2_592_000, // month (30 days)
 };
+
+export const SnapshotTimeDepthMap = {
+  [SnapshotType.DEFAULT]: 60 * 60 * 24 * 7, // week
+  [SnapshotType.HOUR]: 60 * 60 * 24 * 30, // month
+};

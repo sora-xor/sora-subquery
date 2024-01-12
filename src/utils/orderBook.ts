@@ -4,8 +4,8 @@ import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookD
 
 import { SubstrateBlock } from '@subql/types';
 import { getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
-import { formatDateTimestamp, getSnapshotIndex, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
-import { assetStorage, assetSnapshotsStorage, assetPrecisions, calcTvlUSD } from './assets';
+import { formatDateTimestamp, getSnapshotIndex, getSnapshotTypes, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
+import { assetStorage, assetSnapshotsStorage, calcTvlUSD } from './assets';
 import { XOR } from "./consts";
 import { networkSnapshotsStorage } from "./network";
 import { predefinedAssets } from './consts';
@@ -391,7 +391,9 @@ export class OrderBooksSnapshotsStorage {
     const quoteAssetPriceUSD = quoteAsset.priceUSD ?? '0';
     const quoteVolumeUSD = new BigNumber(quoteAssetPriceUSD).multipliedBy(quoteAmount);
 
-    for (const type of OrderBooksSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, OrderBooksSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
       const baseAssetVolume = new BigNumber(snapshot.baseAssetVolume).plus(baseAmount).toString();
       const quoteAssetVolume = new BigNumber(snapshot.quoteAssetVolume).plus(quoteAmount).toString();
@@ -431,7 +433,9 @@ export class OrderBooksSnapshotsStorage {
     quoteAssetId: string,
     liquidityUSD: BigNumber,
   ): Promise<void> {
-    for (const type of OrderBooksSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, OrderBooksSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
 
       snapshot.liquidityUSD = liquidityUSD.toFixed(2);
