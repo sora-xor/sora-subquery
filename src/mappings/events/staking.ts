@@ -64,7 +64,7 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 					stakingStaker.id
 				)
 			}
-			stakingEraNominator.bond += nomination.value
+			stakingEraNominator.bond += BigInt(nomination.value.toString())
 			await stakingEraNominator.save()
 			getEventHandlerLog(event).debug(
 				{ id: stakingEraNominator.id, bond: stakingEraNominator.bond },
@@ -74,10 +74,10 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 			let stakingEraNomination = new StakingEraNomination(
 				`${activeStakingEra.id}-${stakingStaker.id}-${stakingValidator.id}`,
 				activeStakingEra.id,
-				nomination.value,
+				BigInt(nomination.value.toString()),
 				stakingEraValidator.id,
 				stakingEraNominator.id
-			)
+			);
 			await stakingEraNomination.save()
 			getEventHandlerLog(event).debug(
 				{ id: stakingEraNomination.id, amount: stakingEraNomination.amount },

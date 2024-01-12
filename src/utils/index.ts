@@ -6,7 +6,7 @@ import { TextDecoder } from 'util';
 
 import { SnapshotType } from "../types";
 
-import { SnapshotSecondsMap } from './consts';
+import { SnapshotSecondsMap, SnapshotTimeDepthMap } from './consts';
 import { SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 
 export const toFloat = (value: BigNumber) => Number(value.toFixed(2));
@@ -42,6 +42,14 @@ export const shouldUpdate = (block: SubstrateBlock, diff = 3_600) => {
   const currentTimestamp = formatDateTimestamp(new Date());
 
   return currentTimestamp - blockTimestamp < diff;
+};
+
+export const getSnapshotTypes = (block: SubstrateBlock, types: SnapshotType[]) => {
+  return types.filter((type) => {
+    const diff = SnapshotTimeDepthMap[type];
+
+    return !diff || shouldUpdate(block, diff);
+  });
 };
 
 export const getSnapshotIndex = (blockTimestamp: number, type: SnapshotType): { index: number, timestamp: number } => {
