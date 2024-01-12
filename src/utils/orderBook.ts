@@ -74,11 +74,8 @@ export class OrderBooksStorage {
     let orderBook = await OrderBook.get(id);
 
     if (!orderBook) {
-      orderBook = new OrderBook(id);
-      orderBook.dexId = dexId;
-      orderBook.baseAssetId = baseAssetId;
-      orderBook.quoteAssetId = quoteAssetId;
-      orderBook.status = OrderBookStatus.Trade;
+      const updatedAt = block.block.header.number.toNumber();
+      orderBook = new OrderBook(id, dexId, baseAssetId, quoteAssetId, OrderBookStatus.Trade, updatedAt);
       orderBook.price = '0';
 
       await this.save(block, orderBook, true);
@@ -207,20 +204,14 @@ export class OrderBooksSnapshotsStorage {
 
     if (!snapshot) {
       const orderBook = await this.orderBooksStorage.getOrderBook(block, dexId, baseAssetId, quoteAssetId);
-
-      snapshot = new OrderBookSnapshot(id);
-      snapshot.orderBookId = orderBookId;
-      snapshot.timestamp = timestamp;
-      snapshot.type = type;
-      snapshot.baseAssetVolume = '0';
-      snapshot.quoteAssetVolume = '0';
-      snapshot.volumeUSD = '0';
-      snapshot.price = {
+      const price = {
         open: orderBook.price,
         close: orderBook.price,
         high: orderBook.price,
         low: orderBook.price,
       };
+
+      snapshot = new OrderBookSnapshot(id, orderBookId, timestamp, type, price, '0', '0', '0');
 
       getOrderBooksSnapshotsStorageLog(block).debug({ id }, 'Order Book snapshot created');
     }

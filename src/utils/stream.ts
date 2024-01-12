@@ -32,9 +32,7 @@ class BlockUpdatesStream {
     let entity = await UpdatesStream.get(this.id);
 
     if (!entity) {
-      entity = new UpdatesStream(this.id);
-      entity.block = 0;
-      entity.data = '';
+      entity = new UpdatesStream(this.id, 0, '');
     }
 
     return entity;
