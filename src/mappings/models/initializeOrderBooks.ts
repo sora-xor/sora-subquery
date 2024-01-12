@@ -2,7 +2,7 @@ import { SubstrateBlock } from "@subql/types";
 
 import { OrderBookStatus } from '../../types'
 import { getAssetId } from '../../utils/assets';
-import { getAllOrderBooks, OrderBooksStorage, orderBooksStorage } from '../../utils/orderBook';
+import { getAllOrderBooks, OrderBooksStorage, orderBooksStorage, getOrderBookAssetBalance } from '../../utils/orderBook';
 import { getInitializeOrderBooksLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
@@ -11,6 +11,8 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
   if (isFirstBlockIndexed) return;
 
   getInitializeOrderBooksLog(block).debug('Initialize Order Books entities');
+
+  await orderBooksStorage.updateAccountIds(block);
 
   const orderBooks = await getAllOrderBooks(block);
 
@@ -26,12 +28,20 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const quoteAssetId = getAssetId(quote);
       const id = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
       const status = statusCodec ? statusCodec.toHuman() : OrderBookStatus.Trade;
+      const accountId = await orderBooksStorage.getAccountId(block, id);
+
+      const [baseAssetReserves, quoteAssetReserves] = await Promise.all([
+        getOrderBookAssetBalance(block, accountId, baseAssetId),
+        getOrderBookAssetBalance(block, accountId, quoteAssetId),
+      ]);
 
       buffer.set(id, {
         id,
         dexId,
         baseAssetId,
         quoteAssetId,
+        baseAssetReserves,
+        quoteAssetReserves,
         status,
         updatedAtBlock,
       });
