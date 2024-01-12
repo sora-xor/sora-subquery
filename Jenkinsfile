@@ -1,5 +1,5 @@
 @Library('jenkins-library')
-
+// only for dev environment
 def pipeline = new org.js.AppPipeline(
     steps:              this,
     test:               false,

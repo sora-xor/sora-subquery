@@ -52,8 +52,8 @@ type Asset @entity {
   poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
   priceUSD: String!
   supply: BigInt!
-  liquidity: BigInt! # locked in pairs (in tokens)
-  liquidityUSD: Float # locked in pairs (in USD)
+  liquidity: BigInt # locked in pools (in tokens)
+  liquidityBooks: BigInt # locked in order books (in tokens)
   priceChangeDay: Float
   priceChangeWeek: Float
   volumeDayUSD: Float
@@ -73,14 +73,13 @@ type AssetVolume @jsonField {
   amountUSD: String!
 }
 
-type AssetSnapshot @entity {
+type AssetSnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
   id: ID!
   asset: Asset! @index #relation to Asset
   timestamp: Int!
   type: SnapshotType!
   priceUSD: AssetPrice
   volume: AssetVolume
-  liquidity: BigInt # locked in pairs (in tokens)
   supply: BigInt!
   mint: BigInt!
   burn: BigInt!
@@ -257,6 +256,8 @@ type OrderBook @entity {
   dexId: Int! @index
   baseAsset: Asset! @index
   quoteAsset: Asset! @index
+  baseAssetReserves: BigInt!
+  quoteAssetReserves: BigInt!
   status: OrderBookStatus!
   price: String
   priceChangeDay: Float
@@ -267,7 +268,7 @@ type OrderBook @entity {
   updatedAtBlock: Int!
 }
 
-type OrderBookSnapshot @entity {
+type OrderBookSnapshot @entity @compositeIndexes(fields: [["orderBook", "type"]]) {
   id: ID!
   orderBook: OrderBook! @index
   timestamp: Int!
@@ -276,6 +277,7 @@ type OrderBookSnapshot @entity {
   baseAssetVolume: String!
   quoteAssetVolume: String!
   volumeUSD: String!
+  liquidityUSD: String!
 }
 
 type OrderBookOrder implements IOrderBookDeal @entity {
