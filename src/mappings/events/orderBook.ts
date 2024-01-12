@@ -95,12 +95,9 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, side, price, amount] } } = event as any;
   const { id, dexId, baseAssetId, quoteAssetId, orderId } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
 
-  const amountU128 = amount.asBase.inner.toString();
-  const priceU128 = price.inner.toString();
+  const newPrice = formatU128ToBalance(price.inner.toString(), quoteAssetId);
+  const newAmount = formatU128ToBalance(amount.asBase.inner.toString(), baseAssetId);
   const isBuy = side.toHuman() === 'Buy';
-
-  const newPrice = formatU128ToBalance(priceU128, quoteAssetId);
-  const newAmount = formatU128ToBalance(amountU128, baseAssetId);
 
   const limitOrder = await OrderBookOrder.get(id);
 
@@ -168,7 +165,7 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
   logStartProcessingEvent(event);
 
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, reasonCodec] } } = event as any;
-  const { id, dexId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
+  const { id } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
 
   const limitOrder = await OrderBookOrder.get(id);
 
