@@ -1,4 +1,4 @@
-@Library('jenkins-library@f33r0-patch-1')
+@Library('jenkins-library')
 
 def jobParams  = [
     string(defaultValue: '20000', name: 'queryTimeout', trim: true),
