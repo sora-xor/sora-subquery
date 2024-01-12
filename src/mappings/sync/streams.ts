@@ -1,10 +1,10 @@
 import { SubstrateBlock } from "@subql/types";
 
-import { priceUpdatesStream, poolXykApyUpdatesStream } from '../../utils/stream';
+import { assetRegistrationStream, priceUpdatesStream, poolXykApyUpdatesStream } from '../../utils/stream';
 import { getStreamLog } from '../../utils/logs';
 import { shouldUpdate } from "../../utils";
 
-const streams = [priceUpdatesStream, poolXykApyUpdatesStream];
+const streams = [assetRegistrationStream, priceUpdatesStream, poolXykApyUpdatesStream];
 
 export async function syncStreams(block: SubstrateBlock) {
   if (!shouldUpdate(block, 60)) return;

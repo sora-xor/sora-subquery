@@ -25,12 +25,14 @@ export async function stakingRewardedEventHandler(event: SubstrateEvent): Promis
 	const payee = staker.payee
 	const id = `${stakingEra.id}-${getEventId(event)}-${staker.id}`
 
-	const stakingReward = new StakingReward(id)
-	stakingReward.stakerId = staker.id
+	const stakingReward = new StakingReward(
+		id,
+		amount,
+		staker.id,
+		stakingEra.id,
+		formatDateTimestamp(event.block.timestamp)
+	)
 	stakingReward.payee = payee
-	stakingReward.amount = amount
-	stakingReward.eraId = stakingEra.id
-	stakingReward.timestamp = formatDateTimestamp(event.block.timestamp)
 
 	await stakingReward.save()
 	getEventHandlerLog(event).debug({ stash, payee, amount, era: stakingEra.index }, 'Staking reward saved')
