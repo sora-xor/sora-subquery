@@ -63,6 +63,9 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
 
   const book = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
   const account = await getAccountEntity(event.block, ownerId.toString());
+  const amountU128 = amount.inner.toString();
+  const priceU128 = price.inner.toString();
+  const isBuy = side.toHuman() === 'Buy';
 
   const limitOrder = new OrderBookOrder(
     id,

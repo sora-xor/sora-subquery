@@ -1,11 +1,11 @@
 import BigNumber from "bignumber.js";
 
 import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
-import { getSnapshotIndex, formatDateTimestamp } from "./index";
+import { getSnapshotIndex, getSnapshotTypes, formatDateTimestamp } from "./index";
 import { SubstrateBlock } from "@subql/types";
 import { getNetworkSnapshotsStorageLog } from "./logs";
 
-export const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
+const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
 
 const NetworkStatsId = '0';
 
@@ -118,7 +118,9 @@ class NetworkSnapshotsStorage {
 
     stats.totalAccounts = stats.totalAccounts + 1;
 
-    for (const type of NetworkSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, type);
   
       snapshot.accounts = snapshot.accounts + 1;
@@ -132,7 +134,9 @@ class NetworkSnapshotsStorage {
 
     stats.totalTransactions = stats.totalTransactions + 1;
 
-    for (const type of NetworkSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, type);
 
       snapshot.transactions = snapshot.transactions + 1;
@@ -146,7 +150,9 @@ class NetworkSnapshotsStorage {
 
     stats.totalBridgeIncomingTransactions = stats.totalBridgeIncomingTransactions + 1;
 
-    for (const type of NetworkSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, type);
 
       snapshot.bridgeIncomingTransactions = snapshot.bridgeIncomingTransactions + 1;
@@ -160,7 +166,9 @@ class NetworkSnapshotsStorage {
 
     stats.totalBridgeOutgoingTransactions = stats.totalBridgeOutgoingTransactions + 1;
 
-    for (const type of NetworkSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, type);
 
       snapshot.bridgeOutgoingTransactions = snapshot.bridgeOutgoingTransactions + 1;
@@ -174,7 +182,9 @@ class NetworkSnapshotsStorage {
 
     stats.totalFees = stats.totalFees + fee;
 
-    for (const type of NetworkSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, type);
 
       snapshot.fees = snapshot.fees + fee;
@@ -184,7 +194,9 @@ class NetworkSnapshotsStorage {
   async updateLiquidityStats(block: SubstrateBlock, liquiditiesUSD: BigNumber): Promise<void> {
     getNetworkSnapshotsStorageLog(block).debug({ liquiditiesUSD }, 'Update liquidity stats in network snapshots')
 
-    for (const type of NetworkSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, type);
 
       snapshot.liquidityUSD = liquiditiesUSD.toFixed(2);
@@ -194,7 +206,9 @@ class NetworkSnapshotsStorage {
   async updateVolumeStats(block: SubstrateBlock, volumeUSD: BigNumber): Promise<void> {
     getNetworkSnapshotsStorageLog(block).debug({ volumeUSD }, 'Update volume stats in network snapshot')
 
-    for (const type of NetworkSnapshots) {
+    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+
+    for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, type);
   
       snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toFixed(2);
