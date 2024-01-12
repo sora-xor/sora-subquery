@@ -10,8 +10,6 @@
     "codegen": "./node_modules/.bin/subql codegen",
     "config:chainId": "node ./scripts/chainId.mjs",
     "config:chainId:update": "node ./scripts/chainId.mjs --update",
-    "generate:defs": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package sora/api-interfaces --input ./src/api-interfaces/",
-    "generate:meta": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --package sora/api-interfaces --endpoint ./src/api-interfaces/sora.json --output ./src/api-interfaces",
     "process": "docker-compose pull && docker-compose up",
     "process:clean:testLog": "export INDEXER_TEST_LOG_MODE=true && rm -rf .data && npm run build && docker-compose kill && docker-compose pull && docker-compose up",
     "process:clean": "rm -rf .data && npm run build && docker-compose kill && docker-compose pull && docker-compose up"
@@ -29,6 +27,7 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@sora-substrate/types": "latest",
     "@subql/cli": "3.6.1",
     "@subql/node": "2.10.0",
     "@subql/types": "2.2.0",
@@ -42,5 +41,8 @@
   "dependencies": {
     "bignumber.js": "^9.0.1",
     "dotenv": "^16.3.1"
+  },
+  "exports": {
+    "chaintypes": "src/chaintypes.ts"
   }
 }
