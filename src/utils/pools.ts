@@ -150,12 +150,8 @@ class PoolsStorage {
     let pool = await PoolXYK.get(poolId);
 
     if (!pool) {
-      pool = new PoolXYK(poolId);
-      pool.baseAssetId = baseAssetId;
-      pool.targetAssetId = targetAssetId;
-      pool.baseAssetReserves = BigInt(0);
-      pool.targetAssetReserves = BigInt(0);
-      pool.multiplier = baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
+      const multiplier = baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
+      pool = new PoolXYK(poolId, baseAssetId, targetAssetId, BigInt(0), BigInt(0), multiplier);
       pool.priceUSD = '0';
       pool.strategicBonusApy = '0';
 

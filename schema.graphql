@@ -73,7 +73,7 @@ type AssetVolume @jsonField {
   amountUSD: String!
 }
 
-type AssetSnapshot @entity {
+type AssetSnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
   id: ID!
   asset: Asset! @index #relation to Asset
   timestamp: Int!
@@ -268,7 +268,7 @@ type OrderBook @entity {
   updatedAtBlock: Int!
 }
 
-type OrderBookSnapshot @entity {
+type OrderBookSnapshot @entity @compositeIndexes(fields: [["orderBook", "type"]]) {
   id: ID!
   orderBook: OrderBook! @index
   timestamp: Int!
