@@ -16,7 +16,7 @@ network:
   chainId: '0'
   endpoint: wss://ws.framenode-1.s1.stg1.sora2.soramitsu.co.jp
   chaintypes:
-    file: ./dist/chaintypes.js
+    file: ./types.json
 dataSources:
   - kind: substrate/Runtime
     # 37: 874156
