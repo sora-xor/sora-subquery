@@ -29,9 +29,9 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@subql/cli": "4.2.5",
+    "@subql/cli": "3.6.1",
     "@subql/node": "2.10.0",
-    "@subql/types": "3.3.0",
+    "@subql/types": "2.2.0",
     "fs-extra": "^11.2.0",
     "js-yaml": "^4.1.0",
     "node-fetch": "^3.1.0",
