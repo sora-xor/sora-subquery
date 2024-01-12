@@ -5,8 +5,18 @@ import fetch from 'node-fetch';
 const configPath = 'project.yaml';
 const shouldUpdate = process.argv.includes('--update');
 
+function getRpcEndpoint(wsEndpoint) {
+	return wsEndpoint.replace(/^ws(s)?:\/\/(ws)?/, (_, p1, p2) => {
+		let str = 'http';
+		if (p1) str += p1;
+		str += '://';
+		if (p2) str += 'rpc';
+		return str;
+	})
+}
+
 async function fetchChainId(endpoint) {
-	const rpcUrl = endpoint.replace(/^ws(s)?:\/\/ws/, 'http$1://rpc');
+	const rpcUrl = getRpcEndpoint(endpoint);
 
     // Fetch chainId using an RPC request
     const request = {
