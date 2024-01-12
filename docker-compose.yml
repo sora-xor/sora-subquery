@@ -2,7 +2,7 @@ version: '3'
 
 services:
   postgres:
-    image: postgres:12-alpine
+    image: postgres:16-alpine
     ports:
       - 5432:5432
     volumes:
@@ -13,7 +13,7 @@ services:
       test: pg_isready -U postgres
 
   subquery-node:
-    image: onfinality/subql-node:v1.17.1
+    image: onfinality/subql-node:v2.10.0
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,7 +33,7 @@ services:
       - --subscription
 
   graphql-engine:
-    image: onfinality/subql-query:v1.10.1
+    image: onfinality/subql-query:v2.8.0
     ports:
       - 3000:3000
     depends_on:

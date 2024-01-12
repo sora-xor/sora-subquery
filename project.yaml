@@ -4,10 +4,10 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 1.17.1
+    version: 2.10.0
   query:
     name: '@subql/query'
-    version: 1.10.1
+    version: 2.8.0
 description: ''
 repository: https://github.com/sora-xor/sora-subquery
 schema:
@@ -16,7 +16,7 @@ network:
   chainId: '0x3c935e4b53f12f2c2d618486389399421648ce04981aff538936fa9d071e5c50'
   endpoint: wss://ws.framenode-2.r0.tst.sora2.soramitsu.co.jp
   chaintypes:
-    file: ./types.json
+    file: ./dist/chaintypes.js
 dataSources:
   - kind: substrate/Runtime
     startBlock: 1
@@ -150,146 +150,146 @@ dataSources:
             module: demeterFarmingPlatform
             method: getRewards
 
-        # - handler: stakingBondCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: bond
-        # - handler: stakingBondExtraCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: bondExtra
-        # - handler: stakingCancelDeferredSlashCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: cancelDeferredSlash
-        # - handler: stakingChillCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: chill
-        # - handler: stakingChillOtherCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: chillOther
-        # - handler: stakingForceApplyMinCommissionCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: forceApplyMinCommission
-        # - handler: stakingForceNewEraCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: forceNewEra
-        # - handler: stakingForceNewEraAlwaysCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: forceNewEraAlways
-        # - handler: stakingForceNoErasCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: forceNoEras
-        # - handler: stakingForceUnstakeCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: forceUnstake
-        # - handler: stakingIncreaseValidatorCountCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: increaseValidatorCount
-        # - handler: stakingKickCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: kick
-        # - handler: stakingNominateCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: nominate
-        # - handler: stakingPayoutStakersCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: payoutStakers
-        # - handler: stakingReapStashCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: reapStash
-        # - handler: stakingRebondCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: rebond
-        # - handler: stakingScaleValidatorCountCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: scaleValidatorCount
-        # - handler: stakingSetControllerCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: setController
-        # - handler: stakingSetInvulnerablesCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: setInvulnerables
-        # - handler: stakingSetMinCommissionCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: setMinCommission
-        # - handler: stakingSetPayeeCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: setPayee
-        # - handler: stakingSetStakingConfigsCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: setStakingConfigs
-        # - handler: stakingSetValidatorCountCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: setValidatorCount
-        # - handler: stakingUnbondCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: unbond
-        # - handler: stakingValidateCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: validate
-        # - handler: stakingWithdrawUnbondedCallHandler
-        #   kind: substrate/CallHandler
-        #   filter:
-        #     module: staking
-        #     method: withdrawUnbonded
-        # - handler: stakingRewardedEventHandler
-        #   kind: substrate/EventHandler
-        #   filter:
-        #     module: staking
-        #     method: Rewarded
-        # - handler: stakingStakersElectedEventHandler
-        #   kind: substrate/EventHandler
-        #   filter:
-        #     module: staking
-        #     method: StakersElected
+        - handler: stakingBondCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: bond
+        - handler: stakingBondExtraCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: bondExtra
+        - handler: stakingCancelDeferredSlashCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: cancelDeferredSlash
+        - handler: stakingChillCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: chill
+        - handler: stakingChillOtherCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: chillOther
+        - handler: stakingForceApplyMinCommissionCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: forceApplyMinCommission
+        - handler: stakingForceNewEraCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: forceNewEra
+        - handler: stakingForceNewEraAlwaysCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: forceNewEraAlways
+        - handler: stakingForceNoErasCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: forceNoEras
+        - handler: stakingForceUnstakeCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: forceUnstake
+        - handler: stakingIncreaseValidatorCountCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: increaseValidatorCount
+        - handler: stakingKickCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: kick
+        - handler: stakingNominateCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: nominate
+        - handler: stakingPayoutStakersCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: payoutStakers
+        - handler: stakingReapStashCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: reapStash
+        - handler: stakingRebondCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: rebond
+        - handler: stakingScaleValidatorCountCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: scaleValidatorCount
+        - handler: stakingSetControllerCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: setController
+        - handler: stakingSetInvulnerablesCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: setInvulnerables
+        - handler: stakingSetMinCommissionCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: setMinCommission
+        - handler: stakingSetPayeeCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: setPayee
+        - handler: stakingSetStakingConfigsCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: setStakingConfigs
+        - handler: stakingSetValidatorCountCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: setValidatorCount
+        - handler: stakingUnbondCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: unbond
+        - handler: stakingValidateCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: validate
+        - handler: stakingWithdrawUnbondedCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: staking
+            method: withdrawUnbonded
+        - handler: stakingRewardedEventHandler
+          kind: substrate/EventHandler
+          filter:
+            module: staking
+            method: Rewarded
+        - handler: stakingStakersElectedEventHandler
+          kind: substrate/EventHandler
+          filter:
+            module: staking
+            method: StakersElected
 
         - handler: orderBookCreatedEvent
           kind: substrate/EventHandler
