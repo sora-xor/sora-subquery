@@ -102,8 +102,6 @@ class AssetStorage {
   async updateLiquidity(block: SubstrateBlock ,id: string, liquidity: bigint): Promise<Asset> {
     const asset = await this.getAsset(block, id);
 
-    if (asset.liquidity === liquidity) return;
-
     asset.liquidity = liquidity;
 
     getAssetStorageLog(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidity updated');
