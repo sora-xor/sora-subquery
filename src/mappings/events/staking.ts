@@ -10,18 +10,20 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 
 	const exposures = await api.query.staking.erasStakers.entries(activeStakingEra.id);
 
-	for (const [[era, validator], exposure] of exposures) {
-		const exposureData =  exposure.toJSON() as any;
+	for (const [key, value] of exposures) {
+		const validatorId = key.args[1].toString();
+
+		const exposureData =  value.toJSON() as any;
 		const total = BigInt(exposureData.total)
 		const own = BigInt(exposureData.own)
 		const others = exposureData.others
 
-		let stakingValidator = await StakingValidator.get(validator.toString())
+		let stakingValidator = await StakingValidator.get(validatorId)
 		if (!stakingValidator) {
-			stakingValidator = new StakingValidator(validator.toString(), total)
+			stakingValidator = new StakingValidator(validatorId, total)
 		}
 
-		const stakingStaker = await getStakingStaker(event.block, validator.toString())
+		const stakingStaker = await getStakingStaker(event.block, validatorId);
 		const stakingEraValidatorId = `${activeStakingEra.id}-${stakingStaker.id}`;
 
 		let stakingEraValidator = await StakingEraValidator.get(stakingEraValidatorId);
