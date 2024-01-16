@@ -331,14 +331,16 @@ export async function stakingSetPayeeCallHandler(extrinsic: SubstrateExtrinsic):
 	const extrinsicSigner = extrinsic.extrinsic.signer.toString()
 	const stakingStaker = await getStakingStaker(extrinsic.block, extrinsicSigner)
     const kind = args[0];
-	const payeeType = kind.isStaked || kind.isNone ? PayeeType.STASH : kind.type.toUpperCase() as PayeeType
-	let payee = null
+
+	let payee = stakingStaker.payee;
+    let payeeType = stakingStaker.payeeType;
+
 	if (kind.isAccount) {
-		payee = kind.asAccount.toString()
-	} else if (kind.isStash) {
-		payee = stakingStaker.id
+		payee = kind.asAccount.toString();
+        payeeType = PayeeType.ACCOUNT;
 	} else if (kind.isController) {
 		payee = stakingStaker.controller
+        payeeType = PayeeType.CONTROLLER;
 	}
 
 	if (stakingStaker.payeeType !== payeeType || stakingStaker.payee !== payee) {
