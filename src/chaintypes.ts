@@ -1,3 +1,3 @@
-import { fullOverrideBundle } from '@sora-substrate/type-definitions';
+import { types } from '@sora-substrate/type-definitions';
 
-export default { typesBundle: fullOverrideBundle };
+export default { types };
