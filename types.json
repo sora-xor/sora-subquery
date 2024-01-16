@@ -26,6 +26,12 @@
         "AssetRecord": "Null",
         "AssetSymbol": "Text",
         "AssetSymbolStr": "String",
+        "AuctionInfo": {
+            "bid": "Option<(AccountId, Balance)>",
+            "start": "BlockNumber",
+            "end": "Option<BlockNumber>"
+        },
+        "AuthorityOrigin": "DelayedOrigin",
         "AuxiliaryDigest": {
             "logs": "Vec<AuxiliaryDigestItem>"
         },
@@ -64,7 +70,7 @@
             "_enum": [
                 "V1",
                 "V2",
-				"V3"
+                "V3"
             ]
         },
         "BridgeStatus": {
@@ -77,6 +83,7 @@
             "height": "MultiChainHeight",
             "index": "u32"
         },
+        "CallOf": "Call",
         "ChangePeersContract": {
             "_enum": [
                 "XOR",
@@ -93,6 +100,7 @@
             "tip": "Compact<Balance>",
             "target_asset_id": "AssetId"
         },
+        "CompactBalance": "Compact<Balance>",
         "ContentSource": "Text",
         "ContributionInfo": {
             "fundsContributed": "Balance",
@@ -139,12 +147,30 @@
             "defaultFee": "BasisPoints",
             "defaultProtocolFee": "BasisPoints"
         },
+        "DataProviderId": "u8",
+        "DelayedDispatchTime": {
+            "_enum": {
+                "At": "BlockNumber",
+                "After": "BlockNumber"
+            }
+        },
+        "DelayedOrigin": {
+            "delay": "BlockNumber",
+            "origin": "PalletsOrigin"
+        },
         "Description": "Text",
         "DispatchErrorWithPostInfoTPostDispatchInfo": {
             "postInfo": "PostDispatchInfo",
             "error": "DispatchError"
         },
+        "DispatchId": "u32",
         "DispatchResultWithPostInfo": "Result<PostDispatchInfo, DispatchErrorWithPostInfoTPostDispatchInfo>",
+        "DispatchTime": {
+            "_enum": {
+                "At": "BlockNumber",
+                "After": "BlockNumber"
+            }
+        },
         "DistributionAccounts": "Null",
         "Duration": "Null",
         "EVMAppInfo": {
@@ -205,6 +231,11 @@
                 "EVM": "EVMChainId",
                 "Sub": "SubNetworkId"
             }
+        },
+        "GraduallyUpdate": {
+            "key": "StorageKey",
+            "targetValue": "StorageValue",
+            "perBlock": "StorageValue"
         },
         "HermesPollInfo": {
             "creator": "AccountId",
@@ -456,6 +487,24 @@
             }
         },
         "OracleKey": "AssetId",
+        "OracleValue": "FixedU128",
+        "OrderedSet": "Vec<AccountId>",
+        "OrmlAccountData": {
+            "free": "Balance",
+            "reserved": "Balance",
+            "frozen": "Balance"
+        },
+        "OrmlBalanceLock": {
+            "amount": "Balance",
+            "id": "LockIdentifier"
+        },
+        "OrmlCurrencyId": "u8",
+        "OrmlVestingSchedule": {
+            "start": "BlockNumber",
+            "period": "BlockNumber",
+            "periodCount": "u32",
+            "perPeriod": "Compact<Balance>"
+        },
         "OutgoingAddAsset": {
             "author": "AccountId",
             "assetId": "AssetId",
@@ -633,6 +682,15 @@
             "block": "BlockNumber",
             "weight": "Balance"
         },
+        "PoolInfo": {
+            "totalShares": "Share",
+            "rewards": "BTreeMap<OrmlCurrencyId, (Balance, Balance)>"
+        },
+        "PoolInfoV0": {
+            "totalShares": "Compact<Share>",
+            "totalRewards": "CompactBalance",
+            "totalWithdrawnRewards": "CompactBalance"
+        },
         "PostDispatchInfo": {
             "actualWeight": "Option<Weight>",
             "paysFee": "Pays"
@@ -652,6 +710,7 @@
                 "TBCD"
             ]
         },
+        "Price": "FixedU128",
         "PriceInfo": {
             "priceFailures": "u32",
             "spotPrices": "Vec<Balance>",
@@ -695,12 +754,15 @@
                 "MarketMakerVolume"
             ]
         },
+        "RpcDataProviderId": "Text",
+        "ScheduleTaskIndex": "u32",
         "Scope": {
             "_enum": {
                 "Limited": "H512",
                 "Unlimited": "Null"
             }
         },
+        "Share": "u128",
         "SignatureParams": {
             "r": "[u8; 32]",
             "s": "[u8; 32]",
@@ -711,6 +773,9 @@
             "deposited": "Balance",
             "rewards": "Balance"
         },
+        "StorageKeyBytes": "Vec<u8>",
+        "StorageValue": "Vec<u8>",
+        "StorageValueBytes": "Vec<u8>",
         "StorageVersion": "Null",
         "SubAssetInfo": {
             "assetId": "MainnetAssetId",
@@ -797,6 +862,11 @@
             "baseAssetId": "TechAssetId",
             "targetAssetId": "TechAssetId"
         },
+        "TimestampedValue": {
+            "value": "OracleValue",
+            "timestamp": "Moment"
+        },
+        "TimestampedValueOf": "TimestampedValue",
         "TokenInfo": {
             "farmsTotalMultiplier": "u32",
             "stakingTotalMultiplier": "u32",
@@ -824,6 +894,7 @@
             "baseAsset": "AssetId"
         },
         "ValidationFunction": "Null",
+        "VestingScheduleOf": "OrmlVestingSchedule",
         "VotingInfo": {
             "votingOption": "u32",
             "numberOfVotes": "Balance",
@@ -834,8 +905,6 @@
                 "Yes",
                 "No"
             ]
-        },
-        "String": "Vec<u8>",
-        "Text": "Vec<u8>"
+        }
     }
 }
