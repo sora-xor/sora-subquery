@@ -237,7 +237,7 @@ export async function stakingRebondCallHandler(extrinsic: SubstrateExtrinsic): P
 
     const { extrinsic: { args: [value] }} = extrinsic as any;
 
-    const details = { value: formatU128ToBalance(value, XOR) }
+    const details = { value: formatU128ToBalance(value.toString(), XOR) }
 
     await addDataToHistoryElement(extrinsic, historyElement, details);
     await updateHistoryElementStats(extrinsic, historyElement);
