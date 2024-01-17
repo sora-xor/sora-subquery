@@ -14,7 +14,7 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     const poolsBuffer = new Map();
 
     for (const baseAssetId of BASE_ASSETS) {
-        // We don't use Promise.all() here because we need consistent order of requests in the log
+        // We don't use Promise.all here because we need consistent order of requests in the log
         const properties = await getAllProperties(block, baseAssetId);
         const reserves = await getAllReserves(block, baseAssetId);
 
@@ -50,7 +50,12 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
 
     if (entities.length) {
         // get or create entities in DB & memory
-        const created = await Promise.all(entities.map(entity => poolsStorage.getPoolById(block, entity.id)));
+        // We don't use Promise.all here because we need consistent order of requests in the log
+        const created = [];
+        for (const entity of entities) {
+            const pool = await poolsStorage.getPoolById(block, entity.id);
+            created.push(pool);
+        }
         // update data in memory storage
         created.forEach((entity) => {
             Object.assign(entity, poolsBuffer.get(entity.id))
