@@ -17,6 +17,6 @@ def pipeline = new org.js.AppPipeline(
         yarn build"
     ],
     dockerImageTags:    ['dev': 'dev'],
-    dojoProductType:    'sora'
+    dojoProductType:    'polkaswap'
 )
 pipeline.runPipeline()
