@@ -76,7 +76,7 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     getInitializeAssetsLog(block).debug('Initialize Asset entities')
 
-    // We don't use Promise.all() here because we need consistent order of requests in the log
+    // We don't use Promise.all here because we need consistent order of requests in the log
 	const assetInfos = await getAssetInfos(block)
 	const syntheticAssets = await getSyntheticAssets(block)
 	const bandRates = await getBandRates(block)
@@ -157,7 +157,12 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
     if (entities.length) {
         // get or create entities in DB & memory
-        const created = await Promise.all(entities.map(entity => assetStorage.getAsset(block, entity.id)));
+        // We don't use Promise.all here because we need consistent order of requests in the log
+        const created = [];
+        for (const entity of entities) {
+            const asset = await assetStorage.getAsset(block, entity.id);
+            created.push(asset);
+        }
         // update data in memory storage
         created.forEach((entity) => {
             Object.assign(entity, assets.get(entity.id))

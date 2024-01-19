@@ -30,10 +30,9 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const status = statusCodec ? statusCodec.toHuman() : OrderBookStatus.Trade;
       const accountId = await orderBooksStorage.getAccountId(block, id);
 
-      const [baseAssetReserves, quoteAssetReserves] = await Promise.all([
-        getOrderBookAssetBalance(block, accountId, baseAssetId),
-        getOrderBookAssetBalance(block, accountId, quoteAssetId),
-      ]);
+      // We don't use Promise.all here because we need consistent order of requests in the log
+      const baseAssetReserves = getOrderBookAssetBalance(block, accountId, baseAssetId)
+      const quoteAssetReserves = getOrderBookAssetBalance(block, accountId, quoteAssetId)
 
       buffer.set(id, {
         id,
@@ -52,7 +51,12 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
 
   if (entities.length) {
     // get or create entities in DB & memory
-    const created = await Promise.all(entities.map(({ dexId, baseAssetId, quoteAssetId }) => orderBooksStorage.getOrderBook(block, dexId, baseAssetId, quoteAssetId)));
+    // We don't use Promise.all here because we need consistent order of requests in the log
+    const created = [];
+    for (const { dexId, baseAssetId, quoteAssetId } of entities) {
+        const orderBook = await orderBooksStorage.getOrderBook(block, dexId, baseAssetId, quoteAssetId);
+        created.push(orderBook);
+    }
     // update data in memory storage
     created.forEach((entity) => {
       Object.assign(entity, buffer.get(entity.id))
