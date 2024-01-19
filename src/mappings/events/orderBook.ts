@@ -84,6 +84,8 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
     blockNumber
   );
 
+  limitOrder.orderId = Number(orderId);
+
   await limitOrder.save();
 
   getEventHandlerLog(event).debug({ id }, 'Limit Order Saved');
