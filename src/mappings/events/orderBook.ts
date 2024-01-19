@@ -74,15 +74,17 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
     account.id,
     blockNumber,
     timestamp,
-    side.toHuman() === 'Buy',
-    formatU128ToBalance(amount.inner.toString(), baseAssetId),
-    formatU128ToBalance(price.inner.toString(), quoteAssetId),
+    isBuy,
+    formatU128ToBalance(amountU128, baseAssetId),
+    formatU128ToBalance(priceU128, quoteAssetId),
     orderLifetime,
     timestamp + orderLifetime,
     '0',
     OrderStatus.Active,
     blockNumber
   );
+
+  limitOrder.orderId = Number(orderId);
 
   await limitOrder.save();
 
