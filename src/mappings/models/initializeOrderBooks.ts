@@ -31,8 +31,8 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const accountId = await orderBooksStorage.getAccountId(block, id);
 
       // We don't use Promise.all here because we need consistent order of requests in the log
-      const baseAssetReserves = getOrderBookAssetBalance(block, accountId, baseAssetId)
-      const quoteAssetReserves = getOrderBookAssetBalance(block, accountId, quoteAssetId)
+      const baseAssetReserves = await getOrderBookAssetBalance(block, accountId, baseAssetId)
+      const quoteAssetReserves = await getOrderBookAssetBalance(block, accountId, quoteAssetId)
 
       buffer.set(id, {
         id,
