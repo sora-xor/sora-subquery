@@ -218,6 +218,7 @@ class AssetSnapshotsStorage {
     const id = AssetSnapshotsStorage.getId(assetId, type, index);
 
     if (this.storage.has(id)) {
+      getAssetSnapshotsStorageLog(block, true).debug({ assetSnapshotId: id }, 'Asset snapshot found in storage');
       return this.storage.get(id);
     }
 
@@ -238,7 +239,7 @@ class AssetSnapshotsStorage {
         high: asset.priceUSD,
         low: asset.priceUSD,
       };
-			getAssetSnapshotsStorageLog(block).debug({ assetId: id }, 'Asset snapshot created and saved')
+			getAssetSnapshotsStorageLog(block).debug({ assetSnapshotId: id }, 'Asset snapshot created and saved');
     }
 
     this.storage.set(snapshot.id, snapshot);
@@ -291,7 +292,7 @@ class AssetSnapshotsStorage {
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, assetId, type);
-			getAssetSnapshotsStorageLog(block, true).debug({ oldVolume: snapshot.volume?.amount }, 'Updating asset snapshot volume')
+			getAssetSnapshotsStorageLog(block, true).debug({ oldVolume: snapshot.volume?.amount }, 'Updating asset snapshot volume');
 
       snapshot.volume.amount = new BigNumber(snapshot.volume.amount).plus(volume).toString();
       snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toFixed(2);
@@ -323,7 +324,7 @@ class AssetSnapshotsStorage {
     const asset = await this.assetStorage.getAsset(block, assetId);
 
     asset.supply = asset.supply + amount;
-		getAssetSnapshotsStorageLog(block).debug({ assetId: assetId, minted: amount.toString() }, 'Asset minted')
+		getAssetSnapshotsStorageLog(block).debug({ assetId: assetId, minted: amount.toString() }, 'Asset minted');
   }
 
   async updateBurned(block: SubstrateBlock, assetId: string, amount: bigint): Promise<void> {
@@ -334,7 +335,7 @@ class AssetSnapshotsStorage {
 
       snapshot.burn = snapshot.burn + amount;
       getAssetSnapshotsStorageLog(block, true).debug(
-        { assetId: assetId, newBurned: snapshot.burn.toString() },
+        { assetId: assetId, burned: snapshot.burn.toString() },
         'Asset snapshot burn updated',
       )
     }
@@ -343,7 +344,7 @@ class AssetSnapshotsStorage {
 
     asset.supply = asset.supply - amount;
 
-    getAssetSnapshotsStorageLog(block).debug({ assetId: assetId, supply: asset.supply.toString() }, 'Asset supply updated')
+    getAssetSnapshotsStorageLog(block).debug({ assetId: assetId, supply: asset.supply.toString() }, 'Asset supply updated');
   }
 }
 
