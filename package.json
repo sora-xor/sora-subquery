@@ -8,6 +8,7 @@
     "prepack": "rm -rf dist && npm build",
     "test": "jest --coverage",
     "codegen": "./node_modules/.bin/subql codegen",
+    "config:types": "node ./scripts/types.mjs",
     "config:chainId": "node ./scripts/chainId.mjs",
     "config:chainId:update": "node ./scripts/chainId.mjs --update",
     "process": "docker-compose pull && docker-compose up",
@@ -27,7 +28,7 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@sora-substrate/types": "latest",
+    "@sora-substrate/types": "1.27.12",
     "@subql/cli": "3.6.1",
     "@subql/node": "2.10.0",
     "@subql/types": "2.2.0",
