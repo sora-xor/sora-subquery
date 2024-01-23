@@ -69,7 +69,7 @@ export const getCallId = (call: SubstrateExtrinsic): string => {
 }
 
 export const getEventId = (event: SubstrateEvent): string => {
-	return `${event.block.block.header.number.toString()}-${event.event.index}`
+	return `${event.block.block.header.number.toString()}-${event.idx}`
 }
 
 export const getEntityId = (entity: SubstrateExtrinsic | SubstrateEvent): string => {
