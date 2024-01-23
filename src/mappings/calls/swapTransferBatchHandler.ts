@@ -67,9 +67,11 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
             await createHistoryElement(assetTransferEvent as any, transfer);
         }
 
-        const exchanges = extrinsic.events.filter(e => e.event.method === 'Exchange' && e.event.section === 'liquidityProxy').map(e => {
-            const { event: { data: [senderAddress, dexId, inputAsset, outputAsset, inputAmount, outputAmount, feeAmount] } } = e;
-            return {
+        const exchangesEvents = extrinsic.events.filter(e => e.event.method === 'Exchange' && e.event.section === 'liquidityProxy');
+
+        for (const exchangeEvent of exchangesEvents) {
+            const { event: { data: [senderAddress, dexId, inputAsset, outputAsset, inputAmount, outputAmount, feeAmount] } } = exchangeEvent;
+            const exchange = {
                 senderAddress: senderAddress.toString(),
                 dexId: dexId.toString(),
                 inputAssetId: getAssetId(inputAsset),
@@ -77,9 +79,10 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
                 inputAmount: formatU128ToBalance(inputAmount.toString(), getAssetId(inputAsset)),
                 outputAmount: formatU128ToBalance(outputAmount.toString(), getAssetId(outputAsset)),
                 feeAmount: formatU128ToBalance(feeAmount.toString(), getAssetId(inputAsset)),
-            }
-        })
-        details.exchanges = exchanges;
+            };
+            // add to sender exchanges
+            details.exchanges.push(exchange);
+        }
     }
 
     await addDataToHistoryElement(extrinsic, historyElement, details);
