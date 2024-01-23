@@ -21,6 +21,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
     const [filterMode, liquiditySources, maxInputAmount, inputAsset, receivers] = extrinsic.extrinsic.args.slice().reverse();
     const details: any = {};
     const inputAssetId = getAssetId(inputAsset);
+
     details.inputAssetId = inputAssetId;
     details.selectedMarket = (liquiditySources as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString();
     details.receivers = receivers;
