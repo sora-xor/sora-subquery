@@ -6,7 +6,7 @@ import { networkSnapshotsStorage } from './network';
 import { formatDateTimestamp, getEntityId } from './index';
 import { getUtilsLog } from "./logs";
 
-const INCOMING_TRANSFER_METHODS = ['transfer', 'swapTransfer'];
+const INCOMING_TRANSFER_METHODS = ['transfer', 'xorlessTransfer', 'swapTransfer', 'swapTransferBatch'];
 
 const getExtrinsicNetworkFee = (extrinsic: SubstrateExtrinsic): string => {
   let feeEvent = extrinsic.events.find(item => {
