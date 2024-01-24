@@ -95,15 +95,18 @@ export const createHistoryElement = async (
 	return historyElement
 }
 
-export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | SubstrateEvent, historyElement: HistoryElement, data: {}) => {
+export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | SubstrateEvent, historyElement: HistoryElement, data: any) => {
 	const extrinsic = 'event' in ctx ? ctx.extrinsic : ctx
-    
+
 	historyElement.data = data
 	if ('to' in data && typeof data.to === 'string') {
 		historyElement.dataTo = data.to
 	}
 	if ('from' in data && typeof data.from === 'string') {
 		historyElement.dataFrom = data.from
+	}
+    if ('receivers' in data && Array.isArray(data.receivers)) {
+		historyElement.dataReceivers = data.receivers.map(receiver => receiver.accountId)
 	}
 	historyElement.updatedAtBlock = extrinsic.block.block.header.number.toNumber()
 
