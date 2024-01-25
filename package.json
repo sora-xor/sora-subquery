@@ -7,7 +7,7 @@
     "build": "tsc -b",
     "prepack": "rm -rf dist && npm build",
     "test": "jest --coverage",
-    "codegen": "./node_modules/.bin/subql codegen --file=project.yaml",
+    "codegen": "./node_modules/.bin/subql codegen --file=project-onfinality.yaml",
     "config:types": "node ./scripts/types.mjs",
     "config:chainId": "node ./scripts/chainId.mjs",
     "config:chainId:update": "node ./scripts/chainId.mjs --update",
