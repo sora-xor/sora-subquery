@@ -1,11 +1,11 @@
-@Library('jenkins-library@feature/dops-2968/update_sqd_lib')
+@Library('jenkins-library')
 
 def jobParams  = [
     string(defaultValue: '1', name: 'startBlock', trim: true),
     string(defaultValue: '1', name: 'startBlockStg', trim: true),
     string(defaultValue: '20000', name: 'queryTimeout', trim: true),
-    booleanParam(defaultValue: false, name: 'fullClean'),
-    booleanParam(defaultValue: false, name: 'createProject'),
+    booleanParam(defaultValue: true, name: 'fullClean'),
+    booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
     booleanParam(defaultValue: true, name: 'prodSlot'),
 ]
