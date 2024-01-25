@@ -3639,24 +3639,24 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@sora-substrate/type-definitions@1.27.10":
-  version "1.27.10"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.27.10.tgz#00fc5c5cc2f54b4e0b5af6f41ee0076baf613386"
-  integrity sha512-rGUpABtO+qmXhnarND1P7tXJkk+qwJukdgIWkJ/PaESO2JTGba1B1vFLFM7Oo81JEKxzcNikf34/BtgszPYCBg==
+"@sora-substrate/type-definitions@1.27.12":
+  version "1.27.12"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.27.12.tgz#6dea3a12b3f8b595cef16b3d95448933cabb70b4"
+  integrity sha512-RtatBnDLTdbt+OMsk6NE2jkteB4g9h1TyhfOQJZAyYNC456DZF7WXOaez3FenQXbSK9Rp3vUKa0PCNyf5MFfgw==
   dependencies:
     "@open-web3/orml-type-definitions" "1.1.4"
 
-"@sora-substrate/types@latest":
-  version "1.27.10"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.27.10.tgz#c9e8debcaa76951b6a07ea1b0e2e5d7cf6771cf9"
-  integrity sha512-3VZHsM2CNes67uwQlELZmdRPjEE5sjYdyyOeiP8U7YFRKHXepj66uR25dkrMkIUbgT28ALyqCSLj/sTSP+jtjw==
+"@sora-substrate/types@1.27.12":
+  version "1.27.12"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.27.12.tgz#b517c1b8ccac9e9cc5c35b7c485c54222aa1c6f1"
+  integrity sha512-7RN6oenS99cwOxkwsEb/TzZoa1h6rEXyQLDCG08AEk4st6mUNslhmlaXvAI/pAakIH7mR4tjxTSo/VhhOWVmXg==
   dependencies:
     "@open-web3/api-mobx" "0.9.4-26"
     "@open-web3/orml-types" "1.1.4"
     "@polkadot/api" "9.14.2"
     "@polkadot/typegen" "9.14.2"
     "@polkadot/types" "9.14.2"
-    "@sora-substrate/type-definitions" "1.27.10"
+    "@sora-substrate/type-definitions" "1.27.12"
 
 "@subql/apollo-links@^0.5.3":
   version "0.5.8"

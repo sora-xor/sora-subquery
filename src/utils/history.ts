@@ -6,7 +6,7 @@ import { networkSnapshotsStorage } from './network';
 import { formatDateTimestamp, getEntityId } from './index';
 import { getUtilsLog } from "./logs";
 
-const INCOMING_TRANSFER_METHODS = ['transfer', 'swapTransfer'];
+const INCOMING_TRANSFER_METHODS = ['transfer', 'xorlessTransfer', 'swapTransfer', 'swapTransferBatch'];
 
 const getExtrinsicNetworkFee = (extrinsic: SubstrateExtrinsic): string => {
   let feeEvent = extrinsic.events.find(item => {
@@ -70,7 +70,9 @@ export const createHistoryElement = async (
     )
 
 	await historyElement.save()
-	const { callNames, execution, data: details, ...logArguments } = historyElement
+    const { callNames, execution, data: details, ...logArguments } = historyElement
+    // [TODO] uncomment before full reindex with dataReceivers
+	// const { callNames, execution, data: details, dataReceivers, ...logArguments } = historyElement
 	getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element')
 
 	if (data) {
@@ -81,9 +83,9 @@ export const createHistoryElement = async (
 	return historyElement
 }
 
-export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | SubstrateEvent, historyElement: HistoryElement, data: {}) => {
+export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | SubstrateEvent, historyElement: HistoryElement, data: any) => {
 	const extrinsic = 'event' in ctx ? ctx.extrinsic : ctx
-    
+
 	historyElement.data = data
 	if ('to' in data && typeof data.to === 'string') {
 		historyElement.dataTo = data.to
@@ -91,6 +93,10 @@ export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | Substrat
 	if ('from' in data && typeof data.from === 'string') {
 		historyElement.dataFrom = data.from
 	}
+    // [TODO] uncomment before full reindex with dataReceivers
+    // if ('receivers' in data && Array.isArray(data.receivers)) {
+	// 	historyElement.dataReceivers = data.receivers.map(receiver => receiver.accountId)
+	// }
 	historyElement.updatedAtBlock = extrinsic.block.block.header.number.toNumber()
 
 	await historyElement.save()
