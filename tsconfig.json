@@ -11,7 +11,10 @@
     "outDir": "dist",
     "rootDir": "src",
     "target": "es2017",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "lib": [
+      "ES2021.String"
+    ]
   },
   "include": [
     "src/**/*",
