@@ -13,7 +13,7 @@ services:
       test: pg_isready -U postgres
 
   subquery-node:
-    image: onfinality/subql-node:v2.10.0
+    image: onfinality/subql-node:v3.5.0
     depends_on:
       postgres:
         condition: service_healthy
@@ -31,6 +31,7 @@ services:
       - --log-level=debug
       - --disable-historical=true
       - --subscription
+      - --allow-schema-migration=true
 
   graphql-engine:
     image: onfinality/subql-query:v2.9.0
