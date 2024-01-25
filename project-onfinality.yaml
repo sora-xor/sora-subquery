@@ -4,10 +4,10 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 2.10.0
+    version: 3.5.0
   query:
     name: '@subql/query'
-    version: 2.8.0
+    version: 2.9.0
 description: ''
 repository: https://github.com/sora-xor/sora-subquery
 schema:
@@ -149,7 +149,6 @@ dataSources:
           filter:
             module: demeterFarmingPlatform
             method: getRewards
-
         - handler: stakingBondCallHandler
           kind: substrate/CallHandler
           filter:
@@ -290,57 +289,56 @@ dataSources:
           filter:
             module: staking
             method: StakersElected
-
         - handler: orderBookCreatedEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'OrderBookCreated'
+            module: orderBook
+            method: OrderBookCreated
         - handler: orderBookStatusChangedEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'OrderBookStatusChanged'
+            module: orderBook
+            method: OrderBookStatusChanged
         - handler: limitOrderPlacedEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'LimitOrderPlaced'
+            module: orderBook
+            method: LimitOrderPlaced
         - handler: limitOrderExecutedEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'LimitOrderExecuted'
+            module: orderBook
+            method: LimitOrderExecuted
         - handler: limitOrderUpdatedEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'LimitOrderUpdated'
+            module: orderBook
+            method: LimitOrderUpdated
         - handler: limitOrderFilledEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'LimitOrderFilled'
+            module: orderBook
+            method: LimitOrderFilled
         - handler: limitOrderCanceledEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'LimitOrderCanceled'
+            module: orderBook
+            method: LimitOrderCanceled
         - handler: marketOrderEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'MarketOrderExecuted'
+            module: orderBook
+            method: MarketOrderExecuted
         - handler: marketOrderEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'LimitOrderConvertedToMarketOrder'
+            module: orderBook
+            method: LimitOrderConvertedToMarketOrder
         - handler: marketOrderEvent
           kind: substrate/EventHandler
           filter:
-            module: 'orderBook'
-            method: 'LimitOrderIsSplitIntoMarketOrderAndLimitOrder'
+            module: orderBook
+            method: LimitOrderIsSplitIntoMarketOrderAndLimitOrder
         - handler: orderBookPlaceLimitOrderHandler
           kind: substrate/CallHandler
           filter:

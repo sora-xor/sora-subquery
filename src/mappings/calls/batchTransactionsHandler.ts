@@ -102,7 +102,6 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
     })
 
 	await addCallsToHistoryElement(extrinsic, historyElement, historyElementCalls);
-	await addDataToHistoryElement(extrinsic, historyElement, entities);
     await updateHistoryElementStats(extrinsic, historyElement);
 
     if (historyElement.execution.success) {

@@ -18,18 +18,32 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
     const blockNumber = extrinsic.block.block.header.number.toNumber();
     const historyElement = await createHistoryElement(extrinsic);
 
-    const [filterMode, liquiditySources, maxInputAmount, inputAsset, receivers] = extrinsic.extrinsic.args.slice().reverse();
-    const details: any = {};
-    const inputAssetId = getAssetId(inputAsset);
+    const [filterMode, liquiditySources, maxInputAmount, inputAsset, swapBatches] = extrinsic.extrinsic.args.slice().reverse();
 
-    details.inputAssetId = inputAssetId;
+    const inputAssetId = getAssetId(inputAsset);
+    const extrinsicSigner = extrinsic.extrinsic.signer.toString();
+
+    const details: any = {};
+
+    details.assetId = inputAssetId;
     details.selectedMarket = (liquiditySources as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString();
-    details.receivers = receivers;
-    details.maxInputAmount = maxInputAmount;
+    details.maxInputAmount = formatU128ToBalance(maxInputAmount.toString(), inputAssetId);
     details.blockNumber = blockNumber;
-    details.from = extrinsic.extrinsic.signer.toString();
-    details.exchanges = [];
-    details.transfers = [];
+    details.from = extrinsicSigner;
+    details.receivers = [];
+
+    // fill receivers with assetId and amount
+    for (const swapBatchInfo of (swapBatches as any)) {
+        const assetId = getAssetId(swapBatchInfo.outcomeAssetId);
+
+        for (const receiverInfo of swapBatchInfo.receivers) {
+            details.receivers.push({
+                assetId,
+                accountId: receiverInfo.accountId.toString(),
+                amount: formatU128ToBalance(receiverInfo.targetAmount.toString(), assetId)
+            });
+        }
+    }
 
     if (historyElement.execution.success) {
         const batchSwapExecutedEvent = getEventData(extrinsic, 'BatchSwapExecuted', 'liquidityProxy');
@@ -39,12 +53,6 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
             details.inputAmount = formatU128ToBalance(inputAmount.toString(), inputAssetId);
         }
 
-        const feeWithdrawnEvent = getEventData(extrinsic, 'FeeWithdrawn', 'xorFee');
-        if (feeWithdrawnEvent) {
-            const [, networkFee] = feeWithdrawnEvent;
-            details.networkFee = formatU128ToBalance(networkFee.toString(), XOR);
-        }
-
         const transactionFeePaidEvent = getEventData(extrinsic, 'TransactionFeePaid', 'transactionPayment');
         if (transactionFeePaidEvent) {
             const [, actualFee] = transactionFeePaidEvent;
@@ -52,37 +60,28 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
         }
 
         const assetTransferEvents = extrinsic.events.filter(e => e.event.method === 'Transfer' && e.event.section === 'assets');
+        const receiverIds = details.receivers.map((receiver) => receiver.accountId);
 
         for (const assetTransferEvent of assetTransferEvents) {
             const { event: { data: [from, to, asset, amount] } } = assetTransferEvent;
+            const sender = from.toString();
+            const receiver = to.toString();
+            // if technical transfer, skip
+            if (!(sender === extrinsicSigner && receiverIds.includes(receiver))) continue;
+
             const assetId =  getAssetId(asset);
             const transfer = {
                 assetId,
                 amount: formatU128ToBalance(amount.toString(), assetId),
-                from: from.toString(),
-                to: to.toString(),
+                from: sender,
+                to: receiver,
             };
-            // add to sender details
-            details.transfers.push(transfer);
+
             // create history element for receiver
-            await createHistoryElement(assetTransferEvent as any, transfer);
-        }
-
-        const exchangesEvents = extrinsic.events.filter(e => e.event.method === 'Exchange' && e.event.section === 'liquidityProxy');
-
-        for (const exchangeEvent of exchangesEvents) {
-            const { event: { data: [senderAddress, dexId, inputAsset, outputAsset, inputAmount, outputAmount, feeAmount] } } = exchangeEvent;
-            const exchange = {
-                senderAddress: senderAddress.toString(),
-                dexId: dexId.toString(),
-                inputAssetId: getAssetId(inputAsset),
-                outputAssetId: getAssetId(outputAsset),
-                inputAmount: formatU128ToBalance(inputAmount.toString(), getAssetId(inputAsset)),
-                outputAmount: formatU128ToBalance(outputAmount.toString(), getAssetId(outputAsset)),
-                feeAmount: formatU128ToBalance(feeAmount.toString(), getAssetId(inputAsset)),
-            };
-            // add to sender exchanges
-            details.exchanges.push(exchange);
+            const receiverHistory = await createHistoryElement(assetTransferEvent as any, transfer);
+            // change address of history element to receiver
+            receiverHistory.address = receiver;
+            await receiverHistory.save();
         }
     }
 
