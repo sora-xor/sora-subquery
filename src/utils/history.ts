@@ -105,9 +105,10 @@ export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | Substrat
 	if ('from' in data && typeof data.from === 'string') {
 		historyElement.dataFrom = data.from
 	}
-    if ('receivers' in data && Array.isArray(data.receivers)) {
-		historyElement.dataReceivers = data.receivers.map(receiver => receiver.accountId)
-	}
+    // [TODO] uncomment before full reindex
+    // if ('receivers' in data && Array.isArray(data.receivers)) {
+	// 	historyElement.dataReceivers = data.receivers.map(receiver => receiver.accountId)
+	// }
 	historyElement.updatedAtBlock = extrinsic.block.block.header.number.toNumber()
 
 	await historyElement.save()
