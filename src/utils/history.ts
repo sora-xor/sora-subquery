@@ -84,7 +84,9 @@ export const createHistoryElement = async (
     )
 
 	await historyElement.save()
-	const { callNames, execution, data: details, dataReceivers, ...logArguments } = historyElement
+    const { callNames, execution, data: details, ...logArguments } = historyElement
+    // [TODO] uncomment before full reindex with dataReceivers
+	// const { callNames, execution, data: details, dataReceivers, ...logArguments } = historyElement
 	getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element')
 
 	if (data) {
@@ -105,7 +107,7 @@ export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | Substrat
 	if ('from' in data && typeof data.from === 'string') {
 		historyElement.dataFrom = data.from
 	}
-    // [TODO] uncomment before full reindex
+    // [TODO] uncomment before full reindex with dataReceivers
     // if ('receivers' in data && Array.isArray(data.receivers)) {
 	// 	historyElement.dataReceivers = data.receivers.map(receiver => receiver.accountId)
 	// }
