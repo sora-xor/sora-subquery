@@ -4,7 +4,7 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 2.10.0
+    version: 3.5.0
   query:
     name: '@subql/query'
     version: 2.9.0
@@ -14,7 +14,11 @@ schema:
   file: ./schema.graphql
 network:
   chainId: '0'
-  endpoint: wss://ws.framenode-2.r0.dev.sora2.soramitsu.co.jp
+  endpoint: [
+    "wss://ws.framenode-1.r0.dev.sora2.soramitsu.co.jp",
+    "wss://ws.framenode-2.r0.dev.sora2.soramitsu.co.jp",
+    "wss://ws.framenode-3.r0.dev.sora2.soramitsu.co.jp",
+  ]
   chaintypes:
     file: ./dist/chaintypes.js
 dataSources:
