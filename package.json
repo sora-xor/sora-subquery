@@ -7,7 +7,7 @@
     "build": "tsc -b",
     "prepack": "rm -rf dist && npm build",
     "test": "jest --coverage",
-    "codegen": "./node_modules/.bin/subql codegen",
+    "codegen": "./node_modules/.bin/subql codegen --file=project.yaml",
     "config:types": "node ./scripts/types.mjs",
     "config:chainId": "node ./scripts/chainId.mjs",
     "config:chainId:update": "node ./scripts/chainId.mjs --update",
@@ -29,7 +29,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@sora-substrate/types": "1.27.12",
-    "@subql/cli": "4.0.5",
+    "@subql/cli": "4.2.5",
     "@subql/node": "3.5.0",
     "@subql/types": "3.3.0",
     "fs-extra": "^11.2.0",
