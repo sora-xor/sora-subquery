@@ -21,20 +21,6 @@ const getExtrinsicNetworkFee = (extrinsic: SubstrateExtrinsic): string => {
   }
 }
 
-function filterDataProperties(obj: Record<string, any>) {
-	const entries = []
-	for (let key in obj) {
-		if (obj.hasOwnProperty(key)) {
-			console.log('key: ', key)
-			const type = typeof obj[key]
-			if (type === 'number' || type === 'string' || type === 'bigint' || type === 'boolean') {
-				entries.push(key + ': ' + obj[key])
-			}
-		}
-	}
-	return entries.join(', ')
-}
-
 export const createHistoryElement = async (
 	ctx: SubstrateExtrinsic | SubstrateEvent,
 	data?: {},
@@ -108,9 +94,10 @@ export const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | Substrat
 	historyElement.updatedAtBlock = extrinsic.block.block.header.number.toNumber()
 
 	await historyElement.save()
-	getUtilsLog(ctx).debug({ historyElementId: historyElement.id }, 'Updated history element with data')
-    // TODO: fix data in log
-	// getUtilsLog(ctx).debug({ historyElementId: historyElement.id, data: filterDataProperties(data) }, 'Updated history element with data')
+	getUtilsLog(ctx).debug({
+        historyElementId: historyElement.id,
+        data: JSON.stringify(data).replaceAll('"', '')
+    }, 'Updated history element with data')
 }
 
 export const addCallsToHistoryElement = async (extrinsic: SubstrateExtrinsic, historyElement: HistoryElement, calls: HistoryElementCall[]) => {

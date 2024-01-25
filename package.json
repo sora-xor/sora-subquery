@@ -10,6 +10,7 @@
     "codegen": "./node_modules/.bin/subql codegen",
     "config:chainId": "node ./scripts/chainId.mjs",
     "config:chainId:update": "node ./scripts/chainId.mjs --update",
+    "config:startBlock:update": "node ./scripts/startBlock.mjs",
     "process": "docker-compose pull && docker-compose up",
     "process:clean:testLog": "export INDEXER_TEST_LOG_MODE=true && rm -rf .data && npm run build && docker-compose kill && docker-compose pull && docker-compose up",
     "process:clean": "rm -rf .data && npm run build && docker-compose kill && docker-compose pull && docker-compose up"
@@ -40,7 +41,8 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "yargs": "^17.7.2"
   },
   "exports": {
     "chaintypes": "src/chaintypes.ts"
