@@ -194,7 +194,7 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
   const blockNumber = event.block.block.header.number.toNumber();
   const timestamp = formatDateTimestamp(event.block.timestamp);
 
-  const eventIndex = event.event.index.toString();
+  const eventIndex = event.idx;
   const orderId = `${blockNumber}-${eventIndex}`;
 
   const { id, dexId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderId);
