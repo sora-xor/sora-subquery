@@ -115,6 +115,7 @@ type HistoryElement @entity {
   data: HistoryElementDetails
 	dataTo: String @index
 	dataFrom: String @index
+  # dataReceivers: [String]
 	calls: [HistoryElementCall!]! @derivedFrom(field: "historyElement")
 	callNames: [String]!
 	updatedAtBlock: Int!
