@@ -44,7 +44,8 @@ async function main() {
 		// Read project.yaml 
 		const fileContents = await fs.readFile(configPath, 'utf8');
 		const config = yaml.load(fileContents);
-		const wsEndpoint = config.network.endpoint;
+		const wsEndpoints = config.network.endpoint;
+		const wsEndpoint = Array.isArray(wsEndpoints) ? wsEndpoints[0] : wsEndpoints;
 		const chainId = await fetchChainId(wsEndpoint) // Optionally update chainId in project.yaml
 		if (shouldUpdate) { 
 			config.network.chainId = chainId;
