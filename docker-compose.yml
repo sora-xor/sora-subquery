@@ -31,7 +31,7 @@ services:
       - --log-level=debug
       - --disable-historical=true
       - --subscription
-      - --allow-schema-migration
+      - --allow-schema-migration=true
 
   graphql-engine:
     image: onfinality/subql-query:v2.9.0
