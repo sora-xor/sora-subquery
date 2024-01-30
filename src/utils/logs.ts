@@ -33,6 +33,9 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
     };
 
     const log = (level: 'debug' | 'info' | 'warn' | 'error') => (arg1: Record<string, LogAttr> | string, arg2?: string) => {
+        // only for prod
+        if (level === 'debug') return;
+
         let attrs: Record<string, LogAttr> = {};
         let message: string;
 
