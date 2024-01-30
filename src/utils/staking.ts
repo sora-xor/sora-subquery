@@ -2,7 +2,17 @@ import { PayeeType, StakingEra, StakingStaker } from '../types'
 import { getUtilsLog } from './logs'
 import { SubstrateBlock } from '@subql/types';
 
-export const getActiveStakingEra = async (block: SubstrateBlock): Promise<StakingEra> => {
+const eraStorage = new WeakMap();
+
+const getActiveEraData = async (block: SubstrateBlock) => {
+	const key = block.block.header;
+
+	if (eraStorage.has(key)) {
+		return eraStorage.get(key);
+	}
+
+	getUtilsLog(block).debug('Active era request')
+
 	const activeEra = (await api.query.staking.activeEra()).toJSON() as any;
 
 	if (!activeEra) {
@@ -10,7 +20,16 @@ export const getActiveStakingEra = async (block: SubstrateBlock): Promise<Stakin
 		throw new Error('Active era not found')
 	}
 
+	eraStorage.set(key, activeEra);
+
+	return activeEra;
+}
+
+export const getActiveStakingEra = async (block: SubstrateBlock): Promise<StakingEra> => {
+	const activeEra = await getActiveEraData(block);
+
 	let stakingEra = await StakingEra.get(activeEra.index.toString())
+
 	if (!stakingEra) {
 		stakingEra = new StakingEra(
 			activeEra.index.toString(),
