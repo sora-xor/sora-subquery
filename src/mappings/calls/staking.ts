@@ -4,7 +4,7 @@ import { XOR } from "../../utils/consts";
 import { formatU128ToBalance } from "../../utils/assets";
 import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 import { PayeeType } from "../../types";
-import { getStakingStaker } from "../../utils/staking";
+import { getStakingStaker, getStakingStakerController } from "../../utils/staking";
 
 export async function stakingBondCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
@@ -265,6 +265,12 @@ export async function stakingSetControllerCallHandler(extrinsic: SubstrateExtrin
     
     const { extrinsic: { args: [controller] }} = extrinsic as any;
 
+    const extrinsicSigner = extrinsic.extrinsic.signer.toString();
+    const stakingStaker = await getStakingStaker(extrinsic.block, extrinsicSigner);
+
+    stakingStaker.controller = controller.toString();
+    await stakingStaker.save();
+
     const details = {
         controller: controller.toString(),
     }
@@ -339,7 +345,7 @@ export async function stakingSetPayeeCallHandler(extrinsic: SubstrateExtrinsic):
 		payee = kind.asAccount.toString();
         payeeType = PayeeType.ACCOUNT;
 	} else if (kind.isController) {
-		payee = stakingStaker.controller
+		payee = await getStakingStakerController(extrinsic.block, stakingStaker);
         payeeType = PayeeType.CONTROLLER;
 	}
 
