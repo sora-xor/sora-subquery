@@ -279,11 +279,11 @@ dataSources:
           filter:
             module: staking
             method: withdrawUnbonded
-        - handler: stakingRewardedEventHandler
-          kind: substrate/EventHandler
-          filter:
-            module: staking
-            method: Rewarded
+        # - handler: stakingRewardedEventHandler
+        #   kind: substrate/EventHandler
+        #   filter:
+        #     module: staking
+        #     method: Rewarded
         - handler: stakingStakersElectedEventHandler
           kind: substrate/EventHandler
           filter:
