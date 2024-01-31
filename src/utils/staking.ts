@@ -2,13 +2,14 @@ import { PayeeType, StakingEra, StakingStaker } from '../types'
 import { getUtilsLog } from './logs'
 import { SubstrateBlock } from '@subql/types';
 
-const eraStorage = new WeakMap();
+let eraBlock!: number;
+let eraData!: any;
 
 const getActiveEraData = async (block: SubstrateBlock) => {
-	const key = block.block.header;
+	const key = block.block.header.number.toNumber();
 
-	if (eraStorage.has(key)) {
-		return eraStorage.get(key);
+	if (eraBlock === key) {
+		return eraData;
 	}
 
 	getUtilsLog(block).debug('Active era request')
@@ -16,11 +17,12 @@ const getActiveEraData = async (block: SubstrateBlock) => {
 	const activeEra = (await api.query.staking.activeEra()).toJSON() as any;
 
 	if (!activeEra) {
-		getUtilsLog(block).debug('Active era not found')
+		getUtilsLog(block).error('Active era not found')
 		throw new Error('Active era not found')
 	}
 
-	eraStorage.set(key, activeEra);
+	eraBlock = key;
+	eraData = activeEra;
 
 	return activeEra;
 }
@@ -55,6 +57,14 @@ const getController = async (block: SubstrateBlock, address: string) => {
 	}
 }
 
+export const getStakingStakerController = async (block: SubstrateBlock, staker: StakingStaker) => {
+	if (!staker.controller) {
+		staker.controller = await getController(block, staker.id);
+		await staker.save();
+	}
+	return staker.controller;
+}
+
 const getPayeeDestination = async (block: SubstrateBlock, address: string) => {
 	try {
 		const destinationCodec = await api.query.staking.payee(address) as any;
@@ -68,17 +78,18 @@ const getPayeeDestination = async (block: SubstrateBlock, address: string) => {
 }
 
 const getStakerAccounts = async (block: SubstrateBlock, address: string) => {
-	const controller = await getController(block, address);
 	const destinationCodec = await getPayeeDestination(block, address);
 
 	let payee = address;
 	let payeeType = PayeeType.STASH;
+	let controller = '';
 
 	if (destinationCodec) {
 		if (destinationCodec.isAccount) {
 			payee =  destinationCodec.asAccount.toString();
 			payeeType = PayeeType.ACCOUNT;
 		} else if (destinationCodec.isController) {
+			controller = await getController(block, address);
 			payee = controller;
 			payeeType = PayeeType.CONTROLLER;
 		}
