@@ -3279,24 +3279,24 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@sora-substrate/type-definitions@1.27.12":
-  version "1.27.12"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.27.12.tgz#6dea3a12b3f8b595cef16b3d95448933cabb70b4"
-  integrity sha512-RtatBnDLTdbt+OMsk6NE2jkteB4g9h1TyhfOQJZAyYNC456DZF7WXOaez3FenQXbSK9Rp3vUKa0PCNyf5MFfgw==
+"@sora-substrate/type-definitions@1.28.0":
+  version "1.28.0"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.28.0.tgz#64b99491622ad4923c70c652db28e39ef17c5403"
+  integrity sha512-BYfv5ZXl8fGnXoUgQkB55UaF5jM2k1aCjVz0l6o19dlXJeXDRNAeLzr2GRcvuEyb57AifqceTPEchcghDqe1Pw==
   dependencies:
     "@open-web3/orml-type-definitions" "1.1.4"
 
-"@sora-substrate/types@1.27.12":
-  version "1.27.12"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.27.12.tgz#b517c1b8ccac9e9cc5c35b7c485c54222aa1c6f1"
-  integrity sha512-7RN6oenS99cwOxkwsEb/TzZoa1h6rEXyQLDCG08AEk4st6mUNslhmlaXvAI/pAakIH7mR4tjxTSo/VhhOWVmXg==
+"@sora-substrate/types@1.28.0":
+  version "1.28.0"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.28.0.tgz#332e0af02496436ccf9f4ea26b90fb3686c20872"
+  integrity sha512-ce2OhFr5BWKUCY4ot6OGOllt1EwHvC7WBZ/ORWmSMVtYr5qVbl13gwBnU94MVUD9T//gw9/Y28fb0CVQ4674fA==
   dependencies:
     "@open-web3/api-mobx" "0.9.4-26"
     "@open-web3/orml-types" "1.1.4"
     "@polkadot/api" "9.14.2"
     "@polkadot/typegen" "9.14.2"
     "@polkadot/types" "9.14.2"
-    "@sora-substrate/type-definitions" "1.27.12"
+    "@sora-substrate/type-definitions" "1.28.0"
 
 "@stellar/js-xdr@^3.0.1":
   version "3.0.1"
@@ -3318,18 +3318,17 @@
   optionalDependencies:
     sodium-native "^4.0.5"
 
-"@subql/apollo-links@1.2.5":
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/@subql/apollo-links/-/apollo-links-1.2.5.tgz#49082601fde100c65f8a57b4e283638faceaf043"
-  integrity sha512-1huWP+5MXctw2fttLLDZJ2NcTFTDi8qShojbV4211QoezbJ5XZ1qdIDVG8jvpxCNVE3Y2OyIgqhlq/NiW7kYmA==
+"@subql/apollo-links@^1.3.2":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@subql/apollo-links/-/apollo-links-1.3.2.tgz#56d3ca471d2a047d8f781592db8dfecbc37d0e09"
+  integrity sha512-J1v4PeATXaEQ0oxOArsxsZgf7FqovMtU0LdIxGEGHfK2tXPNRquDai+Xdc0swZhq5zERnB8YJG/uftj82sH3tg==
   dependencies:
     "@apollo/client" "^3.8.8"
     "@metamask/eth-sig-util" "5.1.0"
-    "@subql/network-support" "0.1.0"
+    "@subql/network-support" "0.2.0"
     apollo-link-error "^1.1.13"
     buffer "^6.0.3"
     cross-fetch "^4.0.0"
-    ethers "^5.6.8"
     js-base64 "^3.7.5"
     jwt-decode "^3.1.2"
     lru-cache "^10.0.1"
@@ -3498,10 +3497,10 @@
     semver "^7.5.2"
     update-notifier "5.1.0"
 
-"@subql/network-support@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@subql/network-support/-/network-support-0.1.0.tgz#80ce4a9f52878e9b84ba7faa4c0c77edd70eed24"
-  integrity sha512-51UTa/udOHUwKs/Jjl8h/yl0wEDvm1yeaD2ccUnqg+Ue4JFqiEwZ8HhnMwywxyAhTL72sGH+TKkPNYF/kVNxbA==
+"@subql/network-support@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@subql/network-support/-/network-support-0.2.0.tgz#e131ff462dfe90953f86ed653e85ea4827a175da"
+  integrity sha512-YykNM0ujp/oL0voOT9FwuXRVD/ptTQblSIH9N8m64J86epkioLd2rkIQ0DXnx5hsPT7WJFvoxtbpTGTSa18jZg==
   dependencies:
     "@metamask/eth-sig-util" "^7.0.0"
     cross-fetch "^4.0.0"
@@ -3509,16 +3508,16 @@
     jwt-decode "^3.1.2"
     lru-cache "^10.0.1"
 
-"@subql/node-core@7.1.0":
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-7.1.0.tgz#928d814ddbcf955bc6c5c936147c78ad4cdb35de"
-  integrity sha512-QGozsXzG5huLjJqdaezFpn8m4qp4IFNAWjixRRbYJERh4LU00V+85xrEAZZPO+e8aLHo6DjiKRJPePR4xfJFnA==
+"@subql/node-core@7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-7.2.0.tgz#99ca1e1c117d4b24d2dfe2d336f67342f1d382d1"
+  integrity sha512-QNJjWZ1qFYoBSmZkuOUKp183LHnanvqoO6QrFStQW6c0NY16JkmiaWtE5gZkIDnBEIbIS8EDM1BSK3C8zla4Rg==
   dependencies:
     "@apollo/client" "^3.8.8"
     "@nestjs/common" "^9.4.0"
     "@nestjs/event-emitter" "^2.0.0"
     "@nestjs/schedule" "^3.0.1"
-    "@subql/apollo-links" "1.2.5"
+    "@subql/apollo-links" "^1.3.2"
     "@subql/common" "3.3.1"
     "@subql/testing" "2.1.0"
     "@subql/types" "3.3.0"
@@ -3538,10 +3537,10 @@
     vm2 "^3.9.19"
     yargs "^16.2.0"
 
-"@subql/node@3.5.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@subql/node/-/node-3.5.0.tgz#70ec25d51c1582f6200e66a60c81de7efe4b18a3"
-  integrity sha512-RnbnMkXpnYZcBpLJGsKxQr6LSZMHYB6mpJ3K8bO/Xz1dF4L8T42wuTkXwn7+z4u9vf24Ez4mZoNnO4A5OXAYwA==
+"@subql/node@3.5.1":
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/@subql/node/-/node-3.5.1.tgz#55dc8f63768188a4e7e55ef792755b7350c2347b"
+  integrity sha512-2QjTZbiuRIUeYfi9U+x0bxd77y2FVPRsPZVrpytLT31c6NqU1gpM6ZjIidDNca/4T3BveaxZwzyuVjYdbH3LNA==
   dependencies:
     "@nestjs/common" "^9.4.0"
     "@nestjs/core" "^9.4.0"
@@ -3551,7 +3550,7 @@
     "@polkadot/api" "10.10.1"
     "@subql/common" "3.3.1"
     "@subql/common-substrate" "3.2.1"
-    "@subql/node-core" "7.1.0"
+    "@subql/node-core" "7.2.0"
     "@subql/testing" "2.1.0"
     "@subql/types" "3.3.0"
     "@subql/utils" "2.7.0"
@@ -5499,10 +5498,10 @@ dot-prop@^5.2.0:
   dependencies:
     is-obj "^2.0.0"
 
-dotenv@^16.3.1:
-  version "16.3.1"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.3.1.tgz#369034de7d7e5b120972693352a3bf112172cc3e"
-  integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
+dotenv@^16.4.1:
+  version "16.4.1"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.4.1.tgz#1d9931f1d3e5d2959350d1250efab299561f7f11"
+  integrity sha512-CjA3y+Dr3FyFDOAMnxZEGtnW9KBR2M0JvvUtXNW+dYJL5ROWxP9DUHCwgFqpMk0OXCc0ljhaNTr2w/kutYIcHQ==
 
 dottie@^2.0.2:
   version "2.0.6"
@@ -5740,7 +5739,7 @@ ethereum-cryptography@^2.0.0, ethereum-cryptography@^2.1.2:
     "@scure/bip32" "1.3.3"
     "@scure/bip39" "1.2.2"
 
-ethers@^5.6.8, ethers@^5.7.0:
+ethers@^5.7.0:
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.7.2.tgz#3a7deeabbb8c030d4126b24f84e525466145872e"
   integrity sha512-wswUsmWo1aOK8rR7DIKiWSw9DbLWe6x98Jrn8wcTflTVvaXhAMaB5zGAXy0GYQEQp9iO1iSHWVyARQm11zUtyg==

@@ -29,9 +29,9 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@sora-substrate/types": "1.27.12",
+    "@sora-substrate/types": "1.28.0",
     "@subql/cli": "4.2.5",
-    "@subql/node": "3.5.0",
+    "@subql/node": "3.5.1",
     "@subql/types": "3.3.0",
     "fs-extra": "^11.2.0",
     "js-yaml": "^4.1.0",
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.4.1",
     "yargs": "^17.7.2"
   },
   "exports": {
