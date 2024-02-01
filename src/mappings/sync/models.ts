@@ -4,6 +4,7 @@ import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { poolsStorage } from '../../utils/pools';
+import { historyElementsStorage } from '../../utils/history';
 import { shouldUpdate } from '../../utils';
 import { getSyncModelsLog } from "../../utils/logs";
 
@@ -18,6 +19,12 @@ export async function syncModels(block: SubstrateBlock): Promise<void> {
   await orderBooksSnapshotsStorage.sync(block);
   await orderBooksStorage.sync(block);
   await networkSnapshotsStorage.sync(block);
+}
+
+export async function syncHistory(block: SubstrateBlock): Promise<void> {
+  getSyncModelsLog(block).debug('Sync History Elements');
+
+  await historyElementsStorage.sync(block);
 }
 
 export async function updateDailyStats(block: SubstrateBlock): Promise<void> {

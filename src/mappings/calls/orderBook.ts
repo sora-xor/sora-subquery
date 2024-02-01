@@ -1,12 +1,10 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { logStartProcessingCall } from "../../utils/logs";
 
 export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
-
-  const historyElement = await createHistoryElement(extrinsic);
 
   const { extrinsic: { args: [orderBookId, price, amount, side, lifetimeOption] } } = extrinsic as any;
 
@@ -34,14 +32,12 @@ export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrin
     details.orderId = Number(orderId.toHuman());
   }
 
-  await addDataToHistoryElement(extrinsic, historyElement, details)
-  await updateHistoryElementStats(extrinsic, historyElement);
+  await createHistoryElement(extrinsic, details);
 }
 
 export async function orderBookCancelLimitOrderHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const historyElement = await createHistoryElement(extrinsic)
   const cancelEvents = extrinsic.events.filter(e =>
     e.event.section === 'orderBook' &&
     e.event.method === 'LimitOrderCanceled'
@@ -60,6 +56,5 @@ export async function orderBookCancelLimitOrderHandler(extrinsic: SubstrateExtri
     return buffer;
   }, []);
 
-  await addDataToHistoryElement(extrinsic, historyElement, details)
-  await updateHistoryElementStats(extrinsic, historyElement);
+  await createHistoryElement(extrinsic, details);
 }
