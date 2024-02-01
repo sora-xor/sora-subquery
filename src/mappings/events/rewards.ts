@@ -29,5 +29,5 @@ export async function stakingRewardedEventHandler(event: SubstrateEvent): Promis
 		era: stakingEra.index
 	};
 
-	await createHistoryElement(event, details);
+	await createHistoryElement(event, details, undefined, payee);
 }

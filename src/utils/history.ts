@@ -101,6 +101,7 @@ export const createHistoryElement = async (
 	ctx: SubstrateExtrinsic | SubstrateEvent,
 	data?: {},
     calls?: HistoryElementCall[],
+    address?: string,
 ): Promise<HistoryElement> => {
     const isEvent = 'event' in ctx;
     const type = isEvent ? HistoryElementType.EVENT : HistoryElementType.CALL;
@@ -138,6 +139,7 @@ export const createHistoryElement = async (
     const networkFee = isEvent ? '0' : getExtrinsicNetworkFee(extrinsic);
     const section = isEvent ? ctx.event.section : extrinsic.extrinsic.method.section;
     const method = isEvent ? ctx.event.method : extrinsic.extrinsic.method.method;
+    const owner = address ?? extrinsic.extrinsic.signer.toString();
 
 	const historyElement = new HistoryElement(
         getEntityId(ctx),
@@ -146,7 +148,7 @@ export const createHistoryElement = async (
         block.block.header.hash.toString(),
         section,
         method,
-        extrinsic.extrinsic.signer.toString(),
+        owner,
         networkFee,
         historyExecution,
         formatDateTimestamp(block.timestamp),

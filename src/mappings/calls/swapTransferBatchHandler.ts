@@ -74,10 +74,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
         };
 
         // create history element for receiver
-        const receiverHistory = await createHistoryElement(assetTransferEvent as any, transfer);
-        // change address of history element to receiver
-        receiverHistory.address = receiver;
-        await receiverHistory.save();
+        await createHistoryElement(assetTransferEvent as any, transfer, undefined, receiver);
     }
 
     await createHistoryElement(extrinsic, details);
