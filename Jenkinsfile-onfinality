@@ -4,6 +4,7 @@ def jobParams  = [
     string(defaultValue: '1', name: 'startBlock', trim: true),
     string(defaultValue: '1', name: 'startBlockStg', trim: true),
     string(defaultValue: '20000', name: 'queryTimeout', trim: true),
+    string(defaultValue: '30', name: 'batchSize', trim: true),
     booleanParam(defaultValue: true, name: 'fullClean'),
     booleanParam(defaultValue: true, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
