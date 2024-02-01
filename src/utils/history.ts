@@ -20,7 +20,7 @@ class HistoryElementsStorage {
     }
 
     get size(): number {
-        return this.accounts.size + this.calls.length + this.elements.length;
+        return this.elements.length;
     }
 
     private clear(): void {
@@ -29,9 +29,23 @@ class HistoryElementsStorage {
         this.accounts = new Map();
     }
 
-    private async beforeAdd(block: SubstrateBlock): Promise<void> {
+    private async checkSync(block: SubstrateBlock): Promise<void> {
         if (this.maxSize <= this.size) {
             await this.sync(block);
+        }
+    }
+
+    private async updateElements(block: SubstrateBlock) {
+        if (this.elements.length) {
+            await store.bulkUpdate('HistoryElement', this.elements);
+            getUtilsLog(block).debug(`History Elements saved: ${this.elements.length}`);
+        }
+    }
+
+    private async updateCalls(block: SubstrateBlock) {
+        if (this.calls.length) {
+            await store.bulkUpdate('HistoryElementCall', this.calls);
+            getUtilsLog(block).debug(`History Elements Calls saved: ${this.calls.length}`);
         }
     }
 
@@ -51,15 +65,8 @@ class HistoryElementsStorage {
     }
 
     public async sync(block: SubstrateBlock): Promise<void> {
-        if (this.elements.length) {
-            await store.bulkCreate('HistoryElement', this.elements);
-            getUtilsLog(block).debug(`History Elements saved: ${this.elements.length}`);
-        }
-        if (this.calls.length) {
-            await store.bulkCreate('HistoryElementCall', this.calls);
-            getUtilsLog(block).debug(`History Elements Calls saved: ${this.calls.length}`);
-        }
-
+        await this.updateElements(block);
+        await this.updateCalls(block);
         await this.updateAccounts(block);
 
         this.clear();
@@ -69,15 +76,13 @@ class HistoryElementsStorage {
         block: SubstrateBlock,
         historyElement: HistoryElement,
         calls: HistoryElementCall[] = [],
+        accountsAddresses: string[] = [],
     ): Promise<void> {
-        await this.beforeAdd(block);
-
         this.elements.push(historyElement);
         this.calls.push(...calls);
-    }
+        accountsAddresses.forEach((accountId) => this.accounts.set(accountId, historyElement.id));
 
-    public addHistoryIdToAccounts(block: SubstrateBlock, historyId: string, accounts: string[]): void {
-        accounts.forEach((accountId) => this.accounts.set(accountId, historyId));
+        await this.checkSync(block);
     }
 }
 
@@ -164,13 +169,13 @@ export const createHistoryElement = async (
         await addCallsToHistoryElement(extrinsic, historyElement, calls);
     }
 
-    const accounts = getHistoryElementAccountAddresses(block, historyElement);
-    historyElementsStorage.addHistoryIdToAccounts(block, historyElement.id, accounts);
+    const accountsAddresses = getHistoryElementAccountAddresses(block, historyElement);
 
     await historyElementsStorage.add(
         block,
         historyElement,
         calls,
+        accountsAddresses
     );
 
     await updateHistoryElementStats(block);
