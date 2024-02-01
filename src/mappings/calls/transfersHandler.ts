@@ -4,7 +4,7 @@ import { SubstrateExtrinsic } from "@subql/types";
 import { bytesToString } from "../../utils";
 import { XOR } from '../../utils/consts';
 import { isExchangeEvent } from "../../utils/events";
-import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { createHistoryElement, getExtrinsicNetworkFee } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { logStartProcessingCall } from "../../utils/logs";
 
@@ -12,7 +12,7 @@ export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promis
   logStartProcessingCall(extrinsic);
 
   const { extrinsic: { args: [asset, to, amount] } } = extrinsic;
-  const historyElement = await createHistoryElement(extrinsic);
+
   const assetId = getAssetId(asset);
   const details: any = {
     assetId,
@@ -21,8 +21,7 @@ export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promis
     to: to.toString(),
   };
 
-  await addDataToHistoryElement(extrinsic, historyElement, details);
-  await updateHistoryElementStats(extrinsic, historyElement);
+  await createHistoryElement(extrinsic, details);
 }
 
 export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -34,7 +33,6 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     }
   } = extrinsic;
 
-  const historyElement = await createHistoryElement(extrinsic);
   const assetId = getAssetId(asset);
   const details: any = {
     assetId,
@@ -43,23 +41,20 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     to: receiver.toString(),
     comment: !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null,
     assetFee: '0', // fee paid in asset
-    xorFee: historyElement.networkFee, // fee paid in XOR (by default 100% of network fee)
+    xorFee: getExtrinsicNetworkFee(extrinsic), // fee paid in XOR (by default 100% of network fee)
   };
 
-  if (historyElement.execution.success) {
-    const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
+  const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
 
-    if (exchangeEvent) {
-      const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
-      const assetSpended = formatU128ToBalance(baseAssetAmount.toString(), assetId); // formatted
-      const xorReceived = formatU128ToBalance(targetAssetAmount.toString(), XOR); // formatted
-      const xorSpended = new BigNumber(details.xorFee).minus(new BigNumber(xorReceived)).toString(); 
+  if (exchangeEvent) {
+    const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
+    const assetSpended = formatU128ToBalance(baseAssetAmount.toString(), assetId); // formatted
+    const xorReceived = formatU128ToBalance(targetAssetAmount.toString(), XOR); // formatted
+    const xorSpended = new BigNumber(details.xorFee).minus(new BigNumber(xorReceived)).toString(); 
 
-      details.assetFee = assetSpended;
-      details.xorFee = xorSpended;
-    }
+    details.assetFee = assetSpended;
+    details.xorFee = xorSpended;
   }
 
-  await addDataToHistoryElement(extrinsic, historyElement, details);
-  await updateHistoryElementStats(extrinsic, historyElement);
+  await createHistoryElement(extrinsic, details);
 }

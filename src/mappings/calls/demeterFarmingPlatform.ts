@@ -1,16 +1,14 @@
 import { SubstrateExtrinsic } from "@subql/types";
 
-import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
-import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
+import { logStartProcessingCall } from "../../utils/logs";
 
 const Section = 'demeterFarmingPlatform';
 
 export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
-
-  const historyElement = await createHistoryElement(extrinsic);
 
   const [desiredAmount, isFarm, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
@@ -35,14 +33,11 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
     details.amount = formatU128ToBalance(desiredAmount.toString(), details.assetId);
   }
 
-  await addDataToHistoryElement(extrinsic, historyElement, details);
-  await updateHistoryElementStats(extrinsic, historyElement);
+  await createHistoryElement(extrinsic, details);
 }
 
 export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
-
-  const historyElement = await createHistoryElement(extrinsic);
 
   const [isFarm, desiredAmount, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
@@ -67,14 +62,11 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
     details.amount = formatU128ToBalance(desiredAmount.toString(), details.assetId);
   }
 
-  await addDataToHistoryElement(extrinsic, historyElement, details);
-  await updateHistoryElementStats(extrinsic, historyElement);
+  await createHistoryElement(extrinsic, details);
 }
 
 export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
-
-  const historyElement = await createHistoryElement(extrinsic);
 
   const [isFarm, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
 
@@ -95,8 +87,5 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
     details.amount = '0';
   }
 
-  await addDataToHistoryElement(extrinsic, historyElement, details);
-  await updateHistoryElementStats(extrinsic, historyElement);
-
-  getCallHandlerLog(extrinsic).debug(`Saved demeterFarmingPlatform getRewards`)
+  await createHistoryElement(extrinsic, details);
 }
