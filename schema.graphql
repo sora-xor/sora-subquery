@@ -115,7 +115,6 @@ type HistoryElement @entity {
   data: HistoryElementDetails
 	dataTo: String @index
 	dataFrom: String @index
-  # dataReceivers: [String]
 	calls: [HistoryElementCall!]! @derivedFrom(field: "historyElement")
 	callNames: [String]!
 	updatedAtBlock: Int!
@@ -158,6 +157,7 @@ type ReferrerReward @entity {
 	amount: BigInt!
 }
 
+# [TODO] Remove before full reindex prod
 type StakingReward @entity {
 	id: ID!
 	amount: String!

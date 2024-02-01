@@ -1,44 +1,31 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
-import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
+import { logStartProcessingCall } from "../../utils/logs";
 
 export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
 
-    const historyElement = await createHistoryElement(extrinsic)
+    const { extrinsic: { args: [asset, sidechainAddress, amount, ] } } = extrinsic;
 
-    const { extrinsic: { args: [assetId, sidechainAddress, amount, ] } } = extrinsic;
+    const assetId = getAssetId(asset);
 
-    let entity = new Object();
+    const details: any = {
+        assetId,
+        sidechainAddress: sidechainAddress.toString(),
+        amount: formatU128ToBalance(amount.toString(), assetId)
+    };
 
-    if (historyElement.execution.success) {
+    const soraEthTransferEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered');
 
-        let soraEthTransferEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered');
+    if (soraEthTransferEvent) {
         const { event: { data: [requestHash] } } = soraEthTransferEvent;
 
-        entity = {
-            requestHash: requestHash.toString(),
-            assetId: getAssetId(assetId),
-            sidechainAddress: sidechainAddress.toString(),
-            amount: formatU128ToBalance(amount.toString(), getAssetId(assetId))
-        }
-
+        details.requestHash = requestHash.toString();
     }
 
-    else {
-
-        entity = {
-            assetId: getAssetId(assetId),
-            sidechainAddress: sidechainAddress.toString(),
-            amount: formatU128ToBalance(amount.toString(), getAssetId(assetId))
-        }
-
-    }
-
-    await addDataToHistoryElement(extrinsic, historyElement, entity);
-    await updateHistoryElementStats(extrinsic, historyElement);
     await networkSnapshotsStorage.updateBridgeOutgoingTransactionsStats(extrinsic.block);
 
+    await createHistoryElement(extrinsic, details);
 }
