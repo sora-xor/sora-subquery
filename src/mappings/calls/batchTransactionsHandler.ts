@@ -2,10 +2,11 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { Vec } from '@polkadot/types';
 import { AnyTuple, CallBase } from '@polkadot/types/types';
 
-import { addCallsToHistoryElement, addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { poolsStorage } from '../../utils/pools';
-import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
+import { logStartProcessingCall } from '../../utils/logs';
+import { getEntityId } from '../../utils';
 import { HistoryElementCall } from '../../types';
 
 function formatSpecificCalls(
@@ -79,17 +80,25 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
 
     const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
     const entities = [] as Object[];
-
-    const historyElement = await createHistoryElement(extrinsic);
+    const blockNumber = extrinsic.block.block.header.number.toString();
 
     entities.concat(
-        calls.map((call, idx) => extractCalls(call, idx, historyElement.blockHeight.toString(), entities))
+        calls.map((call, idx) => extractCalls(call, idx, blockNumber, entities))
     );
+
+    // If initialize pool call exists, create new Pool
+    const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
+
+    if (initializePool) {
+        await poolsStorage.getPool(extrinsic.block, initializePool.data.args.asset_a, initializePool.data.args.asset_b);
+    }
+
+    const historyElementId = getEntityId(extrinsic);
 
     const historyElementCalls = entities.map((call: any) => {
         const historyElementCall = new HistoryElementCall(
             call.callId,
-            historyElement.id,
+            historyElementId,
             call.module,
             call.method,
             call.hash,
@@ -101,15 +110,5 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         return historyElementCall;
     })
 
-	await addCallsToHistoryElement(extrinsic, historyElement, historyElementCalls);
-    await updateHistoryElementStats(extrinsic, historyElement);
-
-    if (historyElement.execution.success) {
-        // If initialize pool call exists, create new Pool
-        const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
-
-        if (initializePool) {
-            await poolsStorage.getPool(extrinsic.block, initializePool.data.args.asset_a, initializePool.data.args.asset_b);
-        }
-    }
+    await createHistoryElement(extrinsic, undefined, historyElementCalls);
 }
