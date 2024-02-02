@@ -4,7 +4,6 @@ import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { poolsStorage } from '../../utils/pools';
-import { historyElementsStorage } from '../../utils/history';
 import { shouldUpdate } from '../../utils';
 import { getSyncModelsLog } from "../../utils/logs";
 
@@ -18,13 +17,13 @@ export async function syncModels(block: SubstrateBlock): Promise<void> {
   await assetStorage.sync(block);
   await orderBooksSnapshotsStorage.sync(block);
   await orderBooksStorage.sync(block);
-  await networkSnapshotsStorage.sync(block);
 }
 
-export async function syncHistory(block: SubstrateBlock): Promise<void> {
-  getSyncModelsLog(block).debug('Sync History Elements');
+export async function updateNetworkStats(block: SubstrateBlock): Promise<void> {
+  getSyncModelsLog(block).debug('Update network stats');
 
-  await historyElementsStorage.sync(block);
+  await networkSnapshotsStorage.updateLiquidityStats(block);
+  await networkSnapshotsStorage.sync(block);
 }
 
 export async function updateDailyStats(block: SubstrateBlock): Promise<void> {
@@ -33,9 +32,7 @@ export async function updateDailyStats(block: SubstrateBlock): Promise<void> {
   getSyncModelsLog(block).debug('Update daily stats');
 
   await assetStorage.updateDailyStats(block);
-  await assetStorage.sync(block);
   await orderBooksStorage.updateDailyStats(block);
-  await orderBooksStorage.sync(block);
 }
 
 export async function updateAssetsWeeklyStats(block: SubstrateBlock): Promise<void> {
@@ -44,5 +41,4 @@ export async function updateAssetsWeeklyStats(block: SubstrateBlock): Promise<vo
   getSyncModelsLog(block).debug('Update assets weekly stats');
 
   await assetStorage.updateWeeklyStats(block);
-  await assetStorage.sync(block);
 }

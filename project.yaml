@@ -408,12 +408,10 @@ dataSources:
           kind: substrate/BlockHandler
         - handler: syncStreams
           kind: substrate/BlockHandler
-        - handler: syncHistory
-          kind: substrate/BlockHandler
-        - handler: syncModels
+        - handler: updateNetworkStats
           kind: substrate/BlockHandler
           filter:
-            modulo: 50
+            modulo: 600
         - handler: updateDailyStats
           kind: substrate/BlockHandler
           filter:
@@ -422,3 +420,7 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 2400
+        - handler: syncModels
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 50
