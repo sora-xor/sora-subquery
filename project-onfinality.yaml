@@ -4,7 +4,7 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 3.5.0
+    version: 3.5.3
   query:
     name: '@subql/query'
     version: 2.9.0
@@ -414,12 +414,10 @@ dataSources:
           kind: substrate/BlockHandler
         - handler: syncStreams
           kind: substrate/BlockHandler
-        - handler: syncHistory
-          kind: substrate/BlockHandler
-        - handler: syncModels
+        - handler: updateNetworkStats
           kind: substrate/BlockHandler
           filter:
-            modulo: 50
+            modulo: 600
         - handler: updateDailyStats
           kind: substrate/BlockHandler
           filter:
@@ -428,3 +426,7 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 2400
+        - handler: syncModels
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 50
