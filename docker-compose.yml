@@ -13,7 +13,7 @@ services:
       test: pg_isready -U postgres
 
   subquery-node:
-    image: onfinality/subql-node:v3.5.0
+    image: onfinality/subql-node:v3.5.3
     depends_on:
       postgres:
         condition: service_healthy
