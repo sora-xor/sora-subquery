@@ -4,8 +4,6 @@ import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../../types";
 
 import { assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
-import { networkSnapshotsStorage } from '../../utils/network';
-import { orderBooksStorage } from '../../utils/orderBook';
 import { poolAccounts, PoolsPrices, poolsStorage } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
 import { getPoolsStorageLog, getSyncPricesLog } from "../../utils/logs";
@@ -142,14 +140,6 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             await assetSnapshotsStorage.updatePrice(block, assetId, price);
         }
     }
-    getSyncPricesLog(block).debug(`${Object.entries(assetsPrices).length} asset snapshot prices updated`);
-
-    const poolsLockedUSD = await poolsStorage.getLockedLiquidityUSD(block);
-    const booksLockedUSD = await orderBooksStorage.getLockedLiquidityUSD(block);
-    const liquiditiesUSD = poolsLockedUSD.plus(booksLockedUSD);
-
-    // update total liquidity in USD
-    await networkSnapshotsStorage.updateLiquidityStats(block, liquiditiesUSD);
 
     getSyncPricesLog(block).debug('PoolXYK prices updated');
 

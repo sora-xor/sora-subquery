@@ -3,7 +3,7 @@ import type { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from "@subql/
 import { Account, HistoryElement, HistoryElementCall, HistoryElementType } from "../types";
 import { getAccountEntity } from './account';
 import { networkSnapshotsStorage } from './network';
-import { formatDateTimestamp, getEntityId } from './index';
+import { formatDateTimestamp, getEntityId, shouldUpdate } from './index';
 import { getUtilsLog } from "./logs";
 
 const INCOMING_TRANSFER_METHODS = ['transfer', 'xorlessTransfer', 'swapTransfer', 'swapTransferBatch'];
@@ -30,7 +30,7 @@ class HistoryElementsStorage {
     }
 
     private async checkSync(block: SubstrateBlock): Promise<void> {
-        if (this.maxSize <= this.size) {
+        if (this.maxSize <= this.size || shouldUpdate(block, 60)) {
             await this.sync(block);
         }
     }
