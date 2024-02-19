@@ -55,6 +55,16 @@ dataSources:
           filter:
             module: assets
             method: register
+        - handler: assetBurnHandler
+          kind: substrate/CallHandler
+          filter:
+            module: assets
+            method: burn
+        - handler: assetMintHandler
+          kind: substrate/CallHandler
+          filter:
+            module: assets
+            method: mint
         - handler: handleAssetTransfer
           kind: substrate/CallHandler
           filter:
