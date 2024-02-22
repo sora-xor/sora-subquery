@@ -189,6 +189,14 @@ class AssetSnapshotsStorage {
     return [assetId, type, index].join('-');
   }
 
+  private async save(block: SubstrateBlock, snapshot: AssetSnapshot, force = false): Promise<void> {
+    if (force || shouldUpdate(block, 60)) {
+      await snapshot.save();
+
+      getAssetSnapshotsStorageLog(block).debug({ id: snapshot.id }, 'Asset snapshot saved');
+    }
+  }
+
   async sync(block: SubstrateBlock): Promise<void> {
     await this.syncSnapshots(block);
   }
@@ -274,7 +282,10 @@ class AssetSnapshotsStorage {
         { assetId, newPrice: price },
         'Asset snapshot price updated',
       )
+
+      await this.save(block, snapshot);
     }
+
     await this.assetStorage.updatePrice(block, assetId, price);
   }
 
