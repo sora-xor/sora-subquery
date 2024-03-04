@@ -1,15 +1,22 @@
 import type { SubstrateBlock } from "@subql/types";
+import { decodeHex } from '@subsquid/substrate-processor'
 
 import BigNumber from "bignumber.js";
 
 import { TextDecoder } from 'util';
 
-import { SnapshotType } from "../types";
+import { BlockContext, ReferenceSymbol, SnapshotType } from "../types";
 
 import { SnapshotSecondsMap, SnapshotTimeDepthMap } from './consts';
 import { SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 
 export const toFloat = (value: BigNumber) => Number(value.toFixed(2));
+
+export function assertDefined<T>(value: T | null | undefined, message?: string): asserts value is T {
+    if (value === null || value === undefined) {
+        throw new Error(message || 'Assertion failed: value is null or undefined')
+    }
+}
 
 export const last = <T>(snapshots: T[]) => {
   if (!snapshots.length) return null;
@@ -60,6 +67,20 @@ export const getSnapshotIndex = (blockTimestamp: number, type: SnapshotType): { 
   return { index, timestamp };
 };
 
+export const toText = (data: Uint8Array): string => {
+	return new TextDecoder().decode(data)
+}
+export const decodeText = (data: string): Uint8Array => {
+	return new TextEncoder().encode(data)
+}
+
+export const toReferenceSymbol = (data: string): ReferenceSymbol => {
+	return decodeHex(data).toString() as unknown as ReferenceSymbol
+}
+export const decodeReferenceSymbol = (data: ReferenceSymbol): Uint8Array => {
+	return decodeText(data as unknown as string)
+}
+
 export const bytesToString = (ticker: any): string => {
   return new TextDecoder().decode(ticker);
 };
@@ -68,11 +89,16 @@ export const getCallId = (call: SubstrateExtrinsic): string => {
 	return call.extrinsic.hash.toString()
 }
 
-export const getEventId = (event: SubstrateEvent): string => {
+export const getEventId = (ctx: BlockContext, event: SubstrateEvent): string => {
 	return `${event.block.block.header.number.toString()}-${event.idx}`
 }
 
 export const getEntityId = (entity: SubstrateExtrinsic | SubstrateEvent): string => {
 	return 'event' in entity ? getEventId(entity) : getCallId(entity)
+}
+
+export const getBlockTimestamp = (ctx: BlockContext): number => {
+	assertDefined(ctx.block.header.timestamp)
+	return formatDateTimestamp(new Date(ctx.block.header.timestamp))
 }
 

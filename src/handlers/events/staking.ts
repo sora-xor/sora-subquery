@@ -4,7 +4,7 @@ import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 import { getActiveStakingEra, getStakingStaker } from '../../utils/staking';
 
 export async function stakingStakersElectedEventHandler(event: SubstrateEvent): Promise<void> {
-	logStartProcessingEvent(event)
+	logStartProcessingEvent(ctx, event)
 
 	const activeStakingEra = await getActiveStakingEra(event.block)
 
@@ -42,9 +42,9 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 		stakingEraValidator.totalBond = total
 		stakingValidator.bond = total
 		await stakingValidator.save()
-		getEventHandlerLog(event).debug({ id: stakingValidator.id, bond: stakingValidator.bond }, 'Staking Validator saved')
+		getEventHandlerLog(ctx, event).debug({ id: stakingValidator.id, bond: stakingValidator.bond }, 'Staking Validator saved')
 		await stakingEraValidator.save()
-		getEventHandlerLog(event).debug(
+		getEventHandlerLog(ctx, event).debug(
 			{
 				id: stakingEraValidator.id,
 				ownBond: stakingEraValidator.ownBond,
@@ -68,7 +68,7 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 			}
 			stakingEraNominator.bond += BigInt(nomination.value.toString())
 			await stakingEraNominator.save()
-			getEventHandlerLog(event).debug(
+			getEventHandlerLog(ctx, event).debug(
 				{ id: stakingEraNominator.id, bond: stakingEraNominator.bond },
 				'Staking Era Nominator saved',
 			)
@@ -81,7 +81,7 @@ export async function stakingStakersElectedEventHandler(event: SubstrateEvent): 
 				stakingEraNominator.id
 			);
 			await stakingEraNomination.save()
-			getEventHandlerLog(event).debug(
+			getEventHandlerLog(ctx, event).debug(
 				{ id: stakingEraNomination.id, amount: stakingEraNomination.amount },
 				'Staking Era Nomination saved',
 			)

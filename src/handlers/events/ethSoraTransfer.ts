@@ -8,7 +8,7 @@ import { getDepositedEventData, getTransferEventData, isAssetDepositedEvent, isA
 import { logStartProcessingEvent } from '../../utils/logs';
 
 export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+    logStartProcessingEvent(ctx, event)
 
     const extrinsic = event.extrinsic
     const registeredRequestEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered' && e.event.section === 'ethBridge')

@@ -1,42 +1,44 @@
-import { SubstrateEvent } from "@subql/types";
+import { Event, BlockContext } from '../../types'
+import { assetPrecisions, assetStorage, tickerSyntheticAssetId } from '../../utils/assets'
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs'
+import { assetRegistrationStream } from '../../utils/stream'
+import { getAssetsAssetRegisteredEventData, getXSTPoolSyntheticAssetEnabledEventData } from '../../extractors/events'
+import { getAssetsAssetInfosStorageData } from '../../extractors/storage'
 
-import { assetPrecisions, getAssetId, assetStorage, tickerSyntheticAssetId } from '../../utils/assets';
-import { bytesToString } from '../../utils';
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
-import { assetRegistrationStream } from '../../utils/stream';
+export async function assetRegistrationEventHandler(ctx: BlockContext, event: Event<'Assets.AssetRegistered'>): Promise<void> {
+	logStartProcessingEvent(ctx, event)
 
-export async function handleAssetRegistration(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+	const { assetId } = await getAssetsAssetRegisteredEventData(ctx, event)
+	const { symbol, name, decimals, content, description } = await getAssetsAssetInfosStorageData(ctx, assetId)
 
-  const { event: { data: [asset] } } = event;
+	if (!assetPrecisions.has(assetId)) {
+		assetPrecisions.set(assetId, decimals)
+	}
 
-  const assetId: string = getAssetId(asset);
-  const [symbol, name, decimals, _isMintable, content, description] = (await api.query.assets.assetInfos(assetId)).toHuman() as any;
+	const assetData = { address: assetId, symbol, name, decimals, content, description }
 
-  if (!assetPrecisions.has(assetId)) {
-    assetPrecisions.set(assetId, Number(decimals));
-  }
+  	assetRegistrationStream.update(assetId, JSON.stringify(assetData))
 
-  const assetData = { address: assetId, symbol, name, decimals, content, description };
-
-  assetRegistrationStream.update(assetId, JSON.stringify(assetData));
-
-  await assetStorage.getAsset(event.block, assetId);
+	await assetStorage.getAsset(ctx, assetId)
 }
 
-export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+export async function syntheticAssetEnabledEventHandler(
+	ctx: BlockContext,
+	event: Event<'XSTPool.SyntheticAssetEnabled'>,
+): Promise<void> {
+	logStartProcessingEvent(ctx, event)
 
-  const { event: { data: [asset, ticker] } } = event;
+	const data = await getXSTPoolSyntheticAssetEnabledEventData(ctx, event)
 
-  const assetId: string = getAssetId(asset);
-  const referenceSymbol = bytesToString(ticker);
+	const { assetId, referenceSymbol } = data
 
-  tickerSyntheticAssetId.set(referenceSymbol, assetId);
-  // synthetic assets always have 18 decimals
-  assetPrecisions.set(assetId, 18);
+	if (!referenceSymbol) return
 
-  getEventHandlerLog(event).debug({ assetId, referenceSymbol }, 'Synthetic asset enabled')
+	tickerSyntheticAssetId.set(referenceSymbol, assetId)
+	// synthetic assets always have 18 decimals
+	assetPrecisions.set(assetId, 18)
 
-  await assetStorage.getAsset(event.block, assetId);
+	getEventHandlerLog(ctx, event).debug({ assetId, referenceSymbol }, 'Synthetic asset enabled')
+
+	await assetStorage.getAsset(ctx, assetId)
 }

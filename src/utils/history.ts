@@ -161,6 +161,9 @@ export const createHistoryElement = async (
         blockNumber,
     )
 
+    const { callNames, execution, data: details, ...logArguments } = historyElement
+	getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element')
+
 	if (data) {
 		await addDataToHistoryElement(ctx, historyElement, data);
 	}
@@ -180,9 +183,6 @@ export const createHistoryElement = async (
 
     await updateHistoryElementStats(block);
 
-    const { callNames, execution, data: details, ...logArguments } = historyElement
-	getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element')
-
 	return historyElement
 }
 
@@ -201,7 +201,11 @@ const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | SubstrateEvent,
 
 	getUtilsLog(ctx).debug({
         historyElementId: historyElement.id,
-        data: JSON.stringify(data).replaceAll('"', '')
+        data: JSON.stringify(data, (key, value) =>
+            typeof value === 'bigint'
+                ? value.toString()
+                : value
+        ).replaceAll('"', '')
     }, 'Updated history element with data')
 }
 
@@ -210,21 +214,21 @@ const addCallsToHistoryElement = async (extrinsic: SubstrateExtrinsic, historyEl
 	historyElement.updatedAtBlock = extrinsic.block.block.header.number.toNumber()
 }
 
-const getHistoryElementAccountAddresses = (block: SubstrateBlock, history: HistoryElement) => {
-    const addresses = [history.address];
+const getHistoryElementAccountAddresses = (ctx: SubstrateBlock, historyElement: HistoryElement) => {
+    const addresses = [historyElement.address];
 
     if (
-        INCOMING_TRANSFER_METHODS.includes(history.method) &&
-        history.dataTo
+        INCOMING_TRANSFER_METHODS.includes(historyElement.method) &&
+        historyElement.dataTo
     ) {
-        addresses.push(history.dataTo);
+        addresses.push(historyElement.dataTo);
     }
 
-    const acccountAddresses = [...new Set(addresses)];
+    const accountAddresses = [...new Set(addresses)];
 
-    getUtilsLog(block).debug({ historyId: history.id, addresses: acccountAddresses.join(', ') }, 'addresses');
+    getUtilsLog(ctx).debug({ historyId: historyElement.id, addresses: accountAddresses.join(', ') }, 'Get history element account addresses');
 
-    return acccountAddresses;
+    return accountAddresses;
 }
 
 const updateHistoryElementStats = async (block: SubstrateBlock) => {

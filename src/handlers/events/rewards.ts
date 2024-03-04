@@ -1,26 +1,21 @@
+import { StakingReward } from '../../model'
+import { Address, BlockContext, Event } from '../../types'
+import { getBlockTimestamp, getEventId } from '../../utils'
 import { formatU128ToBalance } from '../../utils/assets'
 import { VAL } from '../../utils/consts'
+import { createEventHistoryElement } from '../../utils/history'
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs'
 import { getActiveStakingEra, getStakingStaker } from '../../utils/staking'
-import { SubstrateEvent } from '@subql/types'
-import { logStartProcessingEvent } from '../../utils/logs'
-import { createHistoryElement } from '../../utils/history'
+import { getStakingRewardedEventData } from '../../extractors/events'
 
-function getRewardData(event: SubstrateEvent): { stash: string; amount: string } {
-	const data = event.event.data as any
-	const stash = Array.isArray(data) ? data[0] : data.stash
-	const amount = Array.isArray(data) ? data[1] : data.amount
+export async function stakingRewardedEventHandler(ctx: BlockContext, event: Event<'Staking.Rewarded'>): Promise<void> {
+	logStartProcessingEvent(ctx, event)
 
-	return { stash: stash.toString(), amount: formatU128ToBalance(amount.toString(), VAL) }
-}
+	const { stash, amount } = getStakingRewardedEventData(ctx, event)
 
-export async function stakingRewardedEventHandler(event: SubstrateEvent): Promise<void> {
-	logStartProcessingEvent(event);
-
-	const { stash, amount } = getRewardData(event);
-
-	const stakingEra = await getActiveStakingEra(event.block);
-	const staker = await getStakingStaker(event.block, stash);
-	const payee = staker.payee;
+	const stakingEra = await getActiveStakingEra(ctx)
+	const staker = await getStakingStaker(ctx, stash)
+	const payee = staker.payee as Address
 
 	const details: any = {
 		stash,
@@ -29,5 +24,5 @@ export async function stakingRewardedEventHandler(event: SubstrateEvent): Promis
 		era: stakingEra.index
 	};
 
-	await createHistoryElement(event, details, undefined, payee);
+	await createEventHistoryElement(ctx, event, payee, details)
 }

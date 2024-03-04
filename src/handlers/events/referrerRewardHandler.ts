@@ -4,7 +4,7 @@ import { formatDateTimestamp } from '../../utils';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 export async function referrerRewardHandler(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+    logStartProcessingEvent(ctx, event)
 
 	const {
 		event: {
@@ -26,7 +26,7 @@ export async function referrerRewardHandler(event: SubstrateEvent): Promise<void
 
 	await referrerReward.save();
 
-	getEventHandlerLog(event).debug(
+	getEventHandlerLog(ctx, event).debug(
 		{
 			referral: referrerReward.referral,
 			referrer: referrerReward.referrer,

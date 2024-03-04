@@ -25,18 +25,18 @@ const getOrderData = (orderBookCodec: any, orderId: string | number) => {
   return { dexId, baseAssetId, quoteAssetId, orderBookId, orderId, id };
 }
 
-export async function orderBookCreatedEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+export async function orderBookCreatedEvent(ctx: BlockContext, event: SubstrateEvent): Promise<void> {
+  logStartProcessingEvent(ctx, event);
 
   const { event: { data: [orderBookCodec] } } = event as any;
   const { dexId, baseAssetId, quoteAssetId } = getBookData(orderBookCodec);
   const { id } = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
 
-  getEventHandlerLog(event).debug({ id }, 'Order Book Created');
+  getEventHandlerLog(ctx, event).debug({ id }, 'Order Book Created');
 }
 
 export async function orderBookStatusChangedEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+  logStartProcessingEvent(ctx, event);
 
   const { event: { data: [orderBookCodec, statusCodec] } } = event as any;
   const { dexId, baseAssetId, quoteAssetId } = getBookData(orderBookCodec);
@@ -47,11 +47,11 @@ export async function orderBookStatusChangedEvent(event: SubstrateEvent): Promis
 
   await orderBook.save();
 
-  getEventHandlerLog(event).debug({ id: orderBook.id, status }, 'Order Book Status Changed');
+  getEventHandlerLog(ctx, event).debug({ id: orderBook.id, status }, 'Order Book Status Changed');
 }
 
 export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+  logStartProcessingEvent(ctx, event);
 
   const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount, lifetime] } } = event as any;
 
@@ -88,11 +88,11 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
 
   await limitOrder.save();
 
-  getEventHandlerLog(event).debug({ id }, 'Limit Order Saved');
+  getEventHandlerLog(ctx, event).debug({ id }, 'Limit Order Saved');
 }
 
 export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+  logStartProcessingEvent(ctx, event);
 
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, side, price, amount] } } = event as any;
   const { id, dexId, baseAssetId, quoteAssetId, orderId } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
@@ -111,16 +111,16 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
 
     await limitOrder.save();
 
-    getEventHandlerLog(event).debug({ id }, 'Limit Order Executed');
+    getEventHandlerLog(ctx, event).debug({ id }, 'Limit Order Executed');
   } else {
-    getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
+    getEventHandlerLog(ctx, event).debug({ id }, 'Limit Order not found');
   }
 
   await orderBooksSnapshotsStorage.updateDeal(event.block, dexId, baseAssetId, quoteAssetId, Number(orderId), newPrice, newAmount, isBuy);
 }
 
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+  logStartProcessingEvent(ctx, event);
 
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, amount] } } = event as any;
   const { id, baseAssetId } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
@@ -136,14 +136,14 @@ export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<voi
 
     await limitOrder.save();
 
-    getEventHandlerLog(event).debug({ id, amount: newAmount }, 'Limit Order Updated');
+    getEventHandlerLog(ctx, event).debug({ id, amount: newAmount }, 'Limit Order Updated');
   } else {
-    getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
+    getEventHandlerLog(ctx, event).debug({ id }, 'Limit Order not found');
   }
 }
 
 export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+  logStartProcessingEvent(ctx, event);
 
   const { event: { data: [orderBookCodec, orderIdCodec] } } = event as any;
   const { id } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
@@ -157,14 +157,14 @@ export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void
 
     await limitOrder.save();
 
-    getEventHandlerLog(event).debug({ id }, 'Limit Order Filled');
+    getEventHandlerLog(ctx, event).debug({ id }, 'Limit Order Filled');
   } else {
-    getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
+    getEventHandlerLog(ctx, event).debug({ id }, 'Limit Order not found');
   }
 }
 
 export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+  logStartProcessingEvent(ctx, event);
 
   const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, reasonCodec] } } = event as any;
   const { id } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
@@ -180,14 +180,14 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
 
     await limitOrder.save();
 
-    getEventHandlerLog(event).debug({ id, reason }, 'Limit Order Canceled');
+    getEventHandlerLog(ctx, event).debug({ id, reason }, 'Limit Order Canceled');
   } else {
-    getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
+    getEventHandlerLog(ctx, event).debug({ id }, 'Limit Order not found');
   }
 }
 
 export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event);
+  logStartProcessingEvent(ctx, event);
 
   const { event: { data: [orderBookCodec, ownerId, side, amountCodec, price] } } = event as any;
 
@@ -222,5 +222,5 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
 
   await marketOrder.save();
 
-  getEventHandlerLog(event).debug({ id }, 'Market Order Saved');
+  getEventHandlerLog(ctx, event).debug({ id }, 'Market Order Saved');
 }

@@ -24,7 +24,7 @@ export const getAllOrderBooks = async (block: SubstrateBlock) => {
   try {
     getOrderBooksStorageLog(block).debug('Order Books entities request...');
     const entities = await api.query.orderBook.orderBooks.entries();
-    getOrderBooksStorageLog(block).debug('Order Books entities request completed');
+    getOrderBooksStorageLog(block).debug({ amount: entities?.length }, 'Order Books entities request completed');
     return entities;
   } catch (e) {
     getOrderBooksStorageLog(block).error('Error getting Order Books entities');
@@ -59,7 +59,7 @@ export const getTechnicalAccounts = async (block: SubstrateBlock) => {
   try {
     getOrderBooksStorageLog(block).debug('Order Books account ids request...');
     const entities = await api.query.technical.techAccounts.entries();
-    getOrderBooksStorageLog(block).debug('Order Books account ids request completed');
+    getOrderBooksStorageLog(block).debug({ amount: `${entities?.length}` }, 'Order Books account ids request completed');
     return entities;
   } catch (e) {
     getOrderBooksStorageLog(block).error('Error getting Order Books account ids');
@@ -109,6 +109,8 @@ export class OrderBooksStorage {
           const quoteAsset = getAssetIdFromTech(baseAssetId);
           const baseAsset = getAssetIdFromTech(targetAssetId);
           const orderBookId = OrderBooksStorage.getId(dexId, baseAsset, quoteAsset);
+
+					getOrderBooksStorageLog(block, true).debug({ id: orderBookId }, 'Order Book account id added')
 
           this.accountIds.set(accountId, orderBookId);
         }

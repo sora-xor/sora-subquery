@@ -1,50 +1,46 @@
-import { SubstrateEvent } from "@subql/types";
-import { getAssetId, assetSnapshotsStorage } from '../../utils/assets';
-import { XOR } from '../../utils/consts';
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
+import { assetSnapshotsStorage } from '../../utils/assets'
+import { XOR } from '../../utils/consts'
+import { BlockContext, Event } from '../../types'
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs'
+import {
+	getTokensWithdrawnEventData,
+	getBalancesWithdrawEventData,
+	getTokensDepositedEventData,
+	getBalancesDepositEventData
+} from '../../extractors/events'
 
-export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+export async function tokenBurnEventHandler(ctx: BlockContext, event: Event<'Tokens.Withdrawn'>): Promise<void> {
+	logStartProcessingEvent(ctx, event)
 
-    const { event: { data: [ currencyId, who, balance ] } } = event;
+	const { assetId, amount } = await getTokensWithdrawnEventData(ctx, event)
 
-    const assetId = getAssetId(currencyId);
-    const amount = BigInt(balance.toString());
-
-    await assetSnapshotsStorage.updateBurned(event.block, assetId, amount);
+	await assetSnapshotsStorage.updateBurned(ctx, assetId, BigInt(amount))
 }
 
-export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
-    
-    const { event: { data: [ who, balance ] } } = event;
+export async function xorBurnEventHandler(ctx: BlockContext, event: Event<'Balances.Withdraw'>): Promise<void> {
+	logStartProcessingEvent(ctx, event)
 
-    const assetId = XOR;
-    const amount = BigInt(balance.toString());
+    const { amount } = await getBalancesWithdrawEventData(ctx, event)
+	const assetId = XOR
 
-    await assetSnapshotsStorage.updateBurned(event.block, assetId, amount);
+	await assetSnapshotsStorage.updateBurned(ctx, assetId, amount)
 }
 
-export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+export async function tokenMintEventHandler(ctx: BlockContext, event: Event<'Tokens.Deposited'>): Promise<void> {
+    logStartProcessingEvent(ctx, event)
 
-    const { event: { data: [ currencyId, who, balance ] } } = event;
+    const { assetId, amount } = await getTokensDepositedEventData(ctx, event)
 
-    const assetId = getAssetId(currencyId);
-    const amount = BigInt(balance.toString());
-
-	getEventHandlerLog(event).debug(`1 Minting ${amount} of ${assetId}`)
-    await assetSnapshotsStorage.updateMinted(event.block, assetId, amount);
+	getEventHandlerLog(ctx, event).debug(`1 Minting ${amount} of ${assetId}`)
+    await assetSnapshotsStorage.updateMinted(ctx, assetId, amount)
 }
 
-export async function handleXorMint(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+export async function xorMintEventHandler(ctx: BlockContext, event: Event<'Balances.Deposit'>): Promise<void> {
+    logStartProcessingEvent(ctx, event)
 
-    const { event: { data: [ who, balance ] } } = event;
+    const { amount } = await getBalancesDepositEventData(ctx, event)
+	const assetId = XOR
 
-    const assetId = XOR;
-    const amount = BigInt(balance.toString());
-
-	getEventHandlerLog(event).debug(`2 Minting ${amount} of ${assetId}`)
-    await assetSnapshotsStorage.updateMinted(event.block, assetId, amount);
+	getEventHandlerLog(ctx, event).debug(`2 Minting ${amount} of ${assetId}`)
+    await assetSnapshotsStorage.updateMinted(ctx, assetId, amount)
 }

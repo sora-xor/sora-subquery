@@ -1,13 +1,12 @@
-import { SubstrateEvent } from "@subql/types";
+import { networkSnapshotsStorage } from '../../utils/network'
+import { BlockContext, Event } from '../../types'
+import { logStartProcessingEvent } from '../../utils/logs'
+import { getXorFeeFeeWithdrawnEventData } from '../../extractors/events'
 
-import { networkSnapshotsStorage } from '../../utils/network';
-import { logStartProcessingEvent } from "../../utils/logs";
+export async function networkFeeEventHandler(ctx: BlockContext, event: Event<'XorFee.FeeWithdrawn'>): Promise<void> {
+	logStartProcessingEvent(ctx, event)
 
-export async function handleNetworkFee(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event)
+	const { fee } = await getXorFeeFeeWithdrawnEventData(ctx, event)
 
-  const { event: { data: [account, fee] } } = event;
-  const formattedFee = BigInt(fee.toString());
-
-  await networkSnapshotsStorage.updateFeesStats(event.block, formattedFee);
+	await networkSnapshotsStorage.updateFeesStats(ctx, fee)
 }

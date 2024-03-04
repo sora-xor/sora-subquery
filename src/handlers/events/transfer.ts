@@ -6,7 +6,7 @@ import { orderBooksStorage } from "../../utils/orderBook";
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 export async function handleTransferEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event)
+  logStartProcessingEvent(ctx, event)
 
   const { assetId, from, to, amount } = getTransferEventData(event);
 
@@ -20,7 +20,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
       pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount);
     }
 
-    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after withdrawal')
+    getEventHandlerLog(ctx, event).debug({ poolId: pool.id }, 'Pool information saved after withdrawal')
     PoolsPrices.set(true);
   }
   // deposit token to pool
@@ -33,7 +33,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
       pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount);
     }
 
-    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after deposit')
+    getEventHandlerLog(ctx, event).debug({ poolId: pool.id }, 'Pool information saved after deposit')
     PoolsPrices.set(true);
   }
 
@@ -47,7 +47,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
       book.quoteAssetReserves = book.quoteAssetReserves - BigInt(amount);
     }
 
-    getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after withdrawal');
+    getEventHandlerLog(ctx, event).debug({ id: book.id }, 'Order Book information saved after withdrawal');
   }
   // deposit token to order book
   if (orderBooksStorage.accountIds.has(to)) {
@@ -59,6 +59,6 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
       book.quoteAssetReserves = book.quoteAssetReserves + BigInt(amount);
     }
 
-    getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after deposit')
+    getEventHandlerLog(ctx, event).debug({ id: book.id }, 'Order Book information saved after deposit')
   }
 }

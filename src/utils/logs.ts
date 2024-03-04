@@ -2,10 +2,13 @@ import type BigNumber from "bignumber.js";
 
 import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 import { testLogMode } from '../config';
+import { Event, Call } from '../types';
 
 type BlockContext = SubstrateExtrinsic | SubstrateEvent | SubstrateBlock
 
 type LogAttr = boolean | string | number | bigint | BigNumber;
+
+let logCounter = 1
 
 function toPascalCase(str: string): string {
     return str
@@ -45,7 +48,8 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
 
         attrs = { ...attributes, ...attrs };
 
-        logger[level](`[${logModule}] ${message}\n${attrsToString(attrs)}`);
+        logger[level](`[${logCounter}][${logModule}] ${message}\n${attrsToString(attrs)}`);
+		logCounter++;
     };
 
     const sendMessages = onlyWithTestLogMode ? testLogMode : true
@@ -59,7 +63,7 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
 }
 
 
-export function getCallHandlerLog(extrinsic: SubstrateExtrinsic, onlyWithTestLogMode: boolean = false) {
+export function getCallHandlerLog(ctx: BlockContext, extrinsic: SubstrateExtrinsic, onlyWithTestLogMode: boolean = false) {
 	const extrinsicHash = extrinsic.extrinsic.hash.toString()
     const extrinsicIndex = extrinsic.idx;
 	const callName = toPascalCase(`${extrinsic.extrinsic.method.section}.${extrinsic.extrinsic.method.method}`);
@@ -67,7 +71,7 @@ export function getCallHandlerLog(extrinsic: SubstrateExtrinsic, onlyWithTestLog
 	return getLog(extrinsic, 'CallHandler', attributes, onlyWithTestLogMode)
 }
 
-export function getEventHandlerLog(event: SubstrateEvent, onlyWithTestLogMode: boolean = false) {
+export function getEventHandlerLog(ctx: BlockContext, event: SubstrateEvent, onlyWithTestLogMode: boolean = false) {
 	const extrinsicHash = event.extrinsic?.extrinsic.hash.toString()
     const extrinsicIndex = event.extrinsic?.idx;
 	const eventName = toPascalCase(`${event.event.section}.${event.event.method}`);
@@ -134,11 +138,11 @@ export function getStreamLog(ctx: BlockContext) {
 	return getLog(ctx, 'Stream')
 }
 
-export function logStartProcessingCall(extrinsic: SubstrateExtrinsic) {
-	return getCallHandlerLog(extrinsic).debug('Start processing the call')
+export function logStartProcessingCall(ctx: BlockContext, call: Call) {
+	return getCallHandlerLog(ctx, call).debug('Start processing the call')
 }
 
-export function logStartProcessingEvent(event: SubstrateEvent) {
-	return getEventHandlerLog(event).debug('Start processing the event')
+export function logStartProcessingEvent(ctx: BlockContext, event: Event) {
+	return getEventHandlerLog(ctx, event).debug('Start processing the event')
 }
 
