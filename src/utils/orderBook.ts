@@ -311,6 +311,14 @@ export class OrderBooksSnapshotsStorage {
     return [orderBookId, type, index].join('-');
   }
 
+  private async save(block: SubstrateBlock, snapshot: OrderBookSnapshot, force = false): Promise<void> {
+    if (force || shouldUpdate(block, 60)) {
+      await snapshot.save();
+
+      getOrderBooksSnapshotsStorageLog(block).debug({ id: snapshot.id }, 'Order book snapshot saved');
+    }
+  }
+
   async sync(block: SubstrateBlock): Promise<void> {
     await this.syncSnapshots(block);
   }
@@ -421,6 +429,8 @@ export class OrderBooksSnapshotsStorage {
         { dexId, baseAssetId, quoteAssetId, price, amount, isBuy: isBuy.toString(), baseAssetVolume, quoteAssetVolume, volumeUSD, quoteAssetPriceUSD },
         'Order Book snapshot price and volume updated',
       )
+
+      await this.save(block, snapshot);
     }
 
     await this.orderBooksStorage.updateDeal(block, dexId, baseAssetId, quoteAssetId, orderId, price, amount, isBuy);
