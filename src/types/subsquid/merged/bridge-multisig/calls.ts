@@ -1,0 +1,137 @@
+import * as productionCalls from '../../production/bridge-multisig/calls'
+import * as stageCalls from '../../stage/bridge-multisig/calls'
+import * as testCalls from '../../test/bridge-multisig/calls'
+import * as devCalls from '../../dev/bridge-multisig/calls'
+
+
+export const registerMultisig = {
+	name: 'BridgeMultisig.register_multisig',
+	v1: productionCalls.registerMultisig['v1'],
+	v3: productionCalls.registerMultisig['v3'],
+	v33Stage: stageCalls.registerMultisig['v33'],
+	v33Test: testCalls.registerMultisig['v33'],
+	v70Dev: devCalls.registerMultisig['v70'],
+}
+
+export const removeSignatory = {
+	name: 'BridgeMultisig.remove_signatory',
+	v1: productionCalls.removeSignatory['v1'],
+	v33Stage: stageCalls.removeSignatory['v33'],
+	v33Test: testCalls.removeSignatory['v33'],
+	v70Dev: devCalls.removeSignatory['v70'],
+}
+
+export const addSignatory = {
+	name: 'BridgeMultisig.add_signatory',
+	v1: productionCalls.addSignatory['v1'],
+	v33Stage: stageCalls.addSignatory['v33'],
+	v33Test: testCalls.addSignatory['v33'],
+	v70Dev: devCalls.addSignatory['v70'],
+}
+
+export const asMultiThreshold1 = {
+	name: 'BridgeMultisig.as_multi_threshold_1',
+	v1: productionCalls.asMultiThreshold1['v1'],
+	v3: productionCalls.asMultiThreshold1['v3'],
+	v7: productionCalls.asMultiThreshold1['v7'],
+	v19: productionCalls.asMultiThreshold1['v19'],
+	v22: productionCalls.asMultiThreshold1['v22'],
+	v23: productionCalls.asMultiThreshold1['v23'],
+	v26: productionCalls.asMultiThreshold1['v26'],
+	v32: productionCalls.asMultiThreshold1['v32'],
+	v33: productionCalls.asMultiThreshold1['v33'],
+	v35: productionCalls.asMultiThreshold1['v35'],
+	v37: productionCalls.asMultiThreshold1['v37'],
+	v38: productionCalls.asMultiThreshold1['v38'],
+	v42: productionCalls.asMultiThreshold1['v42'],
+	v43: productionCalls.asMultiThreshold1['v43'],
+	v45: productionCalls.asMultiThreshold1['v45'],
+	v46: productionCalls.asMultiThreshold1['v46'],
+	v47: productionCalls.asMultiThreshold1['v47'],
+	v50: productionCalls.asMultiThreshold1['v50'],
+	v53: productionCalls.asMultiThreshold1['v53'],
+	v57: productionCalls.asMultiThreshold1['v57'],
+	v59: productionCalls.asMultiThreshold1['v59'],
+	v60: productionCalls.asMultiThreshold1['v60'],
+	v63: productionCalls.asMultiThreshold1['v63'],
+	v64: productionCalls.asMultiThreshold1['v64'],
+	v66: productionCalls.asMultiThreshold1['v66'],
+	v70: productionCalls.asMultiThreshold1['v70'],
+	v33Stage: stageCalls.asMultiThreshold1['v33'],
+	v35Stage: stageCalls.asMultiThreshold1['v35'],
+	v37Stage: stageCalls.asMultiThreshold1['v37'],
+	v38Stage: stageCalls.asMultiThreshold1['v38'],
+	v42Stage: stageCalls.asMultiThreshold1['v42'],
+	v43Stage: stageCalls.asMultiThreshold1['v43'],
+	v44Stage: stageCalls.asMultiThreshold1['v44'],
+	v45Stage: stageCalls.asMultiThreshold1['v45'],
+	v46Stage: stageCalls.asMultiThreshold1['v46'],
+	v47Stage: stageCalls.asMultiThreshold1['v47'],
+	v48Stage: stageCalls.asMultiThreshold1['v48'],
+	v52Stage: stageCalls.asMultiThreshold1['v52'],
+	v54Stage: stageCalls.asMultiThreshold1['v54'],
+	v55Stage: stageCalls.asMultiThreshold1['v55'],
+	v57Stage: stageCalls.asMultiThreshold1['v57'],
+	v59Stage: stageCalls.asMultiThreshold1['v59'],
+	v60Stage: stageCalls.asMultiThreshold1['v60'],
+	v62Stage: stageCalls.asMultiThreshold1['v62'],
+	v64Stage: stageCalls.asMultiThreshold1['v64'],
+	v66Stage: stageCalls.asMultiThreshold1['v66'],
+	v69Stage: stageCalls.asMultiThreshold1['v69'],
+	v70Stage: stageCalls.asMultiThreshold1['v70'],
+	v71Stage: stageCalls.asMultiThreshold1['v71'],
+	v33Test: testCalls.asMultiThreshold1['v33'],
+	v35Test: testCalls.asMultiThreshold1['v35'],
+	v37Test: testCalls.asMultiThreshold1['v37'],
+	v38Test: testCalls.asMultiThreshold1['v38'],
+	v42Test: testCalls.asMultiThreshold1['v42'],
+	v43Test: testCalls.asMultiThreshold1['v43'],
+	v44Test: testCalls.asMultiThreshold1['v44'],
+	v45Test: testCalls.asMultiThreshold1['v45'],
+	v46Test: testCalls.asMultiThreshold1['v46'],
+	v47Test: testCalls.asMultiThreshold1['v47'],
+	v48Test: testCalls.asMultiThreshold1['v48'],
+	v52Test: testCalls.asMultiThreshold1['v52'],
+	v54Test: testCalls.asMultiThreshold1['v54'],
+	v55Test: testCalls.asMultiThreshold1['v55'],
+	v57Test: testCalls.asMultiThreshold1['v57'],
+	v59Test: testCalls.asMultiThreshold1['v59'],
+	v60Test: testCalls.asMultiThreshold1['v60'],
+	v62Test: testCalls.asMultiThreshold1['v62'],
+	v64Test: testCalls.asMultiThreshold1['v64'],
+	v66Test: testCalls.asMultiThreshold1['v66'],
+	v69Test: testCalls.asMultiThreshold1['v69'],
+	v70Test: testCalls.asMultiThreshold1['v70'],
+	v71Test: testCalls.asMultiThreshold1['v71'],
+	v70Dev: devCalls.asMultiThreshold1['v70'],
+}
+
+export const asMulti = {
+	name: 'BridgeMultisig.as_multi',
+	v1: productionCalls.asMulti['v1'],
+	v53: productionCalls.asMulti['v53'],
+	v33Stage: stageCalls.asMulti['v33'],
+	v52Stage: stageCalls.asMulti['v52'],
+	v33Test: testCalls.asMulti['v33'],
+	v52Test: testCalls.asMulti['v52'],
+	v70Dev: devCalls.asMulti['v70'],
+}
+
+export const approveAsMulti = {
+	name: 'BridgeMultisig.approve_as_multi',
+	v1: productionCalls.approveAsMulti['v1'],
+	v53: productionCalls.approveAsMulti['v53'],
+	v33Stage: stageCalls.approveAsMulti['v33'],
+	v52Stage: stageCalls.approveAsMulti['v52'],
+	v33Test: testCalls.approveAsMulti['v33'],
+	v52Test: testCalls.approveAsMulti['v52'],
+	v70Dev: devCalls.approveAsMulti['v70'],
+}
+
+export const cancelAsMulti = {
+	name: 'BridgeMultisig.cancel_as_multi',
+	v1: productionCalls.cancelAsMulti['v1'],
+	v33Stage: stageCalls.cancelAsMulti['v33'],
+	v33Test: testCalls.cancelAsMulti['v33'],
+	v70Dev: devCalls.cancelAsMulti['v70'],
+}
