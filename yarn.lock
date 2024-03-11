@@ -3064,24 +3064,24 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@sora-substrate/type-definitions@1.27.12":
-  version "1.27.12"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.27.12.tgz#6dea3a12b3f8b595cef16b3d95448933cabb70b4"
-  integrity sha512-RtatBnDLTdbt+OMsk6NE2jkteB4g9h1TyhfOQJZAyYNC456DZF7WXOaez3FenQXbSK9Rp3vUKa0PCNyf5MFfgw==
+"@sora-substrate/type-definitions@1.32.2":
+  version "1.32.2"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.32.2.tgz#785b14b430b234beac3ad8e1645b9153dd03b2a3"
+  integrity sha512-qtjn6irKsYvDpZ8VZXEDsF6bUi3gmVuy7THoRNeEzftlX902VUF3OrmxjfplzlprC7U7qAGVCU0RXxATNhhInA==
   dependencies:
     "@open-web3/orml-type-definitions" "1.1.4"
 
-"@sora-substrate/types@1.27.12":
-  version "1.27.12"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.27.12.tgz#b517c1b8ccac9e9cc5c35b7c485c54222aa1c6f1"
-  integrity sha512-7RN6oenS99cwOxkwsEb/TzZoa1h6rEXyQLDCG08AEk4st6mUNslhmlaXvAI/pAakIH7mR4tjxTSo/VhhOWVmXg==
+"@sora-substrate/types@1.32.2":
+  version "1.32.2"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.32.2.tgz#6f439b120969caee26c28656df7dd5e32a87d438"
+  integrity sha512-R5Zv2opt1071qjXCrvTlqaXf9/YD355M6MfedsW7nrCAZZNIwrlSYibwQHfgbUbd9KOIjcYWfcynP6kh60DyfA==
   dependencies:
     "@open-web3/api-mobx" "0.9.4-26"
     "@open-web3/orml-types" "1.1.4"
     "@polkadot/api" "9.14.2"
     "@polkadot/typegen" "9.14.2"
     "@polkadot/types" "9.14.2"
-    "@sora-substrate/type-definitions" "1.27.12"
+    "@sora-substrate/type-definitions" "1.32.2"
 
 "@stellar/js-xdr@^3.0.1":
   version "3.0.1"
@@ -3103,7 +3103,7 @@
   optionalDependencies:
     sodium-native "^4.0.5"
 
-"@subql/apollo-links@^1.3.2":
+"@subql/apollo-links@1.3.2":
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/@subql/apollo-links/-/apollo-links-1.3.2.tgz#56d3ca471d2a047d8f781592db8dfecbc37d0e09"
   integrity sha512-J1v4PeATXaEQ0oxOArsxsZgf7FqovMtU0LdIxGEGHfK2tXPNRquDai+Xdc0swZhq5zERnB8YJG/uftj82sH3tg==
@@ -3118,13 +3118,13 @@
     jwt-decode "^3.1.2"
     lru-cache "^10.0.1"
 
-"@subql/cli@4.2.6":
-  version "4.2.6"
-  resolved "https://registry.yarnpkg.com/@subql/cli/-/cli-4.2.6.tgz#57f2baf0d7de799a8f632651053ba994f24be2b3"
-  integrity sha512-lqNVGKVxRol7HgSGStWnu44yR+l5NhyHk8GrBbVNvKIBY5yj3zw5iipQxUZS6wY+V0P6UrLdZPZDwM8PDkGPcQ==
+"@subql/cli@4.4.1":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@subql/cli/-/cli-4.4.1.tgz#a6ab542767b7529cac989a7c3aa4d6ffebe89463"
+  integrity sha512-rDBGhouLn5YimoEF22TYVox1BC72WofwVTR9bV/W4jjIJBPQXlfKWwzfKzLMIGSFgYgy7prKTK68wgBZrgzxYg==
   dependencies:
     "@oclif/core" "^2.15.0"
-    "@subql/common" "3.3.2-0"
+    "@subql/common" "3.4.1"
     "@subql/common-algorand" "^3.1.0"
     "@subql/common-concordium" "^3.3.2"
     "@subql/common-cosmos" "^4.0.1"
@@ -3132,8 +3132,8 @@
     "@subql/common-flare" "^3.1.0"
     "@subql/common-near" "^3.0.1"
     "@subql/common-stellar" "^3.0.0"
-    "@subql/common-substrate" "3.2.2-0"
-    "@subql/utils" "2.7.1-0"
+    "@subql/common-substrate" "3.3.2"
+    "@subql/utils" "2.8.0"
     algosdk "^1.19.0"
     boxen "5.1.2"
     cli-ux "^6.0.9"
@@ -3256,49 +3256,23 @@
     reflect-metadata "^0.1.13"
     stellar-sdk "^11.2.0"
 
-"@subql/common-substrate@3.2.2-0":
-  version "3.2.2-0"
-  resolved "https://registry.yarnpkg.com/@subql/common-substrate/-/common-substrate-3.2.2-0.tgz#21e2e3f309f8d59bd8956e5b30bca55733cf43b3"
-  integrity sha512-0s3Q3g/awK14h9tvBHhTFYP1y+elGsymqc0WqQdFs+uXM/yUH1Lld70Mnu9ufhQuchznSSxdnzzxLUoVQmD4ow==
+"@subql/common-substrate@3.3.2":
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/@subql/common-substrate/-/common-substrate-3.3.2.tgz#127072538d542316e0553cac45a0fea5f6982605"
+  integrity sha512-bmX9tdWYzWdlEV5snKsyY5t/DpvhmvBFOk0azF9DPKcrRVJox11ekc6LMuwwul/Ow5gQICznKSPT9A+A0jskVA==
   dependencies:
-    "@subql/common" "3.3.2-0"
-    "@subql/types" "3.3.1-0"
+    "@subql/common" "3.4.1"
+    "@subql/types" "3.3.1"
     js-yaml "^4.1.0"
     reflect-metadata "^0.1.13"
 
-"@subql/common-substrate@3.3.1":
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/@subql/common-substrate/-/common-substrate-3.3.1.tgz#35392269cbba84793a8b759c5ddad0ab8f553578"
-  integrity sha512-8bjMrf0gyp+zVBeUIOWvaKnVKhk2ZNH4AymKewlhrkhnCw2YOWYJk1xixo3kyXtftSsrnBdcVE4NXQ/MxtgYcw==
+"@subql/common@3.4.1":
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/@subql/common/-/common-3.4.1.tgz#8c72b95f96b04aaec4bdd936e13ab5af411b9fd6"
+  integrity sha512-Z9T+DPFhLmCKiPuZGWkFCWnmFqUO5qy7QvijIXIMWGbLIED+2058hv1dhsKyvk7tMX+vdoTpFkNf2C5ORw6mGw==
   dependencies:
-    "@subql/common" "3.4.0"
-    "@subql/types" "3.3.1-0"
-    js-yaml "^4.1.0"
-    reflect-metadata "^0.1.13"
-
-"@subql/common@3.3.2-0":
-  version "3.3.2-0"
-  resolved "https://registry.yarnpkg.com/@subql/common/-/common-3.3.2-0.tgz#e47a49312237f20968f0528e6f5c9e7539f4268c"
-  integrity sha512-xFbE9bCw6AiG09KFVrmd5NOXErGvj506AZKxBgrqcTBiEHJkqcIAiNyWfRmmScKNk6JexEgIxzNBwk0B3azQAw==
-  dependencies:
-    "@subql/types-core" "0.4.1-0"
-    axios "^0.27.2"
-    class-transformer "^0.5.1"
-    class-validator "^0.14.0"
-    fs-extra "^10.1.0"
-    ipfs-http-client "56"
-    js-yaml "^4.1.0"
-    reflect-metadata "^0.1.13"
-    semver "^7.5.2"
-    update-notifier "5.1.0"
-
-"@subql/common@3.4.0", "@subql/common@^3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@subql/common/-/common-3.4.0.tgz#b2edf88b599bd339e1ad5d0006b175357c9b9df3"
-  integrity sha512-tEx9h80Xl9ugDuVD6BxC3S8rAQtIqKYvsElA6deff3yHKYUEQ4YfbYaOI/EbVMcCoafl1pEa+Bk1wQGWzQJ1Jg==
-  dependencies:
-    "@subql/types-core" "0.4.1-0"
-    axios "^0.27.2"
+    "@subql/types-core" "0.5.0"
+    axios "^0.28.0"
     class-transformer "^0.5.1"
     class-validator "^0.14.0"
     fs-extra "^10.1.0"
@@ -3324,6 +3298,22 @@
     semver "^7.5.2"
     update-notifier "5.1.0"
 
+"@subql/common@^3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@subql/common/-/common-3.4.0.tgz#b2edf88b599bd339e1ad5d0006b175357c9b9df3"
+  integrity sha512-tEx9h80Xl9ugDuVD6BxC3S8rAQtIqKYvsElA6deff3yHKYUEQ4YfbYaOI/EbVMcCoafl1pEa+Bk1wQGWzQJ1Jg==
+  dependencies:
+    "@subql/types-core" "0.4.1-0"
+    axios "^0.27.2"
+    class-transformer "^0.5.1"
+    class-validator "^0.14.0"
+    fs-extra "^10.1.0"
+    ipfs-http-client "56"
+    js-yaml "^4.1.0"
+    reflect-metadata "^0.1.13"
+    semver "^7.5.2"
+    update-notifier "5.1.0"
+
 "@subql/network-support@0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@subql/network-support/-/network-support-0.2.0.tgz#e131ff462dfe90953f86ed653e85ea4827a175da"
@@ -3335,20 +3325,20 @@
     jwt-decode "^3.1.2"
     lru-cache "^10.0.1"
 
-"@subql/node-core@7.2.1":
-  version "7.2.1"
-  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-7.2.1.tgz#a27c94b765199692924fee940555f2f48537e89c"
-  integrity sha512-9+TMaH2uwPmXXZ/zNHKCNV5iovsjskDaa43rymsT7UnLoPEkgom5Ekfl+ua2zrl/sBtfldWovLBtWtYmuyrQyA==
+"@subql/node-core@7.4.1":
+  version "7.4.1"
+  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-7.4.1.tgz#6ab11f22efa778d21aff049347af192ad66f69fe"
+  integrity sha512-OsC6+mx6Z17BaY9zbavlFpwIvYUgxu2EIiz5etFYXd1ywPFBuF6rljPJMqXLZrlILCYqKh8dIBjRUtWf/xRiHQ==
   dependencies:
     "@apollo/client" "^3.8.8"
     "@nestjs/common" "^9.4.0"
     "@nestjs/event-emitter" "^2.0.0"
     "@nestjs/schedule" "^3.0.1"
-    "@subql/apollo-links" "^1.3.2"
-    "@subql/common" "3.4.0"
+    "@subql/apollo-links" "1.3.2"
+    "@subql/common" "3.4.1"
     "@subql/testing" "2.1.1-0"
-    "@subql/types" "3.3.1-0"
-    "@subql/utils" "2.7.1-0"
+    "@subql/types" "3.3.1"
+    "@subql/utils" "2.8.0"
     "@willsoto/nestjs-prometheus" "^5.4.0"
     async-lock "^1.4.0"
     async-mutex "^0.4.0"
@@ -3361,13 +3351,14 @@
     prom-client "^14.0.1"
     source-map "^0.7.4"
     tar "^6.1.11"
+    toposort-class "^1.0.1"
     vm2 "^3.9.19"
     yargs "^16.2.0"
 
-"@subql/node@3.5.3":
-  version "3.5.3"
-  resolved "https://registry.yarnpkg.com/@subql/node/-/node-3.5.3.tgz#1d03fae8e14becb2bce6c924f125969f0a700c35"
-  integrity sha512-w4Gnr3YEIVLk9WJ/Q6wyQzG2QuM3dC9w/8fIWNwnAnpH4jbBzw47r+4/uYC94425K9HsZ+EiL7MS0vJk4tCk+w==
+"@subql/node@3.9.1":
+  version "3.9.1"
+  resolved "https://registry.yarnpkg.com/@subql/node/-/node-3.9.1.tgz#85286c707aaa5786328cba3b470599c97726c8ff"
+  integrity sha512-M4HKtgjfH5S+aL1FToIdc3zEhzALZoJ7ZFcV+HE2LvTwTjWrHq6HwQTQNHfsjlyeCrX3G5XzJ5geGT5N7Z+vUA==
   dependencies:
     "@nestjs/common" "^9.4.0"
     "@nestjs/core" "^9.4.0"
@@ -3375,12 +3366,12 @@
     "@nestjs/platform-express" "^9.4.0"
     "@nestjs/schedule" "^3.0.1"
     "@polkadot/api" "10.10.1"
-    "@subql/common" "3.4.0"
-    "@subql/common-substrate" "3.3.1"
-    "@subql/node-core" "7.2.1"
+    "@subql/common" "3.4.1"
+    "@subql/common-substrate" "3.3.2"
+    "@subql/node-core" "7.4.1"
     "@subql/testing" "2.1.1-0"
-    "@subql/types" "3.3.1-0"
-    "@subql/utils" "2.7.1-0"
+    "@subql/types" "3.3.1"
+    "@subql/utils" "2.8.0"
     cron-converter "^1.0.2"
     eventemitter2 "^6.4.5"
     fetch-h2 "3.0.2"
@@ -3492,17 +3483,10 @@
   dependencies:
     "@subql/types-core" "0.5.0"
 
-"@subql/types@3.3.1-0":
-  version "3.3.1-0"
-  resolved "https://registry.yarnpkg.com/@subql/types/-/types-3.3.1-0.tgz#d18546b0111d20a37ab8ba7d7e7c28a7f6e1c5cc"
-  integrity sha512-brPgTDOC6j3Pb8q5QBroECDNKJICsjqZxospAUnKgU7kMfZIWFm5tIlk53D0RXJAWUXxm7M+TMNjPWzEOwnISw==
-  dependencies:
-    "@subql/types-core" "0.4.1-0"
-
-"@subql/utils@2.7.1-0":
-  version "2.7.1-0"
-  resolved "https://registry.yarnpkg.com/@subql/utils/-/utils-2.7.1-0.tgz#a58a10ff1ed7a3127485ec1283d8fa2b7546ea86"
-  integrity sha512-TEdwWzy1qpu+igeTNCsdn0DS1KXi5WRnXNKV9XWkxr526JcmBNu+V2v7GloeVdW/adn6XI05m9KfKQu06gH4xg==
+"@subql/utils@2.8.0":
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/@subql/utils/-/utils-2.8.0.tgz#77edc0f5b7a98bfcf8ea9a8deae9bbb1db5a29da"
+  integrity sha512-er491kSoZlCcCr5RLcndH1GkNP/di9LLwzi4nSb3VJqTfBZ12moPJsusaXg1MFn+Go7W79dI+6+eWs6Nrb4/5w==
   dependencies:
     "@polkadot/util" "^12.5.1"
     "@polkadot/util-crypto" "^12.5.1"
@@ -4380,6 +4364,15 @@ axios@^0.27.2:
   dependencies:
     follow-redirects "^1.14.9"
     form-data "^4.0.0"
+
+axios@^0.28.0:
+  version "0.28.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.28.0.tgz#801a4d991d0404961bccef46800e1170f8278c89"
+  integrity sha512-Tu7NYoGY4Yoc7I+Npf9HhUMtEEpV7ZiLH9yndTCoNhcpBH0kwcvFbzYN9/u5QKI5A6uefjsNNWaz5olJVYS62Q==
+  dependencies:
+    follow-redirects "^1.15.0"
+    form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
 
 axios@^1.6.0, axios@^1.6.5:
   version "1.6.6"
@@ -5907,7 +5900,7 @@ flatted@^3.2.5:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.9.tgz#7eb4c67ca1ba34232ca9d2d93e9886e611ad7daf"
   integrity sha512-36yxDn5H7OFZQla0/jFJmbIKTdZAQHngCedGxiMmpNfEZM0sdEeT+WczLQrjK6D7o2aiyLYDnkw0R3JK0Qv1RQ==
 
-follow-redirects@^1.14.0, follow-redirects@^1.14.9, follow-redirects@^1.15.4:
+follow-redirects@^1.14.0, follow-redirects@^1.14.9, follow-redirects@^1.15.0, follow-redirects@^1.15.4:
   version "1.15.5"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.5.tgz#54d4d6d062c0fa7d9d17feb008461550e3ba8020"
   integrity sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==
