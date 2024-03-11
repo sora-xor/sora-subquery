@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
+import { bytesToString } from "../../utils";
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
@@ -15,7 +16,7 @@ const getEventData = (extrinsic: SubstrateExtrinsic, method: string, section: st
 }
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <void> => {
-    const [filterMode, liquiditySources, maxInputAmount, inputAsset, swapBatches] = extrinsic.extrinsic.args.slice().reverse();
+    const [swapBatches, inputAsset, maxInputAmount, liquiditySources, filterMode, additionalData] = extrinsic.extrinsic.args.slice();
 
     const inputAssetId = getAssetId(inputAsset);
     const extrinsicSigner = extrinsic.extrinsic.signer.toString();
@@ -27,6 +28,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <v
     details.maxInputAmount = formatU128ToBalance(maxInputAmount.toString(), inputAssetId);
     details.from = extrinsicSigner;
     details.receivers = [];
+    details.comment = !!additionalData && !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null;
 
     // fill receivers with assetId and amount
     for (const swapBatchInfo of (swapBatches as any)) {
