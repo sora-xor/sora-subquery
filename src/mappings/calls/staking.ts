@@ -382,6 +382,15 @@ export async function stakingWithdrawUnbondedCallHandler(extrinsic: SubstrateExt
 
     const details = {
 		numSlashingSpans: numSlashingSpans.toNumber(),
+        amount: undefined,
+    };
+
+    const stakingWithdrawnEvent = extrinsic.events.find((e) => e.event.section === 'staking' && e.event.method === 'Withdrawn');
+
+    if (stakingWithdrawnEvent) {
+        const [stash, amount] = stakingWithdrawnEvent.event.data;
+
+        details.amount = formatU128ToBalance(amount.toString(), XOR);
     }
 
     await createHistoryElement(extrinsic, details);

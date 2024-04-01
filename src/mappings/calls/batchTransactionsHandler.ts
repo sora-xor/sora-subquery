@@ -78,12 +78,12 @@ function extractCalls(
 export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
 
+    const extrinsicId = extrinsic.extrinsic.hash.toString();
     const calls = extrinsic.extrinsic.method.args[0] as Vec<CallBase<AnyTuple>>;
     const entities = [] as Object[];
-    const blockNumber = extrinsic.block.block.header.number.toString();
 
     entities.concat(
-        calls.map((call, idx) => extractCalls(call, idx, blockNumber, entities))
+        calls.map((call, idx) => extractCalls(call, idx, extrinsicId, entities))
     );
 
     // If initialize pool call exists, create new Pool
