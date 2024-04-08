@@ -5,10 +5,10 @@ import { poolAccounts, getAllReserves, getAllProperties, poolsStorage } from '..
 import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
 import { getInitializePoolsLog } from "../../utils/logs";
 
-let isFirstBlockIndexed = false;
+export let initializedAtBlock: number | null = null
 
 export async function initializePools(block: SubstrateBlock): Promise<void> {
-    if (isFirstBlockIndexed) return;
+    if (initializedAtBlock !== null) return;
 
     getInitializePoolsLog(block).debug('Initialize Pool XYK entities');
     const poolsBuffer = new Map();
@@ -67,5 +67,5 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
         getInitializePoolsLog(block).debug('No Pool XYKs to initialize!');
     }
 
-    isFirstBlockIndexed = true;
+    initializedAtBlock = block.block.header.number.toNumber();
 }
