@@ -65,7 +65,6 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
     details.baseAssetId = baseAssetId;
     details.targetAssetId = targetAssetId;
     details.selectedMarket = (liquiditySources as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString();
-    details.liquidityProviderFee = "0";
     details.baseAssetAmount = receiveExtrinsicSwapAmounts(swapAmount as SwapAmount, baseAssetId)[0];
     details.targetAssetAmount = receiveExtrinsicSwapAmounts(swapAmount as SwapAmount, targetAssetId)[1];
 
@@ -76,11 +75,10 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
     const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
 
     if (exchangeEvent) {
-        const { event: { data: [, , , , baseAssetAmount, targetAssetAmount, liquidityProviderFee] } } = exchangeEvent;
+        const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
 
         details.baseAssetAmount = formatU128ToBalance(baseAssetAmount.toString(), baseAssetId);
         details.targetAssetAmount = formatU128ToBalance(targetAssetAmount.toString(), targetAssetId);
-        details.liquidityProviderFee = formatU128ToBalance(liquidityProviderFee.toString(), XOR);
 
         // update assets volume
         const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount);
