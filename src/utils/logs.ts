@@ -23,7 +23,7 @@ function toPascalCase(str: string): string {
         .replace(/(^|\.)\w/g, match => match.toUpperCase());  // Capitalize the first character of each segment
 }
 
-export function getLog(ctx: BlockContext, logModule: string | null = null, attrs: Record<string, LogAttr> = {}, testMode: boolean = false) {
+export function getLog(ctx: BlockContext, logModule: string | null = null, attrs: Record<string, LogAttr> = {}, onlyWithTestLogMode: boolean = false) {
     const block = 'block' in ctx.block ? ctx.block.block : ctx.block;
     const blockHeight = block.header.number.toNumber();
     const attributes: any = { blockHeight, ...attrs };
@@ -48,7 +48,7 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
         logger[level](`[${logModule}] ${message}\n${attrsToString(attrs)}`);
     };
 
-    const sendMessages = testMode ? testLogMode : true
+    const sendMessages = onlyWithTestLogMode ? testLogMode : true
 
     return {
         debug: sendMessages ? log('debug') : () => {},
@@ -59,70 +59,75 @@ export function getLog(ctx: BlockContext, logModule: string | null = null, attrs
 }
 
 
-export function getCallHandlerLog(extrinsic: SubstrateExtrinsic, testMode: boolean = false) {
+export function getCallHandlerLog(extrinsic: SubstrateExtrinsic, onlyWithTestLogMode: boolean = false) {
 	const extrinsicHash = extrinsic.extrinsic.hash.toString()
+    const extrinsicIndex = extrinsic.idx;
 	const callName = toPascalCase(`${extrinsic.extrinsic.method.section}.${extrinsic.extrinsic.method.method}`);
-	const attributes = { extrinsicHash, callName }
-	return getLog(extrinsic, 'CallHandler', attributes, testMode)
+	const attributes = { extrinsicHash, extrinsicIndex, callName }
+	return getLog(extrinsic, 'CallHandler', attributes, onlyWithTestLogMode)
 }
 
-export function getEventHandlerLog(event: SubstrateEvent, testMode: boolean = false) {
+export function getEventHandlerLog(event: SubstrateEvent, onlyWithTestLogMode: boolean = false) {
 	const extrinsicHash = event.extrinsic?.extrinsic.hash.toString()
+    const extrinsicIndex = event.extrinsic?.idx;
 	const eventName = toPascalCase(`${event.event.section}.${event.event.method}`);
 	const eventId = `${event.block.block.header.number.toNumber()}-${event.idx}`;
 	const attributes: any = { eventName, eventId }
 	if (extrinsicHash) {
 		attributes['extrinsicHash'] = extrinsicHash
 	}
-	return getLog(event, 'EventHandler', attributes, testMode)
+	if (extrinsicIndex) {
+		attributes['extrinsicIndex'] = extrinsicIndex
+	}
+	return getLog(event, 'EventHandler', attributes, onlyWithTestLogMode)
 }
 
-export function getInitializeAssetsLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'InitializeAssets', {}, testMode)
+export function getInitializeAssetsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'InitializeAssets', {}, onlyWithTestLogMode)
 }
 
-export function getInitializePoolsLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'InitializePools', {}, testMode)
+export function getInitializePoolsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'InitializePools', {}, onlyWithTestLogMode)
 }
 
-export function getInitializeOrderBooksLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'InitializeOrderBooks', {}, testMode)
+export function getInitializeOrderBooksLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'InitializeOrderBooks', {}, onlyWithTestLogMode)
 }
 
-export function getSyncModelsLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'SyncModels', {}, testMode)
+export function getSyncModelsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'SyncModels', {}, onlyWithTestLogMode)
 }
 
-export function getSyncPricesLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'SyncPrices', {}, testMode)
+export function getSyncPricesLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'SyncPrices', {}, onlyWithTestLogMode)
 }
 
-export function getAssetStorageLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'AssetStorage', {}, testMode)
+export function getAssetStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'AssetStorage', {}, onlyWithTestLogMode)
 }
 
-export function getAssetSnapshotsStorageLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'AssetSnapshotsStorage', {}, testMode)
+export function getAssetSnapshotsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'AssetSnapshotsStorage', {}, onlyWithTestLogMode)
 }
 
-export function getNetworkSnapshotsStorageLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'NetworkSnapshotsStorage', {}, testMode)
+export function getNetworkSnapshotsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'NetworkSnapshotsStorage', {}, onlyWithTestLogMode)
 }
 
-export function getOrderBooksSnapshotsStorageLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'OrderBooksSnapshotsStorage', {}, testMode)
+export function getOrderBooksSnapshotsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'OrderBooksSnapshotsStorage', {}, onlyWithTestLogMode)
 }
 
-export function getPoolsStorageLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'PoolsStorage', {}, testMode)
+export function getPoolsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'PoolsStorage', {}, onlyWithTestLogMode)
 }
 
-export function getOrderBooksStorageLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'OrderBooksStorage', {}, testMode)
+export function getOrderBooksStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'OrderBooksStorage', {}, onlyWithTestLogMode)
 }
 
-export function getUtilsLog(ctx: BlockContext, testMode: boolean = false) {
-	return getLog(ctx, 'Utils', {}, testMode)
+export function getUtilsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'Utils', {}, onlyWithTestLogMode)
 }
 
 export function getStreamLog(ctx: BlockContext) {

@@ -2,11 +2,11 @@ import { SubstrateExtrinsic } from '@subql/types';
 import BigNumber from "bignumber.js";
 
 import { isExchangeEvent } from '../../utils/events';
-import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { XOR } from '../../utils/consts';
-import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
+import { logStartProcessingCall } from '../../utils/logs';
 
 import type { Vec } from "@polkadot/types";
 import type { Enum, Struct } from "@polkadot/types/codec";
@@ -56,8 +56,6 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 }
 
 const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
-    const historyElement = await createHistoryElement(extrinsic)
-
     const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = extrinsic.extrinsic.args.slice().reverse();
 
     const details: any = {};
@@ -67,29 +65,22 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
     details.baseAssetId = baseAssetId;
     details.targetAssetId = targetAssetId;
     details.selectedMarket = (liquiditySources as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString();
+    details.baseAssetAmount = receiveExtrinsicSwapAmounts(swapAmount as SwapAmount, baseAssetId)[0];
+    details.targetAssetAmount = receiveExtrinsicSwapAmounts(swapAmount as SwapAmount, targetAssetId)[1];
 
     if (to) {
         details.to = to.toString()
     }
 
-    if (historyElement.execution.success) {
-        const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
-        const { event: { data: [, , , , baseAssetAmount, targetAssetAmount, liquidityProviderFee] } } = exchangeEvent;
+    const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
 
-        details.baseAssetAmount = formatU128ToBalance(baseAssetAmount.toString(), baseAssetId)
-        details.targetAssetAmount = formatU128ToBalance(targetAssetAmount.toString(), targetAssetId)
-        details.liquidityProviderFee = formatU128ToBalance(liquidityProviderFee.toString(), XOR)
-    } else {
-        details.baseAssetAmount = receiveExtrinsicSwapAmounts(swapAmount as SwapAmount, baseAssetId)[0]
-        details.targetAssetAmount = receiveExtrinsicSwapAmounts(swapAmount as SwapAmount, targetAssetId)[1]
-        details.liquidityProviderFee = "0"
-    }
+    if (exchangeEvent) {
+        const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+        details.baseAssetAmount = formatU128ToBalance(baseAssetAmount.toString(), baseAssetId);
+        details.targetAssetAmount = formatU128ToBalance(targetAssetAmount.toString(), targetAssetId);
 
-    // update assets volume
-    if (historyElement.execution.success) {
+        // update assets volume
         const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount);
         const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount);
         // get the minimal volume (sell\buy)
@@ -97,20 +88,18 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
 
         await networkSnapshotsStorage.updateVolumeStats(extrinsic.block, volumeUSD);
     }
+
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
 
     await handleAndSaveExtrinsic(extrinsic);
-
-    getCallHandlerLog(extrinsic).debug('Saved swap')
 }
 
 export async function handleSwapTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
 
     await handleAndSaveExtrinsic(extrinsic);
-
-    getCallHandlerLog(extrinsic).debug('Saved swap transfer')
 }

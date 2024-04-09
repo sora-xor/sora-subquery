@@ -3,6 +3,7 @@ export * from "./mappings/models/initializeAssets";
 export * from "./mappings/models/initializePools";
 export * from "./mappings/models/initializeOrderBooks";
 
+export * from './mappings/calls/assets';
 export * from './mappings/calls/swapsHandler';
 export * from './mappings/calls/swapTransferBatchHandler';
 export * from './mappings/calls/transfersHandler';
@@ -10,7 +11,6 @@ export * from './mappings/calls/liquidityDepositHandler';
 export * from './mappings/calls/liquidityRemovalHandler';
 export * from './mappings/calls/irohaMigrationHandler';
 export * from './mappings/calls/batchTransactionsHandler';
-export * from './mappings/calls/assetRegistrationHandler';
 export * from './mappings/calls/soraEthTransferHandler';
 export * from './mappings/events/ethSoraTransfer';
 export * from './mappings/calls/rewardsHandler';
