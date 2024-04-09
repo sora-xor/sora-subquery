@@ -7,10 +7,11 @@
     "build": "tsc -b",
     "prepack": "rm -rf dist && npm build",
     "test": "jest --coverage",
-    "codegen": "./node_modules/.bin/subql codegen",
+    "codegen": "./node_modules/.bin/subql codegen --file=project-onfinality.yaml",
     "config:types": "node ./scripts/types.mjs",
     "config:chainId": "node ./scripts/chainId.mjs",
     "config:chainId:update": "node ./scripts/chainId.mjs --update",
+    "config:startBlock:update": "node ./scripts/startBlock.mjs",
     "process": "docker-compose pull && docker-compose up",
     "process:clean:testLog": "export INDEXER_TEST_LOG_MODE=true && rm -rf .data && npm run build && docker-compose kill && docker-compose pull && docker-compose up",
     "process:clean": "rm -rf .data && npm run build && docker-compose kill && docker-compose pull && docker-compose up"
@@ -28,20 +29,21 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@sora-substrate/types": "1.27.12",
-    "@subql/cli": "3.6.1",
-    "@subql/node": "2.10.0",
-    "@subql/types": "2.2.0",
+    "@sora-substrate/types": "1.33.3",
+    "@subql/cli": "4.4.1",
+    "@subql/node": "4.0.1",
+    "@subql/types": "3.4.0",
     "fs-extra": "^11.2.0",
     "js-yaml": "^4.1.0",
     "node-fetch": "^3.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3",
+    "typescript": "^5.4.4",
     "write-yaml-file": "^5.0.0"
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.4.5",
+    "yargs": "^17.7.2"
   },
   "exports": {
     "chaintypes": "src/chaintypes.ts"

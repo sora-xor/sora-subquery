@@ -1,15 +1,13 @@
 import { SubstrateExtrinsic } from "@subql/types";
-import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { createHistoryElement } from "../../utils/history";
 import { XOR } from "../../utils/consts";
 import { formatU128ToBalance } from "../../utils/assets";
 import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 import { PayeeType } from "../../types";
-import { getStakingStaker } from "../../utils/staking";
+import { getStakingStaker, getStakingStakerController } from "../../utils/staking";
 
 export async function stakingBondCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
-
-    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args: [controller, value, payee] }} = extrinsic as any;
     const details = {
@@ -18,30 +16,24 @@ export async function stakingBondCallHandler(extrinsic: SubstrateExtrinsic): Pro
 		amount: formatU128ToBalance(value.toString(), XOR),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingBondExtraCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [maxAdditional] }} = extrinsic as any;
 
     const details = {
 		amount: formatU128ToBalance(maxAdditional.toString(), XOR),
-    }
+    };
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingCancelDeferredSlashCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [era, slashIndices] }} = extrinsic as any;
 
     const details = {
@@ -53,98 +45,75 @@ export async function stakingCancelDeferredSlashCallHandler(extrinsic: Substrate
         details.slashIndices = slashIndices.map((item) => item.toNumber());
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
-
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingChillCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: data }} = extrinsic as any;
 	
     const details = {} // "Staking.chill" call doesn't have any parameters, so details will be empty in this case
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
-
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingChillOtherCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [controller] }} = extrinsic as any;
 
     const details = {
         controller: controller.toString(),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingForceApplyMinCommissionCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [validatorStash] }} = extrinsic as any;
 
     const details = {
         validatorStash: validatorStash.toString(),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details)
 }
 
 export async function stakingForceNewEraCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-
     const { extrinsic: { args: data }} = extrinsic as any;
 	
     const details = {} // "Staking.force_new_era" call doesn't have any parameters, so details will be empty in this case
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingForceNewEraAlwaysCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: data }} = extrinsic as any;
 
     const details = {} // "Staking.force_new_era_always" call doesn't have any parameters, so details will be empty in this case
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingForceNoErasCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: data }} = extrinsic as any;
 
     const details = {} // "Staking.force_no_eras" call doesn't have any parameters, so details will be empty in this case
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details)
 }
 
 export async function stakingForceUnstakeCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
-
-    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args: [stash, numSlashingSpans] }} = extrinsic as any;
 
@@ -153,55 +122,45 @@ export async function stakingForceUnstakeCallHandler(extrinsic: SubstrateExtrins
         numSlashingSpans: numSlashingSpans.toNumber()
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingIncreaseValidatorCountCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [additional] }} = extrinsic as any;
 
     const details = {
         count: additional.toNumber(),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingKickCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [who] }} = extrinsic as any;
 
     const details = {
         address: who.map(item => item.toString()),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingNominateCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [targets] }} = extrinsic as any;
 
     const details = {
         targets: targets.map(item => item.toString()),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingPayoutStakersCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-    const historyElement = await createHistoryElement(extrinsic);
+    logStartProcessingCall(extrinsic)
 
     const { extrinsic: { args: [validatorStash, era] }} = extrinsic as any;
 	
@@ -210,75 +169,64 @@ export async function stakingPayoutStakersCallHandler(extrinsic: SubstrateExtrin
         era: era.toNumber()
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingReapStashCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-
     const { extrinsic: { args: [stash, numSlashingSpans] }} = extrinsic as any;
-    
+
     const details = {
         stash: stash.toString(),
         numSlashingSpans: numSlashingSpans.toNumber(),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingRebondCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-
     const { extrinsic: { args: [value] }} = extrinsic as any;
 
     const details = { value: formatU128ToBalance(value.toString(), XOR) }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingScaleValidatorCountCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [factor] }} = extrinsic as any;
 
     const details = {
         factor: factor.toNumber()
     }
-	
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingSetControllerCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [controller] }} = extrinsic as any;
+
+    const extrinsicSigner = extrinsic.extrinsic.signer.toString();
+    const stakingStaker = await getStakingStaker(extrinsic.block, extrinsicSigner);
+
+    stakingStaker.controller = controller.toString();
+    await stakingStaker.save();
 
     const details = {
         controller: controller.toString(),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
-
-
 
 export async function stakingSetHistoryDepthCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
-
-    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args: { newHistoryDepth, eraItemsDeleted } }} = extrinsic as any;
 
@@ -287,14 +235,11 @@ export async function stakingSetHistoryDepthCallHandler(extrinsic: SubstrateExtr
 		eraItemsDeleted: eraItemsDeleted.toNumber(),
 	}
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingSetInvulnerablesCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
-
-    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args: [invulnerables] }} = extrinsic as any;
 
@@ -302,29 +247,23 @@ export async function stakingSetInvulnerablesCallHandler(extrinsic: SubstrateExt
         invulnerables: invulnerables.map(item => item.toString()),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingSetMinCommissionCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [newPerbill] }} = extrinsic as any;
 
     const details = {
         commission: newPerbill.toNumber()
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingSetPayeeCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
-
-    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args }} = extrinsic as any;
 
@@ -339,7 +278,7 @@ export async function stakingSetPayeeCallHandler(extrinsic: SubstrateExtrinsic):
 		payee = kind.asAccount.toString();
         payeeType = PayeeType.ACCOUNT;
 	} else if (kind.isController) {
-		payee = stakingStaker.controller
+		payee = await getStakingStakerController(extrinsic.block, stakingStaker);
         payeeType = PayeeType.CONTROLLER;
 	}
 
@@ -355,14 +294,11 @@ export async function stakingSetPayeeCallHandler(extrinsic: SubstrateExtrinsic):
 		payee,
 	}
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingSetStakingConfigsCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
-
-    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args }} = extrinsic as any;
 	
@@ -385,14 +321,11 @@ export async function stakingSetStakingConfigsCallHandler(extrinsic: SubstrateEx
 		minCommission: createDetailObject('minCommission'),
 	}
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingSetValidatorCountCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
-
-    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args: [count] }} = extrinsic as any;
 
@@ -400,14 +333,11 @@ export async function stakingSetValidatorCountCallHandler(extrinsic: SubstrateEx
         count: count.toNumber(),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingSubmitElectionSolutionCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
-
-    const historyElement = await createHistoryElement(extrinsic);
 
     const { extrinsic: { args: { winners, era, score } }} = extrinsic as any;
 
@@ -417,30 +347,24 @@ export async function stakingSubmitElectionSolutionCallHandler(extrinsic: Substr
 		score,
 	}
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingUnbondCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [value] }} = extrinsic as any;
 
     const details = {
         amount: value.toString(),
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingValidateCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [prefs] }} = extrinsic as any;
 
     const details = {
@@ -448,21 +372,26 @@ export async function stakingValidateCallHandler(extrinsic: SubstrateExtrinsic):
         blocked: prefs.blocked.isTrue,
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }
 
 export async function stakingWithdrawUnbondedCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
 	logStartProcessingCall(extrinsic)
 
-    const historyElement = await createHistoryElement(extrinsic);
-    
     const { extrinsic: { args: [numSlashingSpans] }} = extrinsic as any;
 
     const details = {
 		numSlashingSpans: numSlashingSpans.toNumber(),
+        amount: undefined,
+    };
+
+    const stakingWithdrawnEvent = extrinsic.events.find((e) => e.event.section === 'staking' && e.event.method === 'Withdrawn');
+
+    if (stakingWithdrawnEvent) {
+        const [stash, amount] = stakingWithdrawnEvent.event.data;
+
+        details.amount = formatU128ToBalance(amount.toString(), XOR);
     }
 
-    await addDataToHistoryElement(extrinsic, historyElement, details);
-    await updateHistoryElementStats(extrinsic, historyElement);
+    await createHistoryElement(extrinsic, details);
 }

@@ -124,10 +124,10 @@ class PoolsStorage {
       return this.storage.get(poolId);
     }
 
-    const adresses = poolAccounts.getById(poolId);
+    const addresses = poolAccounts.getById(poolId);
 
-    if (adresses) {
-      return await this.getPool(block ,...adresses);
+    if (addresses) {
+      return await this.getPool(block ,...addresses);
     }
 
     return null;

@@ -4,9 +4,14 @@ import { getTransferEventData } from '../../utils/events';
 import { poolAccounts, poolsStorage, PoolsPrices } from '../../utils/pools';
 import { orderBooksStorage } from "../../utils/orderBook";
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
+import { initializedAtBlock } from '../models/initializePools'
 
 export async function handleTransferEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event)
+
+  if (initializedAtBlock === event.block.block.header.number.toNumber()) {
+		return
+	}
 
   const { assetId, from, to, amount } = getTransferEventData(event);
 

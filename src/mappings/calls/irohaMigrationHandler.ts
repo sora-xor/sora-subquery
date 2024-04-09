@@ -1,42 +1,34 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { addDataToHistoryElement, createHistoryElement, updateHistoryElementStats } from "../../utils/history";
+import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
 
 export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
 
-    const historyElement = await createHistoryElement(extrinsic)
+    const details: any = {};
 
-    let details = new Object();
+    let assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Deposited' && e.event.section === 'currencies')
 
-    if (historyElement.execution.success) {
+    if (assetTransferEvent) {
+        const { event: { data: [asset, , amount] } } = assetTransferEvent;
+        const assetId = getAssetId(asset);
 
-        let assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Deposited' && e.event.section === 'currencies')
+        details.assetId = assetId;
+        details.amount = formatU128ToBalance(amount.toString(), assetId);
+
+    } else {
+        assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
+
         if (assetTransferEvent) {
-            const { event: { data: [asset, , amount] } } = assetTransferEvent;
-            let assetId = getAssetId(asset);
-            details = {
-                assetId: assetId,
-                amount: formatU128ToBalance(amount.toString(), assetId)
-            }
+            const { event: { data: [asset, , , amount] } } = assetTransferEvent;
+            const assetId = getAssetId(asset);
 
-        } else {
-            assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
-            if (assetTransferEvent) {
-                const { event: { data: [asset, , , amount] } } = assetTransferEvent;
-                let assetId = getAssetId(asset);
-                details = {
-                    assetId: assetId,
-                    amount: formatU128ToBalance(amount.toString(), assetId)
-                }
-
-            }
+            details.assetId = assetId;
+            details.amount = formatU128ToBalance(amount.toString(), assetId);
         }
-
-        await addDataToHistoryElement(extrinsic, historyElement, details);
-        await updateHistoryElementStats(extrinsic, historyElement);
     }
 
+    await createHistoryElement(extrinsic, details)
 }

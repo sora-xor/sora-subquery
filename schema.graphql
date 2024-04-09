@@ -157,6 +157,7 @@ type ReferrerReward @entity {
 	amount: BigInt!
 }
 
+# [TODO] Remove before full reindex prod
 type StakingReward @entity {
 	id: ID!
 	amount: String!

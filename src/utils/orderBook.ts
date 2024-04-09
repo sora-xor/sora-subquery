@@ -45,6 +45,8 @@ export const getOrderBookAssetBalance = async (block: SubstrateBlock, accountId:
       data = await api.query.tokens.accounts(accountId, assetId);
     }
 
+    getOrderBooksStorageLog(block).debug({ accountId, assetId, balance: data.free.toString() }, 'Found Order Book balance');
+
     return BigInt(data.free.toString());
   } catch (e) {
     getOrderBooksStorageLog(block).error('Error getting Order Book balance');
@@ -237,7 +239,7 @@ export class OrderBooksStorage {
     const ids = indexes.map((idx) => OrderBooksSnapshotsStorage.getId(id, type, idx));
     const snapshots = await OrderBooksSnapshotsStorage.getSnapshotsByIds(ids);
 
-    const currentPrice = new BigNumber(price);
+    const currentPrice = new BigNumber(price ?? 0);
     const startPrice = new BigNumber(last(snapshots)?.price?.open ?? '0');
 
     const priceChange = calcPriceChange(currentPrice, startPrice);
@@ -305,6 +307,14 @@ export class OrderBooksSnapshotsStorage {
 
   public static getId(orderBookId: string, type: SnapshotType, index: number) {
     return [orderBookId, type, index].join('-');
+  }
+
+  private async save(block: SubstrateBlock, snapshot: OrderBookSnapshot, force = false): Promise<void> {
+    if (force || shouldUpdate(block, 60)) {
+      await snapshot.save();
+
+      getOrderBooksSnapshotsStorageLog(block).debug({ id: snapshot.id }, 'Order book snapshot saved');
+    }
   }
 
   async sync(block: SubstrateBlock): Promise<void> {
@@ -414,9 +424,11 @@ export class OrderBooksSnapshotsStorage {
       snapshot.price.low = BigNumber.min(new BigNumber(snapshot.price.low), quotePrice).toString();
 
       getOrderBooksSnapshotsStorageLog(block, true).debug(
-        { dexId, baseAssetId, quoteAssetId, price, amount, isBuy, baseAssetVolume, quoteAssetVolume, volumeUSD, quoteAssetPriceUSD },
+        { dexId, baseAssetId, quoteAssetId, price, amount, isBuy: isBuy.toString(), baseAssetVolume, quoteAssetVolume, volumeUSD, quoteAssetPriceUSD },
         'Order Book snapshot price and volume updated',
       )
+
+      await this.save(block, snapshot);
     }
 
     await this.orderBooksStorage.updateDeal(block, dexId, baseAssetId, quoteAssetId, orderId, price, amount, isBuy);
