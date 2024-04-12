@@ -303,7 +303,7 @@ type OrderBookOrder implements IOrderBookDeal @entity {
 enum VaultType {
   # Pays stability fee in underlying collateral, cannot be liquidated.
   V1,
-  # Pays stability fee in stable coins, can be liquidated.
+  # Pays stability fee in stable coins, can be liquidated. (by default ??)
   V2,
 }
 
@@ -313,20 +313,21 @@ enum VaultStatus {
   Liquidated, # returned collateral amount === 0
 }
 
-type VaultOwner @entity {
+type VaultAccount @entity {
   id: ID! # account address
-  lastLiquidation: VaultEvent
+  lastLiquidation: VaultEvent # for subscription support
 }
 
 type Vault @entity {
   id: ID!
   type: VaultType!
   status: VaultStatus!
-  owner: VaultOwner! @index
+  owner: VaultAccount! @index
   collateralAsset: Asset! @index
   debtAsset: Asset! @index
+  collateralAmountReturned: String
   createdAtBlock: Int!
-  updatedAtBlock: Int!
+  updatedAtBlock: Int! # updated or closed
   events: [VaultEvent!]! @derivedFrom(field: "vault")
 }
 
@@ -343,12 +344,7 @@ type VaultEvent @entity {
   id: ID!
   type: VaultEventType!
   vault: Vault! @index # relation to Vault
-  owner: VaultOwner! @index
   timestamp: Int!
   block: Int!
-  data: VaultEventDetails
-}
-
-type VaultEventDetails @jsonField {
-  data: String # API is implemented by bypassing the scheme - `data` in all mappings is an object, not a String. See https://github.com/subquery/subql/issues/522.
+  amount: String
 }
