@@ -298,3 +298,53 @@ type OrderBookOrder implements IOrderBookDeal @entity {
   status: OrderStatus!
   updatedAtBlock: Int!
 }
+
+# CdpType
+enum VaultType {
+  # Pays stability fee in underlying collateral, cannot be liquidated.
+  V1,
+  # Pays stability fee in stable coins, can be liquidated. (by default ??)
+  V2,
+}
+
+enum VaultStatus {
+  Opened,
+  Closed,
+  Liquidated, # returned collateral amount === 0
+}
+
+type VaultAccount @entity {
+  id: ID! # account address
+  lastLiquidation: VaultEvent # for subscription support
+}
+
+type Vault @entity {
+  id: ID!
+  type: VaultType!
+  status: VaultStatus!
+  owner: VaultAccount! @index
+  collateralAsset: Asset! @index
+  debtAsset: Asset! @index
+  collateralAmountReturned: String
+  createdAtBlock: Int!
+  updatedAtBlock: Int! # updated or closed
+  events: [VaultEvent!]! @derivedFrom(field: "vault")
+}
+
+enum VaultEventType {
+  Created,
+  Closed,
+  CollateralDeposit,
+  DebtIncreased,
+  DebtPayment,
+  Liquidated,
+}
+
+type VaultEvent @entity {
+  id: ID!
+  type: VaultEventType!
+  vault: Vault! @index # relation to Vault
+  timestamp: Int!
+  block: Int!
+  amount: String
+}
