@@ -365,11 +365,31 @@ dataSources:
             module: orderBook
             method: cancelLimitOrdersBatch
         # kensetsu calls start
-        - handler: kensetsuCreateVaultCallHandler
+        - handler: vaultCreateCallHandler
           kind: substrate/CallHandler
           filter:
             module: kensetsu
             method: createCdp
+        - handler: vaultDepositCollateralCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: depositCollateral
+        - handler: vaultDecreaseDebtCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: repayDebt
+        - handler: vaultIncreaseDeptCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: borrow
+        - handler: vaultCloseCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: closeCdp
         # kensetsu events start
         - handler: vaultCreatedEvent
           kind: substrate/EventHandler
