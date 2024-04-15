@@ -24,8 +24,7 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
       [vaultIdCodec, ownerCodec, assetCodec, debtAssetCodec, vaultTypeCodec] = event.event.data;
       break;
     }
-    case VaultEventType.Liquidated:
-    case VaultEventType.Closed: {
+    case VaultEventType.Liquidated: {
       [vaultIdCodec, assetCodec, amountCodec, debtAssetCodec] = event.event.data;
       break;
     }

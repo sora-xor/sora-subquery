@@ -8,7 +8,7 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
   logStartProcessingCall(extrinsic);
 
   // "debpAssetid", "vaultType" may be added in future
-  const { extrinsic: { args: [collateralAsset, collateralAmount, borrowAmountMin, _borrowAmountMax] }} = extrinsic as any;
+  const { extrinsic: { args: [collateralAsset, collateralAmount, _borrowAmountMin, borrowAmountMax] }} = extrinsic as any;
 
   const collateralAssetId = getAssetId(collateralAsset);
 
@@ -17,7 +17,7 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
     collateralAssetId,
     collateralAmount: formatU128ToBalance(collateralAmount.toString(), collateralAssetId),
     debtAssetId: KUSD,
-    debtAmount: formatU128ToBalance(borrowAmountMin.toString(), KUSD),
+    debtAmount: formatU128ToBalance(borrowAmountMax.toString(), KUSD),
   };
 
   const vaultCreatedEvent = extrinsic.events.find(e => e.event.section === 'kensetsu' && e.event.method === 'CDPCreated');
@@ -91,12 +91,12 @@ export async function vaultDecreaseDebtCallHandler(extrinsic: SubstrateExtrinsic
 export async function vaultIncreaseDeptCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [vaultId, borrowAmountMin, _borrowAmountMax] }} = extrinsic as any;
+  const { extrinsic: { args: [vaultId, _borrowAmountMin, borrowAmountMax] }} = extrinsic as any;
 
   const details = {
     id: vaultId.toString(),
     debtAssetId: KUSD, // default
-    debtAmount: formatU128ToBalance(borrowAmountMin.toString(), KUSD), // default
+    debtAmount: formatU128ToBalance(borrowAmountMax.toString(), KUSD), // default
   };
 
   const vaultDebtIncreasedEvent = extrinsic.events.find(e => e.event.section === 'kensetsu' && e.event.method === 'DebtIncreased');
