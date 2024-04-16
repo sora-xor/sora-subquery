@@ -1,5 +1,5 @@
 import { SubstrateEvent } from "@subql/types";
-import { Vault, VaultStatus, VaultEvent, VaultEventType } from '../../types'
+import { Vault, VaultAccount, VaultStatus, VaultEvent, VaultEventType } from '../../types'
 
 import { formatDateTimestamp, getEventId } from '../../utils';
 import { getVaultAccountEntity } from '../../utils/kensetsu';
@@ -35,11 +35,13 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   }
 
   const vauldId = vaultIdCodec.toString();
-  const account = await getVaultAccountEntity(event.block, ownerCodec.toString());
 
   let vault!: Vault;
+  let account!: VaultAccount
 
   if (eventType === VaultEventType.Created) {
+    account = await getVaultAccountEntity(event.block, ownerCodec.toString());
+
     vault = new Vault(
       vauldId,
       vaultTypeCodec.toHuman(),
@@ -71,7 +73,6 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   const amount = amountCodec ? formatU128ToBalance(amountCodec.toString(), assetId) : null;
 
   vaultEvent.amount = amount;
-
   vault.updatedAtBlock = blockNumber;
 
   switch (eventType) {
@@ -81,6 +82,7 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
       break;
     }
     case VaultEventType.Liquidated: {
+      account = await getVaultAccountEntity(event.block, vault.ownerId);
       account.lastLiquidationId = vaultEvent.id;
       break;
     }
@@ -88,7 +90,7 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
 
   await vault.save();
   await vaultEvent.save();
-  await account.save();
+  await account?.save();
 }
 
 export async function vaultCreatedEvent(event: SubstrateEvent): Promise<void> {
