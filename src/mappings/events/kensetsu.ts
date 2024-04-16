@@ -9,9 +9,8 @@ import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 async function handleEventType(event: SubstrateEvent, eventType: VaultEventType) {
   logStartProcessingEvent(event);
 
-  const blockNumber = event.block.block.header.number.toNumber();
-  const timestamp = formatDateTimestamp(event.block.timestamp);
-
+  let vault!: Vault;
+  let account!: VaultAccount
   let vaultIdCodec!: any;
   let ownerCodec!: any;
   let assetCodec!: any;
@@ -35,9 +34,8 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   }
 
   const vauldId = vaultIdCodec.toString();
-
-  let vault!: Vault;
-  let account!: VaultAccount
+  const blockNumber = event.block.block.header.number.toNumber();
+  const timestamp = formatDateTimestamp(event.block.timestamp);
 
   if (eventType === VaultEventType.Created) {
     account = await getVaultAccountEntity(event.block, ownerCodec.toString());
