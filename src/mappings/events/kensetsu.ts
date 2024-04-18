@@ -86,9 +86,9 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
     }
   }
 
+  await account?.save();
   await vault.save();
   await vaultEvent.save();
-  await account?.save();
 }
 
 export async function vaultCreatedEvent(event: SubstrateEvent): Promise<void> {
