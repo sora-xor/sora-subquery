@@ -11,6 +11,8 @@ export const TBCD: string = '0x02000a0000000000000000000000000000000000000000000
 export const DOT: string = '0x0003b1dbee890acfb1b3bc12d1bb3b4295f52755423f84d1751b2545cebf000b';
 export const KSM: string = '0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8';
 export const USDT: string = '0x0083a6b3fbc6edae06f115c8953ddd7cbfba0b74579d6ea190f96853073b76f4';
+export const KEN: string = '0x02000b0000000000000000000000000000000000000000000000000000000000';
+export const KUSD: string = '0x02000c0000000000000000000000000000000000000000000000000000000000';
 
 export const predefinedAssets = {
   'XOR': XOR,
@@ -24,6 +26,8 @@ export const predefinedAssets = {
   'XSTUSD': XSTUSD,
   'XST': XST,
   'TBCD': TBCD,
+  'KEN': KEN,
+  'KUSD': KUSD,
 };
 
 export const BASE_ASSETS = [XOR, XSTUSD];
