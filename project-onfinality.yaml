@@ -364,6 +364,64 @@ dataSources:
           filter:
             module: orderBook
             method: cancelLimitOrdersBatch
+        # kensetsu calls start
+        - handler: vaultCreateCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: createCdp
+        - handler: vaultDepositCollateralCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: depositCollateral
+        - handler: vaultDecreaseDebtCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: repayDebt
+        - handler: vaultIncreaseDeptCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: borrow
+        - handler: vaultCloseCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: kensetsu
+            method: closeCdp
+        # kensetsu events start
+        - handler: vaultCreatedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: kensetsu
+            method: CDPCreated
+        - handler: vaultCollateralDepositEvent
+          kind: substrate/EventHandler
+          filter:
+            module: kensetsu
+            method: CollateralDeposit
+        - handler: vaultDebtIncreasedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: kensetsu
+            method: DebtIncreased
+        - handler: vaultDebtPaymentEvent
+          kind: substrate/EventHandler
+          filter:
+            module: kensetsu
+            method: DebtPayment
+        - handler: vaultLiquidatedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: kensetsu
+            method: Liquidated
+        - handler: vaultClosedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: kensetsu
+            method: CDPClosed
+        # kensetsu end
         - handler: ethSoraTransferEventHandler
           kind: substrate/EventHandler
           filter:
