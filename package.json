@@ -29,9 +29,9 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@sora-substrate/types": "1.33.3",
-    "@subql/cli": "4.4.1",
-    "@subql/node": "4.0.1",
+    "@sora-substrate/types": "1.33.9",
+    "@subql/cli": "4.5.2",
+    "@subql/node": "4.1.0",
     "@subql/types": "3.4.0",
     "fs-extra": "^11.2.0",
     "js-yaml": "^4.1.0",
