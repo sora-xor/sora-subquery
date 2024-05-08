@@ -34,7 +34,7 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
   if (debtIncreasedEvent) {
     const { event: { data: [_id, _owner, _debtId, debtAmount] } } = vaultCreatedEvent;
 
-    details.debtAmount = formatU128ToBalance(debtAmount.toString(), details.debtAmount);
+    details.debtAmount = formatU128ToBalance(debtAmount.toString(), details.debtAssetId);
   }
 
   await createHistoryElement(extrinsic, details);
