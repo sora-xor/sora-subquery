@@ -29,15 +29,15 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@sora-substrate/types": "1.33.9",
-    "@subql/cli": "4.5.2",
-    "@subql/node": "4.1.0",
-    "@subql/types": "3.4.0",
+    "@sora-substrate/types": "1.34.1",
+    "@subql/cli": "4.8.0",
+    "@subql/node": "4.4.1",
+    "@subql/types": "3.6.0",
     "fs-extra": "^11.2.0",
     "js-yaml": "^4.1.0",
     "node-fetch": "^3.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.4",
+    "typescript": "^5.4.5",
     "write-yaml-file": "^5.0.0"
   },
   "dependencies": {
