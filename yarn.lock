@@ -3021,44 +3021,29 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@sora-substrate/type-definitions@1.34.1":
-  version "1.34.1"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.34.1.tgz#a3aa02a38b1c9d32fe8dca6547ad2b4b0737c9da"
-  integrity sha512-r1qeJSNn/Yfl7rn+m199wSJTI6STlApHrz7SwSpmKiHSfW14Ff1cjKg6S1Oem9Moxw8sbcBI3AzSeSbQeaFvZw==
+"@sora-substrate/type-definitions@1.34.2":
+  version "1.34.2"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.34.2.tgz#3d434990e1491fa8eef001efd6868890dd31edc8"
+  integrity sha512-4YhYn1SxNwelDpOiNsbnCHQoaCUXJzPsGdwawa4ym2TUoHy4NuFbHIRHNIfa8Vxm1mw/RZI1q8mGtjm+2DhJnA==
   dependencies:
     "@open-web3/orml-type-definitions" "1.1.4"
 
-"@sora-substrate/types@1.34.1":
-  version "1.34.1"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.34.1.tgz#78aa0fc96c0e37b54a8b342025519c2aab758893"
-  integrity sha512-Mb8Mu6+m3GGXpFu1O8+5mwA0F+PrT560dz5UtzF6CH+9/Su31Ew0ohb/mUGdDbuItdICMmt1OP1S6YpL55VHkA==
+"@sora-substrate/types@1.34.2":
+  version "1.34.2"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.34.2.tgz#8835921b73df9dbc2f62b76df34113e578964db0"
+  integrity sha512-R/Nv9uqMtMQ/MlwTI4x5IUczdT854o7JgYihYsfEcYlNrOqRr6zGyobHTh7v2SWXPd+hbd+KNkNnebiIBGXctA==
   dependencies:
     "@open-web3/api-mobx" "0.9.4-26"
     "@open-web3/orml-types" "1.1.4"
     "@polkadot/api" "9.14.2"
     "@polkadot/typegen" "9.14.2"
     "@polkadot/types" "9.14.2"
-    "@sora-substrate/type-definitions" "1.34.1"
+    "@sora-substrate/type-definitions" "1.34.2"
 
-"@stellar/js-xdr@^3.0.1", "@stellar/js-xdr@^3.1.1":
+"@stellar/js-xdr@^3.1.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@stellar/js-xdr/-/js-xdr-3.1.1.tgz#be0ff90c8a861d6e1101bca130fa20e74d5599bb"
   integrity sha512-3gnPjAz78htgqsNEDkEsKHKosV2BF2iZkoHCNxpmZwUxiPsw+2VaXMed8RRMe0rGk3d5GZe7RrSba8zV80J3Ag==
-
-"@stellar/stellar-base@^10.0.2":
-  version "10.0.2"
-  resolved "https://registry.yarnpkg.com/@stellar/stellar-base/-/stellar-base-10.0.2.tgz#56cf1c060d830f6d4357040a12a77fc3408c4fb8"
-  integrity sha512-SK7WgnSc2xn4vYRRLsjbA6fstyzZfFKUTg/PTrl1Cc5RbhbBSLXVKqd2hw0gAjZ8vHpEMmZvfZgBJnTAYUbrPA==
-  dependencies:
-    "@stellar/js-xdr" "^3.0.1"
-    base32.js "^0.1.0"
-    bignumber.js "^9.1.2"
-    buffer "^6.0.3"
-    sha.js "^2.3.6"
-    tweetnacl "^1.0.3"
-    typescript "^5.3.3"
-  optionalDependencies:
-    sodium-native "^4.0.5"
 
 "@stellar/stellar-base@^11.0.1":
   version "11.0.1"
@@ -4249,7 +4234,7 @@ axios@^0.28.0:
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
-axios@^1.6.0, axios@^1.6.5, axios@^1.6.8:
+axios@^1.6.0, axios@^1.6.8:
   version "1.6.8"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.8.tgz#66d294951f5d988a00e87a0ffb955316a619ea66"
   integrity sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==
@@ -5736,7 +5721,7 @@ flatted@^3.2.5:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.9.tgz#7eb4c67ca1ba34232ca9d2d93e9886e611ad7daf"
   integrity sha512-36yxDn5H7OFZQla0/jFJmbIKTdZAQHngCedGxiMmpNfEZM0sdEeT+WczLQrjK6D7o2aiyLYDnkw0R3JK0Qv1RQ==
 
-follow-redirects@^1.15.0, follow-redirects@^1.15.4, follow-redirects@^1.15.6:
+follow-redirects@^1.15.0, follow-redirects@^1.15.6:
   version "1.15.6"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.6.tgz#7f815c0cda4249c74ff09e95ef97c23b5fd0399b"
   integrity sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==
@@ -7545,7 +7530,7 @@ node-fetch@^3.1.0, node-fetch@^3.3.0, node-fetch@^3.3.2:
   version "2.6.7"
   resolved "https://registry.npmjs.org/@achingbrain/node-fetch/-/node-fetch-2.6.7.tgz#1b5d62978f2ed07b99444f64f0df39f960a6d34d"
 
-node-gyp-build@^4.3.0, node-gyp-build@^4.6.0, node-gyp-build@^4.8.0:
+node-gyp-build@^4.3.0, node-gyp-build@^4.8.0:
   version "4.8.0"
   resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.8.0.tgz#3fee9c1731df4581a3f9ead74664369ff00d26dd"
   integrity sha512-u6fs2AEUljNho3EYTJNBfImO5QTo/J/1Etd+NVdCj7qWKUSN/bSLkZwhDv7I+w/MSC6qJ4cknepkAYykDdK8og==
@@ -8579,7 +8564,7 @@ smoldot@2.0.22:
   dependencies:
     ws "^8.8.1"
 
-sodium-native@^4.0.10, sodium-native@^4.0.5:
+sodium-native@^4.0.10:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/sodium-native/-/sodium-native-4.1.1.tgz#109bc924dd55c13db87c6dd30da047487595723c"
   integrity sha512-LXkAfRd4FHtkQS4X6g+nRcVaN7mWVNepV06phIsC6+IZFvGh1voW5TNQiQp2twVaMf05gZqQjuS+uWLM6gHhNQ==
@@ -9106,7 +9091,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==
 
-typescript@>=5.2.2, typescript@^5.3.3, typescript@^5.4.5:
+typescript@>=5.2.2, typescript@^5.4.5:
   version "5.4.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.4.5.tgz#42ccef2c571fdbd0f6718b1d1f5e6e5ef006f611"
   integrity sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==
