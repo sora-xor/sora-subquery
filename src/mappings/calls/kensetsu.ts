@@ -32,7 +32,7 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
   const debtIncreasedEvent = extrinsic.events.find(e => e.event.section === 'kensetsu' && e.event.method === 'DebtIncreased');
 
   if (debtIncreasedEvent) {
-    const { event: { data: [_id, _owner, _debtId, debtAmount] } } = vaultCreatedEvent;
+    const { event: { data: [_id, _owner, _debtId, debtAmount] } } = debtIncreasedEvent;
 
     details.debtAmount = formatU128ToBalance(debtAmount.toString(), details.debtAssetId);
   }
@@ -138,7 +138,7 @@ export async function vaultCloseCallHandler(extrinsic: SubstrateExtrinsic): Prom
   const vaultClosedEvent = extrinsic.events.find(e => e.event.section === 'kensetsu' && e.event.method === 'CDPClosed');
 
   if (vaultClosedEvent) {
-    const { event: { data: [_id, _owner, collateralId, collateralAmount] } } = vaultDebtPaymentEvent;
+    const { event: { data: [_id, _owner, collateralId, collateralAmount] } } = vaultClosedEvent;
     const collateralAssetId = getAssetId(collateralId);
 
     details.collateralAssetId = collateralAssetId;
