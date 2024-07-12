@@ -1,4 +1,4 @@
-FROM       onfinality/subql-node:v4.4.1
+FROM       onfinality/subql-node:v4.7.0
 ARG        SORA_ENDPOINT
 ENV        TZ utc
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/lib/node_modules/@subql/node/bin/run"]
