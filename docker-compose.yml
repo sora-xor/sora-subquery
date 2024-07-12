@@ -13,7 +13,7 @@ services:
       test: pg_isready -U postgres
 
   subquery-node:
-    image: onfinality/subql-node:v4.5.0
+    image: onfinality/subql-node:v4.7.0
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,7 +34,7 @@ services:
       - --allow-schema-migration=true
 
   graphql-engine:
-    image: onfinality/subql-query:v2.11.1
+    image: onfinality/subql-query:v2.13.1
     ports:
       - 3000:3000
     depends_on:
