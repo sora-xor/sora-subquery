@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 
 import { SubstrateBlock } from '@subql/types';
 import { PoolXYK } from '../types';
-import { XOR, DOUBLE_PRICE_POOL } from './consts';
+import { XOR, KXOR, ETH, DOUBLE_PRICE_POOL } from './consts';
 import { assetStorage, assetPrecisions } from "./assets";
 import { getInitializePoolsLog, getPoolsStorageLog } from './logs';
 import { poolXykApyUpdatesStream } from "./stream";
@@ -61,6 +61,24 @@ export const getPoolProperties = async (block: SubstrateBlock, baseAssetId: stri
     return null;
   }
 }
+
+// https://github.com/sora-xor/sora2-network/blob/master/runtime/src/lib.rs#L1026
+export const getChameleonPool = (pool: PoolXYK): boolean => {
+  if (pool.baseAssetId === XOR && pool.targetAssetId === ETH) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+// https://github.com/sora-xor/sora2-network/blob/master/runtime/src/lib.rs#L1012
+export const getChameleonPoolBaseAssetId = (dexBaseAssetId: string): string | null => {
+  if (dexBaseAssetId === XOR) {
+    return KXOR;
+  } else {
+    return null;
+  }
+};
 
 class PoolAccountsStorage {
   private storage: Map<string, Map<string, string>>;
