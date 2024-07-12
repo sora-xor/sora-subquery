@@ -1,7 +1,7 @@
 import { SubstrateEvent } from "@subql/types";
 
 import { getTransferEventData } from '../../utils/events';
-import { poolAccounts, poolsStorage, PoolsPrices } from '../../utils/pools';
+import { poolAccounts, poolsStorage, PoolsPrices, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
 import { orderBooksStorage } from "../../utils/orderBook";
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 import { initializedAtBlock } from '../models/initializePools'
@@ -18,8 +18,10 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
   // withdraw token from pool
   if (poolAccounts.has(from)) {
     const pool = await poolsStorage.getPoolById(event.block, from);
+    const isChameleonPool = getChameleonPool(pool);
+    const chameleonAssetId = isChameleonPool ? getChameleonPoolBaseAssetId(pool.baseAssetId) : null;
 
-    if (pool.baseAssetId === assetId) {
+    if (pool.baseAssetId === assetId || chameleonAssetId === assetId) {
       pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount);
     } else if (pool.targetAssetId === assetId) {
       pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount);
@@ -31,8 +33,10 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
   // deposit token to pool
   if (poolAccounts.has(to)) {
     const pool = await poolsStorage.getPoolById(event.block, to);
+    const isChameleonPool = getChameleonPool(pool);
+    const chameleonAssetId = isChameleonPool ? getChameleonPoolBaseAssetId(pool.baseAssetId) : null;
 
-    if (pool.baseAssetId === assetId) {
+    if (pool.baseAssetId === assetId || chameleonAssetId === assetId) {
       pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount);
     } else if (pool.targetAssetId === assetId) {
       pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount);
