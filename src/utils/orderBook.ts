@@ -33,28 +33,6 @@ export const getAllOrderBooks = async (block: SubstrateBlock) => {
   }
 };
 
-export const getOrderBookAssetBalance = async (block: SubstrateBlock, accountId: string, assetId: string) => {
-  try {
-    getOrderBooksStorageLog(block).debug({ accountId, assetId }, 'Get Order Book balance');
-
-    let data!: any;
-
-    if (assetId === XOR) {
-      data = (await api.query.system.account(accountId) as any).data;
-    } else {
-      data = await api.query.tokens.accounts(accountId, assetId);
-    }
-
-    getOrderBooksStorageLog(block).debug({ accountId, assetId, balance: data.free.toString() }, 'Found Order Book balance');
-
-    return BigInt(data.free.toString());
-  } catch (e) {
-    getOrderBooksStorageLog(block).error('Error getting Order Book balance');
-    getOrderBooksStorageLog(block).error(e);
-    return BigInt(0);
-  }
-};
-
 export const getTechnicalAccounts = async (block: SubstrateBlock) => {
   try {
     getOrderBooksStorageLog(block).debug('Order Books account ids request...');

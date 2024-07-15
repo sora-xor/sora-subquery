@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
-import { DAI } from './consts';
+import { DAI, XOR } from './consts';
 import { getSnapshotIndex, getSnapshotTypes, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate, formatDateTimestamp, toFloat } from './index';
 import { getAssetSnapshotsStorageLog, getAssetStorageLog } from './logs';
 import { priceUpdatesStream } from "./stream";
@@ -45,6 +45,28 @@ export const formatU128ToBalance = (u128: string, assetId: string): string => {
 
 export const getAssetId = (asset: any): string => {
   return (asset?.code?.code ?? asset?.code ?? asset).toHuman();
+};
+
+export const getAssetBalance = async (block: SubstrateBlock, accountId: string, assetId: string) => {
+  try {
+    getAssetStorageLog(block).debug({ accountId, assetId }, 'Get Asset balance');
+
+    let data!: any;
+
+    if (assetId === XOR) {
+      data = (await api.query.system.account(accountId) as any).data;
+    } else {
+      data = await api.query.tokens.accounts(accountId, assetId);
+    }
+
+    getAssetStorageLog(block).debug({ accountId, assetId, balance: data.free.toString() }, 'Found Asset balance');
+
+    return BigInt(data.free.toString());
+  } catch (e) {
+    getAssetStorageLog(block).error('Error getting Asset balance');
+    getAssetStorageLog(block).error(e);
+    return BigInt(0);
+  }
 };
 
 class AssetStorage {

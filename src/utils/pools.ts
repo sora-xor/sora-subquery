@@ -63,7 +63,7 @@ export const getPoolProperties = async (block: SubstrateBlock, baseAssetId: stri
 }
 
 // https://github.com/sora-xor/sora2-network/blob/master/runtime/src/lib.rs#L1026
-export const getChameleonPool = (pool: PoolXYK): boolean => {
+export const getChameleonPool = (pool: Partial<PoolXYK>): boolean => {
   if (pool.baseAssetId === XOR && pool.targetAssetId === ETH) {
     return true;
   } else {
