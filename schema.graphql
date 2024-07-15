@@ -89,8 +89,9 @@ type PoolXYK @entity {
   id: ID!
   baseAsset: Asset! @index
   targetAsset: Asset! @index
-  baseAssetReserves: BigInt!
-  targetAssetReserves: BigInt!
+  baseAssetReserves: BigInt! # (base + chameleon) reserves
+  targetAssetReserves: BigInt! # target reserves
+  chameleonAssetReserves: BigInt # chameleon reserves only
   multiplier: Int!
   priceUSD: String
   strategicBonusApy: String

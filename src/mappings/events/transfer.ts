@@ -21,6 +21,10 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
     const isChameleonPool = getChameleonPool(pool);
     const chameleonAssetId = isChameleonPool ? getChameleonPoolBaseAssetId(pool.baseAssetId) : null;
 
+    if (chameleonAssetId === assetId) {
+      pool.chameleonAssetReserves = (pool.chameleonAssetReserves ?? BigInt(0)) - BigInt(amount);
+    }
+
     if (pool.baseAssetId === assetId || chameleonAssetId === assetId) {
       pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount);
     } else if (pool.targetAssetId === assetId) {
@@ -35,6 +39,10 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
     const pool = await poolsStorage.getPoolById(event.block, to);
     const isChameleonPool = getChameleonPool(pool);
     const chameleonAssetId = isChameleonPool ? getChameleonPoolBaseAssetId(pool.baseAssetId) : null;
+
+    if (chameleonAssetId === assetId) {
+      pool.chameleonAssetReserves = (pool.chameleonAssetReserves ?? BigInt(0)) + BigInt(amount);
+    }
 
     if (pool.baseAssetId === assetId || chameleonAssetId === assetId) {
       pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount);
