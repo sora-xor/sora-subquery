@@ -31,7 +31,7 @@ export const predefinedAssets = {
   'KUSD': KUSD,
 };
 
-export const BASE_ASSETS = [XOR, XSTUSD];
+export const BASE_ASSETS = [XOR, XSTUSD, KUSD];
 
 export const DOUBLE_PRICE_POOL = [VAL, PSWAP, DAI, ETH, XST, TBCD, DOT];
 
