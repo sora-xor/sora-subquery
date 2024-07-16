@@ -191,18 +191,22 @@ class PoolsStorage {
       targetAssetId,
       baseAssetReserves,
       targetAssetReserves: targetReserves,
-      chameleonAssetReserves: chameleonReserves,
+      chameleonAssetReserves,
     } of this.storage.values()) {
       const isChameleon = getChameleonPool({ baseAssetId, targetAssetId });
       const chameleonAssetId = isChameleon ? getChameleonPoolBaseAssetId(baseAssetId) : null;
+      const chameleonReserves = chameleonAssetReserves ?? BigInt(0);
 
       const baseReserves = isChameleon ? baseAssetReserves - chameleonReserves : baseAssetReserves;
-      lockedAssets.set(baseAssetId, (lockedAssets.get(baseAssetId) ?? BigInt(0)) + baseReserves);
+      const lockedBaseReserves = lockedAssets.get(baseAssetId) ?? BigInt(0);
+      lockedAssets.set(baseAssetId, lockedBaseReserves + baseReserves);
 
-      lockedAssets.set(targetAssetId, (lockedAssets.get(targetAssetId) ?? BigInt(0)) + targetReserves);
+      const lockedTargetReserves = lockedAssets.get(targetAssetId) ?? BigInt(0);
+      lockedAssets.set(targetAssetId, lockedTargetReserves + targetReserves);
 
       if (chameleonAssetId) {
-        lockedAssets.set(chameleonAssetId, (lockedAssets.get(chameleonAssetId) ?? BigInt(0)) + chameleonReserves ?? BigInt(0));
+        const lockedChameleonReserves = lockedAssets.get(chameleonAssetId) ?? BigInt(0);
+        lockedAssets.set(chameleonAssetId, lockedChameleonReserves + chameleonReserves);
       }
     }
 
