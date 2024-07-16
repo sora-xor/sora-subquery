@@ -67,7 +67,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                 baseAssetPriceInDAI = divideReserves(baseAssetReservesBN, targetAssetReservesBN);
                 daiReserves[baseAssetId] = targetAssetReservesBN
             } else if (pool.targetAssetId === chameleonAsset) {
-                chameleonAssetPriceInBaseAsset = divideReserves(baseAssetReservesBN, targetAssetReservesBN);
+                chameleonAssetPriceInBaseAsset = divideReserves(targetAssetReservesBN, baseAssetReservesBN);
             }
 
             pools[baseAssetId].push(pool);
