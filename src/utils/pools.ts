@@ -186,12 +186,24 @@ class PoolsStorage {
   public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
     const lockedAssets = new Map<string, bigint>();
 
-    for (const { baseAssetId, targetAssetId, baseAssetReserves, targetAssetReserves } of this.storage.values()) {
-      const a = lockedAssets.get(baseAssetId);
-      const b = lockedAssets.get(targetAssetId);
+    for (const {
+      baseAssetId,
+      targetAssetId,
+      baseAssetReserves,
+      targetAssetReserves: targetReserves,
+      chameleonAssetReserves: chameleonReserves,
+    } of this.storage.values()) {
+      const isChameleon = getChameleonPool({ baseAssetId, targetAssetId });
+      const chameleonAssetId = isChameleon ? getChameleonPoolBaseAssetId(baseAssetId) : null;
 
-      lockedAssets.set(baseAssetId, (a || BigInt(0)) + baseAssetReserves);
-      lockedAssets.set(targetAssetId, (b || BigInt(0)) + targetAssetReserves);
+      const baseReserves = isChameleon ? baseAssetReserves - chameleonReserves : baseAssetReserves;
+      lockedAssets.set(baseAssetId, (lockedAssets.get(baseAssetId) ?? BigInt(0)) + baseReserves);
+
+      lockedAssets.set(targetAssetId, (lockedAssets.get(targetAssetId) ?? BigInt(0)) + targetReserves);
+
+      if (chameleonAssetId) {
+        lockedAssets.set(chameleonAssetId, (lockedAssets.get(chameleonAssetId) ?? BigInt(0)) + chameleonReserves ?? BigInt(0));
+      }
     }
 
     let lockedUSD = new BigNumber(0);
