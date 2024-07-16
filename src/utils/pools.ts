@@ -63,7 +63,7 @@ export const getPoolProperties = async (block: SubstrateBlock, baseAssetId: stri
 }
 
 // https://github.com/sora-xor/sora2-network/blob/master/runtime/src/lib.rs#L1026
-export const getChameleonPool = (pool: PoolXYK): boolean => {
+export const getChameleonPool = (pool: Partial<PoolXYK>): boolean => {
   if (pool.baseAssetId === XOR && pool.targetAssetId === ETH) {
     return true;
   } else {
@@ -186,12 +186,28 @@ class PoolsStorage {
   public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
     const lockedAssets = new Map<string, bigint>();
 
-    for (const { baseAssetId, targetAssetId, baseAssetReserves, targetAssetReserves } of this.storage.values()) {
-      const a = lockedAssets.get(baseAssetId);
-      const b = lockedAssets.get(targetAssetId);
+    for (const {
+      baseAssetId,
+      targetAssetId,
+      baseAssetReserves,
+      targetAssetReserves: targetReserves,
+      chameleonAssetReserves,
+    } of this.storage.values()) {
+      const isChameleon = getChameleonPool({ baseAssetId, targetAssetId });
+      const chameleonAssetId = isChameleon ? getChameleonPoolBaseAssetId(baseAssetId) : null;
+      const chameleonReserves = chameleonAssetReserves ?? BigInt(0);
 
-      lockedAssets.set(baseAssetId, (a || BigInt(0)) + baseAssetReserves);
-      lockedAssets.set(targetAssetId, (b || BigInt(0)) + targetAssetReserves);
+      const baseReserves = isChameleon ? baseAssetReserves - chameleonReserves : baseAssetReserves;
+      const lockedBaseReserves = lockedAssets.get(baseAssetId) ?? BigInt(0);
+      lockedAssets.set(baseAssetId, lockedBaseReserves + baseReserves);
+
+      const lockedTargetReserves = lockedAssets.get(targetAssetId) ?? BigInt(0);
+      lockedAssets.set(targetAssetId, lockedTargetReserves + targetReserves);
+
+      if (chameleonAssetId) {
+        const lockedChameleonReserves = lockedAssets.get(chameleonAssetId) ?? BigInt(0);
+        lockedAssets.set(chameleonAssetId, lockedChameleonReserves + chameleonReserves);
+      }
     }
 
     let lockedUSD = new BigNumber(0);
