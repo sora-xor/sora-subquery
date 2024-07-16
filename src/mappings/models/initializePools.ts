@@ -1,7 +1,8 @@
 import { SubstrateBlock } from "@subql/types";
+import { PoolXYK } from '../../types';
 
-import { getAssetId } from '../../utils/assets';
-import { poolAccounts, getAllReserves, getAllProperties, poolsStorage } from '../../utils/pools';
+import { getAssetId, getAssetBalance } from '../../utils/assets';
+import { poolAccounts, getAllReserves, getAllProperties, poolsStorage, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
 import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
 import { getInitializePoolsLog } from "../../utils/logs";
 
@@ -11,7 +12,7 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     if (initializedAtBlock !== null) return;
 
     getInitializePoolsLog(block).debug('Initialize Pool XYK entities');
-    const poolsBuffer = new Map();
+    const poolsBuffer: Map<string, Partial<PoolXYK>> = new Map();
 
     for (const baseAssetId of BASE_ASSETS) {
         // We don't use Promise.all here because we need consistent order of requests in the log
@@ -39,10 +40,20 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
             const poolAccountId = poolAccounts.get(baseAssetId, targetAssetId);
             const pool = poolsBuffer.get(poolAccountId);
 
-            if (pool) {
-                pool.baseAssetReserves = BigInt(value[0].toString());
-                pool.targetAssetReserves = BigInt(value[1].toString());
-            }
+            if (!pool) continue;
+
+            const baseAssetReserves = BigInt(value[0].toString());
+            const targetAssetReserves = BigInt(value[1].toString());
+
+            pool.baseAssetReserves = baseAssetReserves;
+            pool.targetAssetReserves = targetAssetReserves;
+
+            if (!getChameleonPool(pool)) continue;
+
+            const chameleonAssetId = getChameleonPoolBaseAssetId(baseAssetId);
+            const chameleonAssetReserves = await getAssetBalance(block, poolAccountId, chameleonAssetId);
+
+            pool.chameleonAssetReserves = chameleonAssetReserves;
         }
     }
 
