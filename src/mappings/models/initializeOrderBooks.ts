@@ -1,8 +1,8 @@
 import { SubstrateBlock } from "@subql/types";
 
 import { OrderBookStatus } from '../../types'
-import { getAssetId } from '../../utils/assets';
-import { getAllOrderBooks, OrderBooksStorage, orderBooksStorage, getOrderBookAssetBalance } from '../../utils/orderBook';
+import { getAssetId, getAssetBalance } from '../../utils/assets';
+import { getAllOrderBooks, OrderBooksStorage, orderBooksStorage } from '../../utils/orderBook';
 import { getInitializeOrderBooksLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
@@ -31,8 +31,8 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const accountId = await orderBooksStorage.getAccountId(block, id);
 
       // We don't use Promise.all here because we need consistent order of requests in the log
-      const baseAssetReserves = await getOrderBookAssetBalance(block, accountId, baseAssetId)
-      const quoteAssetReserves = await getOrderBookAssetBalance(block, accountId, quoteAssetId)
+      const baseAssetReserves = await getAssetBalance(block, accountId, baseAssetId)
+      const quoteAssetReserves = await getAssetBalance(block, accountId, quoteAssetId)
 
       buffer.set(id, {
         id,

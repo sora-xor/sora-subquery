@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateEvent } from "@subql/types";
 import { OrderBookOrder, OrderType, OrderStatus } from '../../types'
 
-import { formatDateTimestamp } from '../../utils';
+import { formatDateTimestamp, getEventId } from '../../utils';
 import { getAccountEntity } from '../../utils/account';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { OrderBooksStorage, orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
@@ -194,8 +194,7 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
   const blockNumber = event.block.block.header.number.toNumber();
   const timestamp = formatDateTimestamp(event.block.timestamp);
 
-  const eventIndex = event.idx;
-  const orderId = `${blockNumber}-${eventIndex}`;
+  const orderId = getEventId(event);
 
   const { id, dexId, baseAssetId, quoteAssetId } = getOrderData(orderBookCodec, orderId);
 

@@ -89,8 +89,9 @@ type PoolXYK @entity {
   id: ID!
   baseAsset: Asset! @index
   targetAsset: Asset! @index
-  baseAssetReserves: BigInt!
-  targetAssetReserves: BigInt!
+  baseAssetReserves: BigInt! # (base + chameleon) reserves
+  targetAssetReserves: BigInt! # target reserves
+  chameleonAssetReserves: BigInt # chameleon reserves only
   multiplier: Int!
   priceUSD: String
   strategicBonusApy: String
@@ -297,4 +298,54 @@ type OrderBookOrder implements IOrderBookDeal @entity {
   amountFilled: String!
   status: OrderStatus!
   updatedAtBlock: Int!
+}
+
+# CdpType
+enum VaultType {
+  # Pays stability fee in underlying collateral, cannot be liquidated.
+  Type1,
+  # Pays stability fee in stable coins, can be liquidated. (by default ??)
+  Type2,
+}
+
+enum VaultStatus {
+  Opened,
+  Closed,
+  Liquidated, # returned collateral amount === 0
+}
+
+type VaultAccount @entity {
+  id: ID! # account address
+  lastLiquidation: VaultEvent # for subscription support
+}
+
+type Vault @entity {
+  id: ID!
+  type: VaultType!
+  status: VaultStatus!
+  owner: VaultAccount! @index
+  collateralAsset: Asset! @index
+  debtAsset: Asset! @index
+  collateralAmountReturned: String
+  createdAtBlock: Int!
+  updatedAtBlock: Int! # updated or closed
+  events: [VaultEvent!]! @derivedFrom(field: "vault")
+}
+
+enum VaultEventType {
+  Created,
+  Closed,
+  CollateralDeposit,
+  DebtIncreased,
+  DebtPayment,
+  Liquidated,
+}
+
+type VaultEvent @entity {
+  id: ID!
+  type: VaultEventType!
+  vault: Vault! @index # relation to Vault
+  timestamp: Int!
+  block: Int!
+  amount: String
 }

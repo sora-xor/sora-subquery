@@ -1,3 +1,3 @@
-import { types } from '@sora-substrate/type-definitions';
+import { typesBundle } from '@sora-substrate/type-definitions';
 
-export default { types };
+export default { typesBundle };
