@@ -1297,24 +1297,24 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@sora-substrate/type-definitions@1.39.1":
-  version "1.39.1"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.39.1.tgz#d14525d15a938fd598a247f5010db75734f236bb"
-  integrity sha512-StTCrk+OIcGSOfKyibWd5xpPasc0rJy02gVzgSX8pYY+HtUE1F0q9+miuCODHbzUVdJPTmJDSluFdnjLuztEWw==
+"@sora-substrate/type-definitions@1.39.3":
+  version "1.39.3"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.39.3.tgz#113273eca890181158d402a0ca5ab6eb9db8becc"
+  integrity sha512-99H52Uec0GxZgZ/VYxqZlHvdx0SlyD7rfGaRI6b5gsXMin6oT6dCX2ckc9cj7MuWp3E0zUbtO6ytZc31ETrplQ==
   dependencies:
     "@open-web3/orml-type-definitions" "1.1.4"
 
-"@sora-substrate/types@1.39.1":
-  version "1.39.1"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.39.1.tgz#aa70294bb0581f7cd4b54f4fc97036d04d545d91"
-  integrity sha512-pY/HSRIjr3ipL591NACago9tHGDRAUEynUTkjoEgncLsZm5D/poLxT/X8QGgwcsYBqschyi/pF1IgN77XClkSg==
+"@sora-substrate/types@1.39.3":
+  version "1.39.3"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.39.3.tgz#d9fb6a97fe3c7a06cb75bbf15df839fa28537453"
+  integrity sha512-Yf6b94qjkt5y//b5Crtdqfd0M2/kcWyHbHvZBhS5aYRuqKNWM+ih8sv0KLhImZaTHfJWwy4Fs9Sa/beO4tsCwQ==
   dependencies:
     "@open-web3/api-mobx" "0.9.4-26"
     "@open-web3/orml-types" "1.1.4"
     "@polkadot/api" "9.14.2"
     "@polkadot/typegen" "9.14.2"
     "@polkadot/types" "9.14.2"
-    "@sora-substrate/type-definitions" "1.39.1"
+    "@sora-substrate/type-definitions" "1.39.3"
 
 "@subql/cli@5.1.0":
   version "5.1.0"
@@ -1372,10 +1372,10 @@
     semver "^7.5.2"
     update-notifier "5.1.0"
 
-"@subql/node-core@11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-11.0.0.tgz#1890f05a8a7f972c7b546e89f7b6761df9dea94f"
-  integrity sha512-ZEu6zceU7PWt/c8sjv327iy0UQIR8KIRVtehotHyUu+kkeT1Tn714LcGzYekXJV2gGGJFH81AjC5RJwyxihh9w==
+"@subql/node-core@12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-12.0.0.tgz#627a8a24de5ba5d8730ae5bc8bf545eaf10f3f9f"
+  integrity sha512-w61Q3w4iyQkqAZvU/R9uEMZxFSloBvUvoWzTXmX8WBf0pOoD672YTZUFsKiYK9bS3qskEEroZvDiz/hDkjZXtw==
   dependencies:
     "@apollo/client" "^3.8.8"
     "@nestjs/common" "^9.4.0"
@@ -1384,7 +1384,7 @@
     "@subql/common" "4.1.0"
     "@subql/testing" "2.2.1"
     "@subql/types" "3.9.0"
-    "@subql/utils" "2.12.1"
+    "@subql/utils" "2.13.0"
     "@willsoto/nestjs-prometheus" "^5.4.0"
     async-lock "^1.4.0"
     async-mutex "^0.4.0"
@@ -1403,10 +1403,10 @@
     vm2 "^3.9.19"
     yargs "^16.2.0"
 
-"@subql/node@4.8.1":
-  version "4.8.1"
-  resolved "https://registry.yarnpkg.com/@subql/node/-/node-4.8.1.tgz#26ec8c7ab2ffea303633ad4131f5aa954023f10d"
-  integrity sha512-h21i2tzqnQEKeBojGCPndbIMkJem+AqP0stpJB7HCQrhOX3dzRMVDSZC5L8Mkh7UJ9Q2c8MTqIr7ZIol3KCGCA==
+"@subql/node@4.9.0":
+  version "4.9.0"
+  resolved "https://registry.yarnpkg.com/@subql/node/-/node-4.9.0.tgz#dbc25a10184c9da89b3dd67119555d21f61f3149"
+  integrity sha512-J7QpEoMxyvW8mdLBKR3Xy4xYZvIHrDs6Fw7khTrnGg84f2rHedsu4M3WMn8lkSP7A68FvPA9dVyNP/WWiW4feg==
   dependencies:
     "@nestjs/common" "^9.4.0"
     "@nestjs/core" "^9.4.0"
@@ -1416,9 +1416,9 @@
     "@polkadot/api" "11.2.1"
     "@subql/common" "4.1.0"
     "@subql/common-substrate" "4.1.0"
-    "@subql/node-core" "11.0.0"
+    "@subql/node-core" "12.0.0"
     "@subql/types" "3.9.0"
-    "@subql/utils" "2.12.1"
+    "@subql/utils" "2.13.0"
     fetch-h2 "3.0.2"
     lodash "^4.17.21"
     reflect-metadata "^0.1.13"
@@ -1457,6 +1457,26 @@
   version "2.12.1"
   resolved "https://registry.yarnpkg.com/@subql/utils/-/utils-2.12.1.tgz#421c2096fbc15e6f9c0bd4a8194f52d2fbc6d7df"
   integrity sha512-YrzhRIyy7GyEIiUQddqqLQiwaVAL3T2NGQoPrKXedsb0950mSoPs6JyiXgb0naLkKXcVWu85tG3brpdwnQ+JXA==
+  dependencies:
+    "@polkadot/util" "^12.6.2"
+    "@polkadot/util-crypto" "^12.6.2"
+    "@subql/x-sequelize" "6.32.0-0.0.4"
+    ansi-styles "^6.1.0"
+    chalk "^4.1.2"
+    detect-port "^1.3.0"
+    flatted "^3.2.5"
+    graphql "^15.8.0"
+    graphql-tag "^2.12.6"
+    lodash "^4.17.21"
+    pino "^6.13.3"
+    rotating-file-stream "^3.0.2"
+    semver "^7.5.2"
+    tar "^6.2.1"
+
+"@subql/utils@2.13.0":
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/@subql/utils/-/utils-2.13.0.tgz#3cb076cb30450d20e8b1e014c74936989094d210"
+  integrity sha512-nF+3ECjKeGiruapb/tcPk/T/DqM63xoEZC1DQDkKQr7Aspk+yHA3YO6LTZkzje9Vs46oVdklh4bTk61GM5knYQ==
   dependencies:
     "@polkadot/util" "^12.6.2"
     "@polkadot/util-crypto" "^12.6.2"
