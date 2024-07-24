@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
 import { DAI, XOR } from './consts';
-import { getSnapshotIndex, getSnapshotTypes, getSnapshotTypeTimeDepht, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate, formatDateTimestamp, toFloat } from './index';
+import { getSnapshotIndex, getSnapshotTypes, getSnapshotTypeTimeDepth, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate, formatDateTimestamp, toFloat } from './index';
 import { getAssetSnapshotsStorageLog, getAssetStorageLog } from './logs';
 import { priceUpdatesStream } from "./stream";
 import { SubstrateBlock } from '@subql/types';
@@ -234,17 +234,20 @@ class AssetSnapshotsStorage {
     const entityIds = this.assetStorage.ids;
 
     for (const type of this.removeTypes) {
-      const depth = getSnapshotTypeTimeDepht(type);
+      const depth = getSnapshotTypeTimeDepth(type);
 
       if (!depth) continue;
 
       const diff = blockTimestamp - depth;
       const { index } = getSnapshotIndex(diff, type);
       const ids = entityIds.map((id) => AssetSnapshotsStorage.getId(id, type, index));
+      const snapshots = await AssetSnapshotsStorage.getSnapshotsByIds(ids);
 
-      await store.bulkRemove('AssetSnapshot', ids);
+      if (!snapshots.length) continue;
 
-      getAssetSnapshotsStorageLog(block).debug(`removed outdated snapshots`);
+      await store.bulkRemove('AssetSnapshot', snapshots.map((item) => item.id));
+
+      getAssetSnapshotsStorageLog(block).info(`removed ${snapshots.length} outdated snapshots: type: ${type}, index: ${index}`);
     }
   }
 
