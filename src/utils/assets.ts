@@ -241,13 +241,10 @@ class AssetSnapshotsStorage {
       const diff = blockTimestamp - depth;
       const { index } = getSnapshotIndex(diff, type);
       const ids = entityIds.map((id) => AssetSnapshotsStorage.getId(id, type, index));
-      const snapshots = await AssetSnapshotsStorage.getSnapshotsByIds(ids);
 
-      if (!snapshots.length) continue;
+      await store.bulkRemove('AssetSnapshot', ids);
 
-      await store.bulkRemove('AssetSnapshot', snapshots.map((item) => item.id));
-
-      getAssetSnapshotsStorageLog(block).info(`removed ${snapshots.length} outdated snapshots: type: ${type}, index: ${index}`);
+      getAssetSnapshotsStorageLog(block).info(`Outdated snapshots cleaning: type: ${type}, index: ${index}`);
     }
   }
 

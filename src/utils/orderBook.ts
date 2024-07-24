@@ -335,13 +335,10 @@ export class OrderBooksSnapshotsStorage {
       const diff = blockTimestamp - depth;
       const { index } = getSnapshotIndex(diff, type);
       const ids = entityIds.map((id) => OrderBooksSnapshotsStorage.getId(id, type, index));
-      const snapshots = await OrderBooksSnapshotsStorage.getSnapshotsByIds(ids);
 
-      if (!snapshots.length) continue;
+      await store.bulkRemove('OrderBooksSnapshot', ids);
 
-      await store.bulkRemove('OrderBooksSnapshot', snapshots.map((item) => item.id));
-
-      getOrderBooksSnapshotsStorageLog(block).info(`removed ${snapshots.length} outdated snapshots: type: ${type}, index: ${index}`);
+      getOrderBooksSnapshotsStorageLog(block).info(`Outdated snapshots cleaning: type: ${type}, index: ${index}`);
     }
   }
 
