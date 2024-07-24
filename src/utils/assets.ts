@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 
 import { Asset, SnapshotType, AssetSnapshot } from "../types";
 import { DAI, XOR } from './consts';
-import { getSnapshotIndex, getSnapshotTypes, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate, formatDateTimestamp, toFloat } from './index';
+import { getSnapshotIndex, getSnapshotTypes, getSnapshotTypeTimeDepht, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate, formatDateTimestamp, toFloat } from './index';
 import { getAssetSnapshotsStorageLog, getAssetStorageLog } from './logs';
 import { priceUpdatesStream } from "./stream";
 import { SubstrateBlock } from '@subql/types';
@@ -26,8 +26,6 @@ export const calcTvlUSD = (asset: Asset, reserves?: bigint): BigNumber => {
 
   return price.multipliedBy(amount);
 };
-
-const AssetSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
 
 export let assetPrecisions = new Map<string, number>();
 
@@ -74,6 +72,10 @@ class AssetStorage {
 
   constructor() {
     this.storage = new Map();
+  }
+
+  get ids(): string[] {
+    return [...this.storage.keys()];
   }
 
   async sync(block: SubstrateBlock): Promise<void> {
@@ -202,6 +204,9 @@ class AssetSnapshotsStorage {
   private storage!: Map<string, AssetSnapshot>;
   public assetStorage!: AssetStorage;
 
+  public readonly updateTypes = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
+  public readonly removeTypes = [SnapshotType.DEFAULT, SnapshotType.HOUR];
+
   constructor(assetStorage: AssetStorage) {
     this.storage = new Map();
     this.assetStorage = assetStorage;
@@ -221,6 +226,26 @@ class AssetSnapshotsStorage {
 
   async sync(block: SubstrateBlock): Promise<void> {
     await this.syncSnapshots(block);
+    await this.removeOutdatedSnapshots(block);
+  }
+
+  private async removeOutdatedSnapshots(block: SubstrateBlock): Promise<void> {
+    const blockTimestamp = formatDateTimestamp(block.timestamp);
+    const entityIds = this.assetStorage.ids;
+
+    for (const type of this.removeTypes) {
+      const depth = getSnapshotTypeTimeDepht(type);
+
+      if (!depth) continue;
+
+      const diff = blockTimestamp - depth;
+      const { index } = getSnapshotIndex(diff, type);
+      const ids = entityIds.map((id) => AssetSnapshotsStorage.getId(id, type, index));
+
+      await store.bulkRemove('AssetSnapshot', ids);
+
+      getAssetSnapshotsStorageLog(block).debug(`removed outdated snapshots`);
+    }
   }
 
   private async syncSnapshots(block: SubstrateBlock): Promise<void> {
@@ -285,7 +310,7 @@ class AssetSnapshotsStorage {
 
   async updatePrice(block: SubstrateBlock, assetId: string, price: string): Promise<void> {
     const bnPrice = new BigNumber(price);
-    const snapshotTypes = getSnapshotTypes(block, AssetSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, assetId, type);
@@ -321,7 +346,7 @@ class AssetSnapshotsStorage {
     const volume = new BigNumber(amount);
     const volumeUSD = volume.multipliedBy(assetPrice);
 
-    const snapshotTypes = getSnapshotTypes(block, AssetSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, assetId, type);
@@ -340,7 +365,7 @@ class AssetSnapshotsStorage {
   }
 
   async updateMinted(block: SubstrateBlock, assetId: string, amount: bigint): Promise<void> {
-    const snapshotTypes = getSnapshotTypes(block, AssetSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
 			getAssetSnapshotsStorageLog(block).debug({ type }, 'Type')
@@ -361,7 +386,7 @@ class AssetSnapshotsStorage {
   }
 
   async updateBurned(block: SubstrateBlock, assetId: string, amount: bigint): Promise<void> {
-    const snapshotTypes = getSnapshotTypes(block, AssetSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, assetId, type);

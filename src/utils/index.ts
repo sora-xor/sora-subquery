@@ -44,9 +44,13 @@ export const shouldUpdate = (block: SubstrateBlock, diff = 3_600) => {
   return currentTimestamp - blockTimestamp < diff;
 };
 
+export const getSnapshotTypeTimeDepht = (type: SnapshotType): number => {
+  return SnapshotTimeDepthMap[type] ?? 0;
+};
+
 export const getSnapshotTypes = (block: SubstrateBlock, types: SnapshotType[]) => {
   return types.filter((type) => {
-    const diff = SnapshotTimeDepthMap[type];
+    const diff = getSnapshotTypeTimeDepht(type);
 
     return !diff || shouldUpdate(block, diff);
   });
