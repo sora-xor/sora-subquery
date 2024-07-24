@@ -336,7 +336,7 @@ export class OrderBooksSnapshotsStorage {
       const { index } = getSnapshotIndex(diff, type);
       const ids = entityIds.map((id) => OrderBooksSnapshotsStorage.getId(id, type, index));
 
-      await store.bulkRemove('OrderBooksSnapshot', ids);
+      await store.bulkRemove('OrderBookSnapshot', ids);
 
       getOrderBooksSnapshotsStorageLog(block).info(`Outdated snapshots cleaning: type: ${type}, index: ${index}`);
     }
