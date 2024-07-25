@@ -8,13 +8,13 @@ def jobParams  = [
     booleanParam(defaultValue: false, name: 'fullClean'),
     booleanParam(defaultValue: false, name: 'createProject'),
     booleanParam(defaultValue: false, name: 'stagingSlot'),
-    booleanParam(defaultValue: false, name: 'prodSlot')
+    booleanParam(defaultValue: true, name: 'prodSlot')
 ]
 
 def pipeline = new org.subqd.AppPipeline(
     steps: this,
     validate: true,
     jobParams: jobParams,
-    upstreamJobList: '../sora2-' + getEnvFromJobName()
+    upstreamJobList: "../sora2-" + getEnvFromJobName(), "../../subquery/" + getEnvFromJobName()
 )
 pipeline.runPipeline()
