@@ -4,9 +4,8 @@ import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookD
 
 import { SubstrateBlock } from '@subql/types';
 import { getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
-import { formatDateTimestamp, getSnapshotIndex, getSnapshotTypes, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
+import { formatDateTimestamp, getSnapshotIndex, getSnapshotTypes, getSnapshotTypeTimeDepth, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
 import { assetStorage, assetSnapshotsStorage, calcTvlUSD } from './assets';
-import { XOR } from "./consts";
 import { networkSnapshotsStorage } from "./network";
 import { predefinedAssets } from './consts';
 
@@ -57,8 +56,6 @@ const getAssetIdFromTech = (techAsset: any) => {
   }
 };
 
-const OrderBooksSnapshots = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
-
 export class OrderBooksStorage {
   private storage!: Map<string, OrderBook>;
   public accountIds!: Map<string, string>;
@@ -68,6 +65,10 @@ export class OrderBooksStorage {
   constructor() {
     this.storage = new Map();
     this.accountIds = new Map();
+  }
+
+  get ids(): string[] {
+    return [...this.storage.keys()];
   }
 
   async updateAccountIds(block: SubstrateBlock) {
@@ -278,6 +279,9 @@ export class OrderBooksSnapshotsStorage {
   private storage!: Map<string, OrderBookSnapshot>;
   public orderBooksStorage!: OrderBooksStorage;
 
+  public readonly updateTypes = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
+  public readonly removeTypes = [SnapshotType.DEFAULT, SnapshotType.HOUR];
+
   constructor(orderBooksStorage: OrderBooksStorage) {
     this.storage = new Map();
     this.orderBooksStorage = orderBooksStorage;
@@ -297,6 +301,7 @@ export class OrderBooksSnapshotsStorage {
 
   async sync(block: SubstrateBlock): Promise<void> {
     await this.syncSnapshots(block);
+    await this.removeOutdatedSnapshots(block);
   }
 
   private async syncSnapshots(block: SubstrateBlock): Promise<void> {
@@ -316,6 +321,25 @@ export class OrderBooksSnapshotsStorage {
     }
 
     getOrderBooksSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots in storage after sync`);
+  }
+
+  private async removeOutdatedSnapshots(block: SubstrateBlock): Promise<void> {
+    const blockTimestamp = formatDateTimestamp(block.timestamp);
+    const entityIds = this.orderBooksStorage.ids;
+
+    for (const type of this.removeTypes) {
+      const depth = getSnapshotTypeTimeDepth(type);
+
+      if (!depth) continue;
+
+      const diff = blockTimestamp - depth;
+      const { index } = getSnapshotIndex(diff, type);
+      const ids = entityIds.map((id) => OrderBooksSnapshotsStorage.getId(id, type, index));
+
+      await store.bulkRemove('OrderBookSnapshot', ids);
+
+      getOrderBooksSnapshotsStorageLog(block).info(`Outdated snapshots cleaning: type: ${type}, index: ${index}`);
+    }
   }
 
   async getSnapshot(
@@ -379,7 +403,7 @@ export class OrderBooksSnapshotsStorage {
     const quoteAssetPriceUSD = quoteAsset.priceUSD ?? '0';
     const quoteVolumeUSD = new BigNumber(quoteAssetPriceUSD).multipliedBy(quoteAmount);
 
-    const snapshotTypes = getSnapshotTypes(block, OrderBooksSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
@@ -423,7 +447,7 @@ export class OrderBooksSnapshotsStorage {
     quoteAssetId: string,
     liquidityUSD: BigNumber,
   ): Promise<void> {
-    const snapshotTypes = getSnapshotTypes(block, OrderBooksSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
