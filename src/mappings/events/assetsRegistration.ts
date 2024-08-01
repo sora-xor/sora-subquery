@@ -21,7 +21,7 @@ export async function handleAssetRegistration(event: SubstrateEvent): Promise<vo
 
   assetRegistrationStream.update(assetId, JSON.stringify(assetData));
 
-  await assetStorage.getAsset(event.block, assetId);
+  await assetStorage.getEntity(event.block, assetId);
 }
 
 export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promise<void> {
@@ -38,5 +38,5 @@ export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promis
 
   getEventHandlerLog(event).debug({ assetId, referenceSymbol }, 'Synthetic asset enabled')
 
-  await assetStorage.getAsset(event.block, assetId);
+  await assetStorage.getEntity(event.block, assetId);
 }

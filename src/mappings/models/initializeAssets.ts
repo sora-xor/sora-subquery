@@ -160,7 +160,7 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         // We don't use Promise.all here because we need consistent order of requests in the log
         const created = [];
         for (const entity of entities) {
-            const asset = await assetStorage.getAsset(block, entity.id);
+            const asset = await assetStorage.getEntity(block, entity.id);
             created.push(asset);
         }
         // update data in memory storage

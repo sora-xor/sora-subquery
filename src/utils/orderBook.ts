@@ -3,10 +3,11 @@ import BigNumber from "bignumber.js";
 import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookDeal } from "../types";
 
 import { SubstrateBlock } from '@subql/types';
-import { getOrderBooksStorageLog, getOrderBooksSnapshotsStorageLog } from './logs';
-import { formatDateTimestamp, getSnapshotIndex, getSnapshotTypes, getSnapshotTypeTimeDepth, prevSnapshotsIndexesRow, last, calcPriceChange, shouldUpdate } from './index';
+import { getUtilsLog } from './logs';
+import { formatDateTimestamp, getSnapshotIndex, getSnapshotTypes, prevSnapshotsIndexesRow, last, calcPriceChange } from './index';
 import { assetStorage, assetSnapshotsStorage, calcTvlUSD } from './assets';
 import { networkSnapshotsStorage } from "./network";
+import { EntityStorage, EntitySnapshotsStorage } from './storage';
 import { predefinedAssets } from './consts';
 
 const calcVolume = (snapshots: OrderBookSnapshot[]): BigNumber => {
@@ -21,26 +22,26 @@ const calcVolume = (snapshots: OrderBookSnapshot[]): BigNumber => {
 
 export const getAllOrderBooks = async (block: SubstrateBlock) => {
   try {
-    getOrderBooksStorageLog(block).debug('Order Books entities request...');
+    getUtilsLog(block).debug('Order Books entities request...');
     const entities = await api.query.orderBook.orderBooks.entries();
-    getOrderBooksStorageLog(block).debug('Order Books entities request completed');
+    getUtilsLog(block).debug('Order Books entities request completed');
     return entities;
   } catch (e) {
-    getOrderBooksStorageLog(block).error('Error getting Order Books entities');
-		getOrderBooksStorageLog(block).error(e);
+    getUtilsLog(block).error('Error getting Order Books entities');
+		getUtilsLog(block).error(e);
     return null;
   }
 };
 
 export const getTechnicalAccounts = async (block: SubstrateBlock) => {
   try {
-    getOrderBooksStorageLog(block).debug('Order Books account ids request...');
+    getUtilsLog(block).debug('Order Books account ids request...');
     const entities = await api.query.technical.techAccounts.entries();
-    getOrderBooksStorageLog(block).debug('Order Books account ids request completed');
+    getUtilsLog(block).debug('Order Books account ids request completed');
     return entities;
   } catch (e) {
-    getOrderBooksStorageLog(block).error('Error getting Order Books account ids');
-    getOrderBooksStorageLog(block).error(e);
+    getUtilsLog(block).error('Error getting Order Books account ids');
+    getUtilsLog(block).error(e);
     return null;
   }
 }
@@ -56,19 +57,20 @@ const getAssetIdFromTech = (techAsset: any) => {
   }
 };
 
-export class OrderBooksStorage {
-  private storage!: Map<string, OrderBook>;
+export class OrderBooksStorage extends EntityStorage<OrderBook> {
   public accountIds!: Map<string, string>;
 
   static readonly LAST_DEALS_LENGTH = 20;
 
   constructor() {
-    this.storage = new Map();
+    super('OrderBook');
     this.accountIds = new Map();
   }
 
-  get ids(): string[] {
-    return [...this.storage.keys()];
+  protected override async save(block: SubstrateBlock, orderBook: OrderBook, force = false): Promise<void> {
+    orderBook.updatedAtBlock = block.block.header.number.toNumber();
+
+    super.save(block, orderBook, force);
   }
 
   async updateAccountIds(block: SubstrateBlock) {
@@ -87,7 +89,7 @@ export class OrderBooksStorage {
           const { baseAssetId, targetAssetId } = techPurpose.orderBookLiquidityKeeper;
           const quoteAsset = getAssetIdFromTech(baseAssetId);
           const baseAsset = getAssetIdFromTech(targetAssetId);
-          const orderBookId = OrderBooksStorage.getId(dexId, baseAsset, quoteAsset);
+          const orderBookId = this.getId(dexId, baseAsset, quoteAsset);
 
           this.accountIds.set(accountId, orderBookId);
         }
@@ -114,16 +116,7 @@ export class OrderBooksStorage {
     return accountId;
   }
 
-  async sync(block: SubstrateBlock): Promise<void> {
-    getOrderBooksStorageLog(block).debug(`Sync ${this.storage.size} order books`);
-    await store.bulkUpdate('OrderBook', [...this.storage.values()]);
-  }
-
-  static getId(dexId: number, baseAssetId: string, quoteAssetId: string): string {
-    return [dexId, baseAssetId, quoteAssetId].join('-');
-  }
-
-  static parseId(id: string) {
+  public parseId(id: string) {
     const [dexId, baseAssetId, quoteAssetId] = id.split('-');
 
     return {
@@ -133,52 +126,42 @@ export class OrderBooksStorage {
     };
   }
 
-  static getOrderId(orderBookId: string, orderId: string | number): string {
+  public getOrderId(orderBookId: string, orderId: string | number): string {
     return [orderBookId, orderId].join('_');
   }
 
-  private async save(block: SubstrateBlock, orderBook: OrderBook, force = false): Promise<void> {
-    orderBook.updatedAtBlock = block.block.header.number.toNumber();
+  public override createEntity(block: SubstrateBlock, id: string): OrderBook {
+    const { dexId, baseAssetId, quoteAssetId } = this.parseId(id);
 
-    if (force || shouldUpdate(block, 60)) {
-      await orderBook.save();
-
-      getOrderBooksStorageLog(block).debug({ id: orderBook.id }, 'Order Book saved');
-    }
+    return new OrderBook(
+      id,
+      dexId,
+      baseAssetId,
+      quoteAssetId,
+      BigInt(0),
+      BigInt(0),
+      OrderBookStatus.Trade,
+      block.block.header.number.toNumber()
+    );
   }
 
-  async getOrderBookById(block: SubstrateBlock, id: string): Promise<OrderBook> {
-    if (this.storage.has(id)) {
-      return this.storage.get(id);
-    }
+  override async getEntity(block: SubstrateBlock, id: string): Promise<OrderBook> {
+    await this.getAccountId(block, id);
 
-    let orderBook = await OrderBook.get(id);
-
-    if (!orderBook) {
-      await this.getAccountId(block, id);
-      const { dexId, baseAssetId, quoteAssetId } = OrderBooksStorage.parseId(id);
-
-      orderBook = new OrderBook(id, dexId, baseAssetId, quoteAssetId, BigInt(0), BigInt(0), OrderBookStatus.Trade, block.block.header.number.toNumber());
-
-      await this.save(block, orderBook, true);
-    }
-
-    this.storage.set(orderBook.id, orderBook);
-
-    return orderBook;
+    return await super.getEntity(block, id);
   }
 
   async getOrderBook(block: SubstrateBlock, dexId: number, baseAssetId: string, quoteAssetId: string): Promise<OrderBook> {
-    const id = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
+    const id = this.getId(dexId, baseAssetId, quoteAssetId);
 
-    return await this.getOrderBookById(block, id);
+    return await this.getEntity(block, id);
   }
 
   async getOrderBookByAccountId(block: SubstrateBlock, accountId: string) {
     const orderBookId = this.accountIds.get(accountId);
 
     if (orderBookId) {
-      return await this.getOrderBookById(block, orderBookId);
+      return await this.getEntity(block, orderBookId);
     }
 
     return null;
@@ -206,7 +189,7 @@ export class OrderBooksStorage {
 
     await this.save(block, orderBook);
 
-    getOrderBooksStorageLog(block, true).debug({ dexId, baseAssetId, quoteAssetId, price }, 'OrderBook price updated');
+    this.log(block, true).debug({ dexId, baseAssetId, quoteAssetId, price }, 'OrderBook price updated');
   }
 
   private async calcStats(block: SubstrateBlock, orderBook: OrderBook, type: SnapshotType, snapshotsCount: number) {
@@ -215,7 +198,7 @@ export class OrderBooksStorage {
     const { index } = getSnapshotIndex(blockTimestamp, type);
     const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
 
-    const ids = indexes.map((idx) => OrderBooksSnapshotsStorage.getId(id, type, idx));
+    const ids = indexes.map((idx) => this.getId(id, type, idx));
     const snapshots = await OrderBooksSnapshotsStorage.getSnapshotsByIds(ids);
 
     const currentPrice = new BigNumber(price ?? 0);
@@ -231,14 +214,14 @@ export class OrderBooksStorage {
   }
 
   async updateDailyStats(block: SubstrateBlock): Promise<void> {
-    getOrderBooksStorageLog(block).debug(`Order Books Daily stats updating...`);
+    this.log(block).debug(`Order Books Daily stats updating...`);
 
     for (const orderBook of this.storage.values()) {
       const { priceChange, volumeUSD } = await this.calcStats(block, orderBook, SnapshotType.HOUR, 24);
 
       orderBook.priceChangeDay = priceChange;
       orderBook.volumeDayUSD = volumeUSD;
-      getOrderBooksStorageLog(block, true).debug(
+      this.log(block, true).debug(
         { orderBookId: orderBook.id, priceChange, volumeUSD },
         'Order Book daily stats updated',
       )
@@ -257,8 +240,8 @@ export class OrderBooksStorage {
       lockedAssets.set(baseAssetId, (a || BigInt(0)) + baseAssetReserves);
       lockedAssets.set(quoteAssetId, (b || BigInt(0)) + quoteAssetReserves);
 
-      const baseAsset = await assetStorage.getAsset(block, baseAssetId);
-      const quoteAsset = await assetStorage.getAsset(block, quoteAssetId);
+      const baseAsset = await assetStorage.getEntity(block, baseAssetId);
+      const quoteAsset = await assetStorage.getEntity(block, quoteAssetId);
       const baseAssetLiquidityUSD = calcTvlUSD(baseAsset, baseAssetReserves);
       const quoteAssetLiquidityUSD = calcTvlUSD(quoteAsset, quoteAssetReserves);
       const liquidityUSD = baseAssetLiquidityUSD.plus(quoteAssetLiquidityUSD);
@@ -275,108 +258,20 @@ export class OrderBooksStorage {
   }
 }
 
-export class OrderBooksSnapshotsStorage {
-  private storage!: Map<string, OrderBookSnapshot>;
-  public orderBooksStorage!: OrderBooksStorage;
-
-  public readonly updateTypes = [SnapshotType.DEFAULT, SnapshotType.HOUR, SnapshotType.DAY];
-  public readonly removeTypes = [SnapshotType.DEFAULT, SnapshotType.HOUR];
-
+export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook, OrderBookSnapshot, OrderBooksStorage> {
   constructor(orderBooksStorage: OrderBooksStorage) {
-    this.storage = new Map();
-    this.orderBooksStorage = orderBooksStorage;
+    super('OrderBookSnapshot', orderBooksStorage)
   }
 
-  public static getId(orderBookId: string, type: SnapshotType, index: number) {
-    return [orderBookId, type, index].join('-');
-  }
+  createEntity(block: SubstrateBlock, id: string, timestamp: number, type: SnapshotType, orderBook: OrderBook): OrderBookSnapshot {
+    const price = {
+      open: orderBook.price,
+      close: orderBook.price,
+      high: orderBook.price,
+      low: orderBook.price,
+    };
 
-  private async save(block: SubstrateBlock, snapshot: OrderBookSnapshot, force = false): Promise<void> {
-    if (force || shouldUpdate(block, 60)) {
-      await snapshot.save();
-
-      getOrderBooksSnapshotsStorageLog(block).debug({ id: snapshot.id }, 'Order book snapshot saved');
-    }
-  }
-
-  async sync(block: SubstrateBlock): Promise<void> {
-    await this.syncSnapshots(block);
-    await this.removeOutdatedSnapshots(block);
-  }
-
-  private async syncSnapshots(block: SubstrateBlock): Promise<void> {
-    getOrderBooksSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots sync`);
-
-    await store.bulkUpdate('OrderBookSnapshot', [...this.storage.values()]);
-
-    const blockTimestamp = formatDateTimestamp(block.timestamp);
-
-    for (const snapshot of this.storage.values()) {
-      const { type, timestamp } = snapshot;
-      const { timestamp: currentTimestamp } = getSnapshotIndex(blockTimestamp, type);
-
-      if (currentTimestamp > timestamp) {
-        this.storage.delete(snapshot.id);
-      }
-    }
-
-    getOrderBooksSnapshotsStorageLog(block).debug(`${this.storage.size} snapshots in storage after sync`);
-  }
-
-  private async removeOutdatedSnapshots(block: SubstrateBlock): Promise<void> {
-    const blockTimestamp = formatDateTimestamp(block.timestamp);
-    const entityIds = this.orderBooksStorage.ids;
-
-    for (const type of this.removeTypes) {
-      const depth = getSnapshotTypeTimeDepth(type);
-
-      if (!depth) continue;
-
-      const diff = blockTimestamp - depth;
-      const { index } = getSnapshotIndex(diff, type);
-      const ids = entityIds.map((id) => OrderBooksSnapshotsStorage.getId(id, type, index));
-
-      await store.bulkRemove('OrderBookSnapshot', ids);
-
-      getOrderBooksSnapshotsStorageLog(block).info(`Outdated snapshots cleaning: type: ${type}, index: ${index}`);
-    }
-  }
-
-  async getSnapshot(
-    block: SubstrateBlock,
-    dexId: number,
-    baseAssetId: string,
-    quoteAssetId: string,
-    type: SnapshotType,
-  ): Promise<OrderBookSnapshot> {
-    const blockTimestamp = formatDateTimestamp(block.timestamp);
-    const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
-    const orderBookId = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
-    const id = OrderBooksSnapshotsStorage.getId(orderBookId, type, index);
-
-    if (this.storage.has(id)) {
-      return this.storage.get(id);
-    }
-
-    let snapshot = await OrderBookSnapshot.get(id);
-
-    if (!snapshot) {
-      const orderBook = await this.orderBooksStorage.getOrderBook(block, dexId, baseAssetId, quoteAssetId);
-      const price = {
-        open: orderBook.price,
-        close: orderBook.price,
-        high: orderBook.price,
-        low: orderBook.price,
-      };
-
-      snapshot = new OrderBookSnapshot(id, orderBookId, timestamp, type, price, '0', '0', '0', '0');
-
-      getOrderBooksSnapshotsStorageLog(block).debug({ id }, 'Order Book snapshot created');
-    }
-
-    this.storage.set(snapshot.id, snapshot);
-
-    return snapshot;
+    return new OrderBookSnapshot(id, orderBook.id, timestamp, type, price, '0', '0', '0', '0');
   }
 
   static async getSnapshotsByIds(ids: string[]): Promise<OrderBookSnapshot[]> {
@@ -395,18 +290,20 @@ export class OrderBooksSnapshotsStorage {
     amount: string,
     isBuy: boolean,
   ): Promise<void> {
+    const orderBookId = this.getId(dexId, baseAssetId, quoteAssetId);
+
     const quotePrice = new BigNumber(price);
     const baseAmount = new BigNumber(amount);
     const quoteAmount = baseAmount.multipliedBy(quotePrice);
 
-    const quoteAsset = await assetStorage.getAsset(block, quoteAssetId);
+    const quoteAsset = await assetStorage.getEntity(block, quoteAssetId);
     const quoteAssetPriceUSD = quoteAsset.priceUSD ?? '0';
     const quoteVolumeUSD = new BigNumber(quoteAssetPriceUSD).multipliedBy(quoteAmount);
 
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
-      const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
+      const snapshot = await this.getSnapshot(block, orderBookId, type);
       const baseAssetVolume = new BigNumber(snapshot.baseAssetVolume).plus(baseAmount).toString();
       const quoteAssetVolume = new BigNumber(snapshot.quoteAssetVolume).plus(quoteAmount).toString();
       const volumeUSD = new BigNumber(snapshot.volumeUSD).plus(quoteVolumeUSD).toString();
@@ -425,7 +322,7 @@ export class OrderBooksSnapshotsStorage {
       snapshot.price.high = BigNumber.max(new BigNumber(snapshot.price.high), quotePrice).toString();
       snapshot.price.low = BigNumber.min(new BigNumber(snapshot.price.low), quotePrice).toString();
 
-      getOrderBooksSnapshotsStorageLog(block, true).debug(
+      this.log(block, true).debug(
         { dexId, baseAssetId, quoteAssetId, price, amount, isBuy: isBuy.toString(), baseAssetVolume, quoteAssetVolume, volumeUSD, quoteAssetPriceUSD },
         'Order Book snapshot price and volume updated',
       )
@@ -433,7 +330,7 @@ export class OrderBooksSnapshotsStorage {
       await this.save(block, snapshot);
     }
 
-    await this.orderBooksStorage.updateDeal(block, dexId, baseAssetId, quoteAssetId, orderId, price, amount, isBuy);
+    await this.entityStorage.updateDeal(block, dexId, baseAssetId, quoteAssetId, orderId, price, amount, isBuy);
 
     await assetSnapshotsStorage.updateVolume(block, baseAssetId, baseAmount.toString());
     await assetSnapshotsStorage.updateVolume(block, quoteAssetId, quoteAmount.toString());
@@ -447,10 +344,11 @@ export class OrderBooksSnapshotsStorage {
     quoteAssetId: string,
     liquidityUSD: BigNumber,
   ): Promise<void> {
+    const orderBookId = this.getId(dexId, baseAssetId, quoteAssetId);
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
-      const snapshot = await this.getSnapshot(block, dexId, baseAssetId, quoteAssetId, type);
+      const snapshot = await this.getSnapshot(block, orderBookId, type);
 
       snapshot.liquidityUSD = liquidityUSD.toFixed(2);
     }

@@ -6,7 +6,7 @@ import { OrderBookOrder, OrderType, OrderStatus } from '../../types'
 import { formatDateTimestamp, getEventId } from '../../utils';
 import { getAccountEntity } from '../../utils/account';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { OrderBooksStorage, orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
+import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 const getBookData = (orderBookCodec: any) => {
@@ -19,8 +19,8 @@ const getBookData = (orderBookCodec: any) => {
 
 const getOrderData = (orderBookCodec: any, orderId: string | number) => {
   const { dexId, baseAssetId, quoteAssetId } = getBookData(orderBookCodec);
-  const orderBookId = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
-  const id = OrderBooksStorage.getOrderId(orderBookId, orderId);
+  const orderBookId = orderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
+  const id = orderBooksStorage.getOrderId(orderBookId, orderId);
 
   return { dexId, baseAssetId, quoteAssetId, orderBookId, orderId, id };
 }

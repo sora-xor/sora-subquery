@@ -18,6 +18,12 @@ enum HistoryElementType {
 	EVENT
 }
 
+interface ISnapshot {
+  id: ID!
+  timestamp: Int!
+  type: SnapshotType!
+}
+
 type NetworkStats @entity {
   id: ID!
   totalFees: BigInt!
@@ -27,7 +33,7 @@ type NetworkStats @entity {
   totalBridgeOutgoingTransactions: Int!
 }
 
-type NetworkSnapshot @entity {
+type NetworkSnapshot implements ISnapshot @entity {
   id: ID!
   type: SnapshotType!
   timestamp: Int!
@@ -73,7 +79,7 @@ type AssetVolume @jsonField {
   amountUSD: String!
 }
 
-type AssetSnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
+type AssetSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
   id: ID!
   asset: Asset! @index #relation to Asset
   timestamp: Int!
@@ -95,6 +101,24 @@ type PoolXYK @entity {
   multiplier: Int!
   priceUSD: String
   strategicBonusApy: String
+}
+
+type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool", "type"]]) {
+  id: ID!
+  pool: PoolXYK! @index #relation to PoolXYK
+  timestamp: Int!
+  type: SnapshotType!
+  poolTokenSupply: BigInt!
+  poolTokenPriceUSD: String!
+  priceUSD: AssetPrice! # price of target asset
+  baseAssetReserves: BigInt! # (base + chameleon) reserves
+  targetAssetReserves: BigInt! # target reserves
+  chameleonAssetReserves: BigInt # chameleon reserves only
+  baseAssetVolume: String!
+  targetAssetVolume: String!
+  chameleonAssetVolume: String
+  volumeUSD: String!
+  liquidityUSD: String!
 }
 
 type Account @entity {
