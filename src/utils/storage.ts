@@ -23,20 +23,46 @@ export class EntityStorage<Entity extends BaseEntity> {
     return [...this.storage.keys()];
   }
 
+  get values(): Entity[] {
+    return [...this.storage.values()];
+  }
+
   public getId(...args: any[]): string {
     return args.join('-');
   }
 
-  public async getEntity(block: SubstrateBlock, id: string): Promise<Entity> {
+  protected async load(id: string): Promise<Entity> {
+    return await store.get(this.entityName, id) as Entity;
+  }
+
+  protected async delete(...ids: string[]): Promise<void> {
+    await store.bulkRemove(this.entityName, ids);
+  }
+
+  protected async save(block: SubstrateBlock, entity: Entity, force = false): Promise<void> {
+    if (force || shouldUpdate(block, 60)) {
+      await entity.save();
+
+      this.log(block).debug({ id: entity.id }, `${this.entityName} saved`);
+    }
+  }
+
+  public async sync(block: SubstrateBlock): Promise<void> {
+    this.log(block).debug(`Sync ${this.storage.size} entities`);
+
+    await store.bulkUpdate(this.entityName, [...this.storage.values()]);
+  }
+
+  public async getEntity(block: SubstrateBlock, id: string, ...args: any[]): Promise<Entity> {
     if (this.storage.has(id)) {
       this.log(block, true).debug({ id }, `${this.entityName} found in storage`);
       return this.storage.get(id);
     }
 
-    let entity = await store.get(this.entityName, id) as Entity;
+    let entity = await this.load(id);
 
     if (!entity) {
-      entity = this.createEntity(block, id);
+      entity = this.createEntity(block, id, ...args);
 
       await this.save(block, entity, true);
       this.log(block).debug({ id }, `${this.entityName} created and saved`);
@@ -53,19 +79,6 @@ export class EntityStorage<Entity extends BaseEntity> {
 
   protected log(ctx: BlockContext, onlyWithTestLogMode = false) {
     return getStorageLog(this.entityName)(ctx, onlyWithTestLogMode);
-  }
-
-  public async sync(block: SubstrateBlock): Promise<void> {
-    this.log(block).debug(`Sync ${this.storage.size} entities`);
-    await store.bulkUpdate(this.entityName, [...this.storage.values()]);
-  }
-
-  protected async save(block: SubstrateBlock, entity: Entity, force = false): Promise<void> {
-    if (force || shouldUpdate(block, 60)) {
-      await entity.save();
-
-      this.log(block).debug({ id: entity.id }, `${this.entityName} saved`);
-    }
   }
 }
 
@@ -84,6 +97,12 @@ export class EntitySnapshotsStorage<
     this.entityStorage = entityStorage;
   }
 
+  protected async getSnapshotsByIds(ids: string[]): Promise<SnapshotEntity[]> {
+    const snapshots = await Promise.all(ids.map(id => this.load(id)));
+
+    return snapshots.filter((item) => !!item);
+  };
+
   async getSnapshot(block: SubstrateBlock, entityId: string, type: SnapshotType): Promise<SnapshotEntity> {
     const blockTimestamp = formatDateTimestamp(block.timestamp);
     const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
@@ -94,7 +113,7 @@ export class EntitySnapshotsStorage<
       return this.storage.get(id);
     }
 
-    let snapshot = await store.get(this.entityName, id) as SnapshotEntity;
+    let snapshot = await this.load(id);
 
     if (!snapshot) {
       const entity = await this.entityStorage.getEntity(block, entityId);
@@ -115,9 +134,7 @@ export class EntitySnapshotsStorage<
   }
 
   protected async syncSnapshots(block: SubstrateBlock): Promise<void> {
-    this.log(block).debug(`${this.storage.size} snapshots sync`);
-
-    await store.bulkUpdate(this.entityName, [...this.storage.values()]);
+    await this.sync(block);
 
     const blockTimestamp = formatDateTimestamp(block.timestamp);
 

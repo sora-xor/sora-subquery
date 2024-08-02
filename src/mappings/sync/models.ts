@@ -31,8 +31,8 @@ export async function updateDailyStats(block: SubstrateBlock): Promise<void> {
 
   getSyncModelsLog(block).debug('Update daily stats');
 
-  await assetStorage.updateDailyStats(block);
-  await orderBooksStorage.updateDailyStats(block);
+  await assetSnapshotsStorage.updateDailyStats(block);
+  await orderBooksSnapshotsStorage.updateDailyStats(block);
 }
 
 export async function updateAssetsWeeklyStats(block: SubstrateBlock): Promise<void> {
@@ -40,5 +40,5 @@ export async function updateAssetsWeeklyStats(block: SubstrateBlock): Promise<vo
 
   getSyncModelsLog(block).debug('Update assets weekly stats');
 
-  await assetStorage.updateWeeklyStats(block);
+  await assetSnapshotsStorage.updateWeeklyStats(block);
 }

@@ -1,7 +1,7 @@
 import { SubstrateEvent } from "@subql/types";
 
 import { getTransferEventData } from '../../utils/events';
-import { poolAccounts, poolsStorage, PoolsPrices, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
+import { poolAccounts, poolsSnapshotsStorage } from '../../utils/pools';
 import { orderBooksStorage } from "../../utils/orderBook";
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 import { initializedAtBlock } from '../models/initializePools'
@@ -17,41 +17,11 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
 
   // withdraw token from pool
   if (poolAccounts.has(from)) {
-    const pool = await poolsStorage.getPoolById(event.block, from);
-    const isChameleonPool = getChameleonPool(pool);
-    const chameleonAssetId = isChameleonPool ? getChameleonPoolBaseAssetId(pool.baseAssetId) : null;
-
-    if (chameleonAssetId === assetId) {
-      pool.chameleonAssetReserves = (pool.chameleonAssetReserves ?? BigInt(0)) - BigInt(amount);
-    }
-
-    if (pool.baseAssetId === assetId || chameleonAssetId === assetId) {
-      pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount);
-    } else if (pool.targetAssetId === assetId) {
-      pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount);
-    }
-
-    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after withdrawal')
-    PoolsPrices.set(true);
+    await poolsSnapshotsStorage.processWithdraw(event.block, from, assetId, amount);
   }
   // deposit token to pool
   if (poolAccounts.has(to)) {
-    const pool = await poolsStorage.getPoolById(event.block, to);
-    const isChameleonPool = getChameleonPool(pool);
-    const chameleonAssetId = isChameleonPool ? getChameleonPoolBaseAssetId(pool.baseAssetId) : null;
-
-    if (chameleonAssetId === assetId) {
-      pool.chameleonAssetReserves = (pool.chameleonAssetReserves ?? BigInt(0)) + BigInt(amount);
-    }
-
-    if (pool.baseAssetId === assetId || chameleonAssetId === assetId) {
-      pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount);
-    } else if (pool.targetAssetId === assetId) {
-      pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount);
-    }
-
-    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after deposit')
-    PoolsPrices.set(true);
+    await poolsSnapshotsStorage.processDeposit(event.block, to, assetId, amount);
   }
 
   // withdraw token from order book

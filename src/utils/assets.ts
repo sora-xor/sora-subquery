@@ -110,62 +110,6 @@ class AssetStorage extends EntityStorage<Asset> {
 
     return asset;
   }
-
-  private async calcStats(block: SubstrateBlock, asset: Asset, type: SnapshotType, snapshotsCount: number) {
-    const { id, priceUSD } = asset;
-    const blockTimestamp = formatDateTimestamp(block.timestamp);
-    const { index } = getSnapshotIndex(blockTimestamp, type);
-    const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
-
-    const ids = indexes.map((idx) => this.getId(id, type, idx));
-    const snapshots = await AssetSnapshotsStorage.getSnapshotsByIds(ids);
-
-    const currentPriceUSD = new BigNumber(priceUSD);
-    const startPriceUSD = new BigNumber(last(snapshots)?.priceUSD?.open ?? '0');
-    const tvlPools = calcTvlUSD(asset, asset.liquidity);
-    const tvlOrderBooks = calcTvlUSD(asset, asset.liquidityBooks);
-    const tvl = tvlPools.plus(tvlOrderBooks);
-
-    const priceChange = calcPriceChange(currentPriceUSD, startPriceUSD);
-    const volumeUSD = calcVolumeUSD(snapshots);
-    const velocity = tvl.isZero() ? 0 : toFloat(new BigNumber(volumeUSD).div(tvl));
-	
-    return {
-      priceChange,
-      volumeUSD,
-      velocity,
-    }
-  }
-
-  async updateDailyStats(block: SubstrateBlock): Promise<void> {
-    this.log(block).debug(`Assets Daily stats updating...`);
-
-    for (const asset of this.storage.values()) {
-      const { priceChange, volumeUSD } = await this.calcStats(block, asset, SnapshotType.HOUR, 24);
-
-      asset.priceChangeDay = priceChange;
-      asset.volumeDayUSD = volumeUSD;
-      this.log(block, true).debug(
-        { assetId: asset.id, priceChange, volumeUSD },
-        'Asset daily stats updated',
-      )
-    }
-  }
-
-  async updateWeeklyStats(block: SubstrateBlock): Promise<void> {
-    this.log(block).debug(`Assets Weekly stats updating...`);
-    for (const asset of this.storage.values()) {
-      const { priceChange, volumeUSD, velocity } = await this.calcStats(block, asset, SnapshotType.DAY, 7);
-
-      asset.priceChangeWeek = priceChange;
-      asset.volumeWeekUSD = volumeUSD;
-      asset.velocity = velocity;
-      this.log(block, true).debug(
-        { assetId: asset.id, priceChange, volumeUSD, velocity },
-        'Asset weekly stats updated',
-      )
-    }
-  }
 }
 
 class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot, AssetStorage> {
@@ -190,12 +134,6 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
 
     return snapshot;
   }
-
-  static async getSnapshotsByIds(ids: string[]): Promise<AssetSnapshot[]> {
-    const snapshots = await Promise.all(ids.map(id => AssetSnapshot.get(id)));
-
-    return snapshots.filter((item) => !!item);
-  };
 
   async updatePrice(block: SubstrateBlock, assetId: string, price: string): Promise<void> {
     const bnPrice = new BigNumber(price);
@@ -292,6 +230,62 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
     asset.supply = asset.supply - amount;
 
     this.log(block).debug({ assetId: assetId, supply: asset.supply.toString() }, 'Asset supply updated');
+  }
+
+  private async calcStats(block: SubstrateBlock, asset: Asset, type: SnapshotType, snapshotsCount: number) {
+    const { id, priceUSD } = asset;
+    const blockTimestamp = formatDateTimestamp(block.timestamp);
+    const { index } = getSnapshotIndex(blockTimestamp, type);
+    const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
+
+    const ids = indexes.map((idx) => this.getId(id, type, idx));
+    const snapshots = await this.getSnapshotsByIds(ids);
+
+    const currentPriceUSD = new BigNumber(priceUSD);
+    const startPriceUSD = new BigNumber(last(snapshots)?.priceUSD?.open ?? '0');
+    const tvlPools = calcTvlUSD(asset, asset.liquidity);
+    const tvlOrderBooks = calcTvlUSD(asset, asset.liquidityBooks);
+    const tvl = tvlPools.plus(tvlOrderBooks);
+
+    const priceChange = calcPriceChange(currentPriceUSD, startPriceUSD);
+    const volumeUSD = calcVolumeUSD(snapshots);
+    const velocity = tvl.isZero() ? 0 : toFloat(new BigNumber(volumeUSD).div(tvl));
+	
+    return {
+      priceChange,
+      volumeUSD,
+      velocity,
+    }
+  }
+
+  async updateDailyStats(block: SubstrateBlock): Promise<void> {
+    this.log(block).debug(`Assets Daily stats updating...`);
+
+    for (const asset of this.entityStorage.values) {
+      const { priceChange, volumeUSD } = await this.calcStats(block, asset, SnapshotType.HOUR, 24);
+
+      asset.priceChangeDay = priceChange;
+      asset.volumeDayUSD = volumeUSD;
+      this.log(block, true).debug(
+        { assetId: asset.id, priceChange, volumeUSD },
+        'Asset daily stats updated',
+      )
+    }
+  }
+
+  async updateWeeklyStats(block: SubstrateBlock): Promise<void> {
+    this.log(block).debug(`Assets Weekly stats updating...`);
+    for (const asset of this.entityStorage.values) {
+      const { priceChange, volumeUSD, velocity } = await this.calcStats(block, asset, SnapshotType.DAY, 7);
+
+      asset.priceChangeWeek = priceChange;
+      asset.volumeWeekUSD = volumeUSD;
+      asset.velocity = velocity;
+      this.log(block, true).debug(
+        { assetId: asset.id, priceChange, volumeUSD, velocity },
+        'Asset weekly stats updated',
+      )
+    }
   }
 }
 

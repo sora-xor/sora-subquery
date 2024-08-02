@@ -192,42 +192,6 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
     this.log(block, true).debug({ dexId, baseAssetId, quoteAssetId, price }, 'OrderBook price updated');
   }
 
-  private async calcStats(block: SubstrateBlock, orderBook: OrderBook, type: SnapshotType, snapshotsCount: number) {
-    const { id, price } = orderBook;
-    const blockTimestamp = formatDateTimestamp(block.timestamp);
-    const { index } = getSnapshotIndex(blockTimestamp, type);
-    const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
-
-    const ids = indexes.map((idx) => this.getId(id, type, idx));
-    const snapshots = await OrderBooksSnapshotsStorage.getSnapshotsByIds(ids);
-
-    const currentPrice = new BigNumber(price ?? 0);
-    const startPrice = new BigNumber(last(snapshots)?.price?.open ?? '0');
-
-    const priceChange = calcPriceChange(currentPrice, startPrice);
-    const volumeUSD = calcVolume(snapshots).toString();
-
-    return {
-      priceChange,
-      volumeUSD,
-    }
-  }
-
-  async updateDailyStats(block: SubstrateBlock): Promise<void> {
-    this.log(block).debug(`Order Books Daily stats updating...`);
-
-    for (const orderBook of this.storage.values()) {
-      const { priceChange, volumeUSD } = await this.calcStats(block, orderBook, SnapshotType.HOUR, 24);
-
-      orderBook.priceChangeDay = priceChange;
-      orderBook.volumeDayUSD = volumeUSD;
-      this.log(block, true).debug(
-        { orderBookId: orderBook.id, priceChange, volumeUSD },
-        'Order Book daily stats updated',
-      )
-    }
-  }
-
   public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
     const lockedAssets = new Map<string, bigint>();
 
@@ -260,7 +224,7 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
 
 export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook, OrderBookSnapshot, OrderBooksStorage> {
   constructor(orderBooksStorage: OrderBooksStorage) {
-    super('OrderBookSnapshot', orderBooksStorage)
+    super('OrderBookSnapshot', orderBooksStorage);
   }
 
   createEntity(block: SubstrateBlock, id: string, timestamp: number, type: SnapshotType, orderBook: OrderBook): OrderBookSnapshot {
@@ -273,12 +237,6 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook
 
     return new OrderBookSnapshot(id, orderBook.id, timestamp, type, price, '0', '0', '0', '0');
   }
-
-  static async getSnapshotsByIds(ids: string[]): Promise<OrderBookSnapshot[]> {
-    const snapshots = await Promise.all(ids.map(id => OrderBookSnapshot.get(id)));
-
-    return snapshots.filter((item) => !!item);
-  };
 
   async updateDeal(
     block: SubstrateBlock,
@@ -351,6 +309,42 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook
       const snapshot = await this.getSnapshot(block, orderBookId, type);
 
       snapshot.liquidityUSD = liquidityUSD.toFixed(2);
+    }
+  }
+
+  private async calcStats(block: SubstrateBlock, orderBook: OrderBook, type: SnapshotType, snapshotsCount: number) {
+    const { id, price } = orderBook;
+    const blockTimestamp = formatDateTimestamp(block.timestamp);
+    const { index } = getSnapshotIndex(blockTimestamp, type);
+    const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
+
+    const ids = indexes.map((idx) => this.getId(id, type, idx));
+    const snapshots = await this.getSnapshotsByIds(ids);
+
+    const currentPrice = new BigNumber(price ?? 0);
+    const startPrice = new BigNumber(last(snapshots)?.price?.open ?? '0');
+
+    const priceChange = calcPriceChange(currentPrice, startPrice);
+    const volumeUSD = calcVolume(snapshots).toString();
+
+    return {
+      priceChange,
+      volumeUSD,
+    }
+  }
+
+  async updateDailyStats(block: SubstrateBlock): Promise<void> {
+    this.log(block).debug(`Order Books Daily stats updating...`);
+
+    for (const orderBook of this.entityStorage.values) {
+      const { priceChange, volumeUSD } = await this.calcStats(block, orderBook, SnapshotType.HOUR, 24);
+
+      orderBook.priceChangeDay = priceChange;
+      orderBook.volumeDayUSD = volumeUSD;
+      this.log(block, true).debug(
+        { orderBookId: orderBook.id, priceChange, volumeUSD },
+        'Order Book daily stats updated',
+      )
     }
   }
 }
