@@ -14,7 +14,7 @@ schema:
   file: ./schema.graphql
 network:
   chainId: '0'
-  endpoint: wss://ws.framenode-2.r0.dev.sora2.soramitsu.co.jp
+  endpoint: wss://ws.framenode-1.r0.dev.sora2.soramitsu.co.jp
   chaintypes:
     file: ./dist/chaintypes.js
 dataSources:
@@ -492,3 +492,19 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 50
+        # defi-r calls
+        - handler: setSbtExpirationCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: setSbtExpiration
+        - handler: regulateAssetCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: regulateAsset
+        - handler: bindRegulatedAssetToSbtCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: bindRegulatedAssetToSbt
