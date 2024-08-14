@@ -493,7 +493,7 @@ dataSources:
           filter:
             modulo: 50
         # defi-r calls
-        - handler: setSbtExpirationCallHandler
+        - handler: setSbtExpiratioCallHandler
           kind: substrate/CallHandler
           filter:
             module: extendedAssets
