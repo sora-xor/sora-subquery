@@ -508,3 +508,8 @@ dataSources:
           filter:
             module: extendedAssets
             method: bindRegulatedAssetToSbt
+        - handler: registerRegulatedAssetCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: registerRegulatedAsset

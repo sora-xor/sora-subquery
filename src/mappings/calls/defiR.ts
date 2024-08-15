@@ -49,3 +49,22 @@ export async function bindRegulatedAssetToSbtCallHandler(extrinsic: SubstrateExt
 
 	await createHistoryElement(extrinsic, details);
 }
+
+export async function registerRegulatedAssetCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> { 
+	logStartProcessingCall(extrinsic);
+	const { extrinsic: { args: [_symbol, _name, _supply, _mintable] } } = extrinsic as any;
+
+	const symbol = _symbol.toString();
+	const name = _name.toString();
+	const supply = _supply.toString();
+	const mintable = _mintable.toString()
+
+	const details = {
+		symbol,
+		name,
+		supply,
+		mintable,
+	}
+
+	await createHistoryElement(extrinsic, details);
+}
