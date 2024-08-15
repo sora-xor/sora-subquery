@@ -492,3 +492,19 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 50
+        # defi-r calls
+        - handler: setSbtExpiratioCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: setSbtExpiration
+        - handler: regulateAssetCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: regulateAsset
+        - handler: bindRegulatedAssetToSbtCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: bindRegulatedAssetToSbt
