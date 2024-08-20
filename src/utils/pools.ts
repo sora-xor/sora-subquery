@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 
-import { SubstrateBlock } from '@subql/types';
+import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 import { PoolSnapshot, PoolXYK, SnapshotType } from '../types';
 import { XOR, KXOR, ETH, DOUBLE_PRICE_POOL } from './consts';
 import { assetStorage, assetPrecisions } from "./assets";
@@ -8,6 +8,7 @@ import { getUtilsLog } from './logs';
 import { poolXykApyUpdatesStream } from "./stream";
 import { EntityStorage, EntitySnapshotsStorage } from './storage';
 import { multiplyAndSqrt, getSnapshotTypes } from './index';
+import { isAssetTransferEvent, getTransferEventData } from './events';
 
 // getters & setter for flag, should we sync poolXYK reserves
 // and then calc asset prices
@@ -316,6 +317,8 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 
   // asset snapshot storage duplicate
   async updatePrice(block: SubstrateBlock, id: string, price: string): Promise<void> {
+    await this.entityStorage.updatePrice(block, id, price);
+
     const bnPrice = new BigNumber(price);
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
@@ -334,13 +337,11 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 
       this.log(block, true).debug(
         { id, newPrice: price },
-        'Asset snapshot price updated',
+        'Pool snapshot price updated',
       )
 
       await this.save(block, snapshot);
     }
-
-    await this.entityStorage.updatePrice(block, id, price);
   }
 
   async processWithdraw(block: SubstrateBlock, id: string, assetId: string, amount: string) {
@@ -351,6 +352,52 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
   async processDeposit(block: SubstrateBlock, id: string, assetId: string, amount: string) {
     const pool = await this.entityStorage.processDeposit(block, id, assetId, amount);
     await this.updateReserves(block, pool);
+  }
+
+  async processSwap(extrinsic: SubstrateExtrinsic) {
+    const block = extrinsic.block;
+    const transfers = extrinsic.events.filter(e => isAssetTransferEvent(e));
+    const poolTransfers: Record<string, Array<{ assetId: string; amount: string; }>> = transfers.reduce((acc, transferEvent) => {
+      const { assetId, from, to, amount } = getTransferEventData(transferEvent);
+      const poolAccountId = [from, to].find((address) => poolAccounts.has(address));
+
+      if (!poolAccountId) return acc;
+      if (!acc[poolAccountId]) acc[poolAccountId] = [];
+
+      acc[poolAccountId].push({ assetId, amount });
+
+      return acc;
+    }, {});
+
+    for (const [poolAccountId, transfers] of Object.entries(poolTransfers)) {
+      const volumesUSD: BigNumber[] = [];
+
+      for (const { assetId, amount } of transfers) {
+        const asset = await assetStorage.getEntity(block, assetId);
+        const assetPrice = asset.priceUSD ?? '0';
+        const volumeUSD = new BigNumber(assetPrice).multipliedBy(new BigNumber(amount));
+
+        volumesUSD.push(volumeUSD);
+      }
+
+      const volumeUSD = BigNumber.min(...volumesUSD);
+
+      await this.updateVolume(block, poolAccountId, volumeUSD);
+    }
+  }
+
+  protected async updateVolume(block: SubstrateBlock, id: string, volumeUSD: BigNumber) {
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
+
+    for (const type of snapshotTypes) {
+      const snapshot = await this.getSnapshot(block, id, type);
+
+      snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toFixed(2);
+
+      this.log(block, true).debug({}, `${this.entityName} volumeUSD updated`);
+
+      await this.save(block, snapshot);
+    }
   }
 
   protected async updateReserves(block: SubstrateBlock, pool: PoolXYK) {

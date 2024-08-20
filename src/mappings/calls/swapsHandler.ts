@@ -5,7 +5,7 @@ import { isExchangeEvent } from '../../utils/events';
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
-import { XOR } from '../../utils/consts';
+import { poolsSnapshotsStorage } from '../../utils/pools';
 import { logStartProcessingCall } from '../../utils/logs';
 
 import type { Vec } from "@polkadot/types";
@@ -86,6 +86,7 @@ const handleAndSaveExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<vo
         // get the minimal volume (sell\buy)
         const volumeUSD = BigNumber.min(aVolumeUSD, bVolumeUSD);
 
+        await poolsSnapshotsStorage.processSwap(extrinsic);
         await networkSnapshotsStorage.updateVolumeStats(extrinsic.block, volumeUSD);
     }
 
