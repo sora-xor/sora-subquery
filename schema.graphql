@@ -113,10 +113,10 @@ type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool
   priceUSD: AssetPrice! # price of target asset
   baseAssetReserves: BigInt! # (base + chameleon) reserves
   targetAssetReserves: BigInt! # target reserves
-  chameleonAssetReserves: BigInt # chameleon reserves only
+  chameleonAssetReserves: BigInt! # chameleon reserves only
   baseAssetVolume: String!
   targetAssetVolume: String!
-  chameleonAssetVolume: String
+  chameleonAssetVolume: String!
   volumeUSD: String!
   liquidityUSD: String!
 }

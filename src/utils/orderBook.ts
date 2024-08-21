@@ -195,14 +195,12 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
   public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
     const lockedAssets = new Map<string, bigint>();
 
-    let lockedUSD = new BigNumber(0);
-
     for (const { dexId, baseAssetId, quoteAssetId, baseAssetReserves, quoteAssetReserves } of this.storage.values()) {
-      const a = lockedAssets.get(baseAssetId);
-      const b = lockedAssets.get(quoteAssetId);
+      const a = lockedAssets.get(baseAssetId) ?? BigInt(0);
+      const b = lockedAssets.get(quoteAssetId) ?? BigInt(0);
 
-      lockedAssets.set(baseAssetId, (a || BigInt(0)) + baseAssetReserves);
-      lockedAssets.set(quoteAssetId, (b || BigInt(0)) + quoteAssetReserves);
+      lockedAssets.set(baseAssetId, a + baseAssetReserves);
+      lockedAssets.set(quoteAssetId, b + quoteAssetReserves);
 
       const baseAsset = await assetStorage.getEntity(block, baseAssetId);
       const quoteAsset = await assetStorage.getEntity(block, quoteAssetId);
@@ -213,9 +211,14 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
       await orderBooksSnapshotsStorage.updateLiquidityUSD(block, dexId, baseAssetId, quoteAssetId, liquidityUSD);
     }
 
+    let lockedUSD = new BigNumber(0);
+
     // update locked luqidity for assets
     for (const [assetId, liquidity] of lockedAssets.entries()) {
-      await assetStorage.updateLiquidityBooks(block, assetId, liquidity);
+      const asset = await assetStorage.updateLiquidityBooks(block, assetId, liquidity);
+      const assetLockedUSD = calcTvlUSD(asset, asset.liquidityBooks);
+
+      lockedUSD = lockedUSD.plus(assetLockedUSD);
     }
 
     return lockedUSD;
