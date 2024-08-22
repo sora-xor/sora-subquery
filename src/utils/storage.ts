@@ -134,8 +134,6 @@ export class EntitySnapshotsStorage<
   }
 
   protected async syncSnapshots(block: SubstrateBlock): Promise<void> {
-    await this.sync(block);
-
     const blockTimestamp = formatDateTimestamp(block.timestamp);
 
     for (const snapshot of this.storage.values()) {

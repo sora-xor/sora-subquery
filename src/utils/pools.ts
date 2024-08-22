@@ -243,7 +243,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     const b = new BigNumber(targetAssetReserves.toString());
     const poolTokens = multiplyAndSqrt(a, b);
 
-    return BigInt(poolTokens.toString());
+    return BigInt(poolTokens.toFixed(18));
   }
 
   async updateApy(block: SubstrateBlock, id: string, strategicBonusApy: string): Promise<void> {
