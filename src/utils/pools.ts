@@ -246,60 +246,6 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     return BigInt(poolTokens.toString());
   }
 
-  public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
-    const lockedAssets = new Map<string, bigint>();
-
-    for (const {
-      id,
-      baseAssetId,
-      targetAssetId,
-      baseAssetReserves,
-      targetAssetReserves: targetReserves,
-      chameleonAssetReserves,
-    } of this.storage.values()) {
-      let liquidityUSD = new BigNumber(0);
-
-      const isChameleon = getChameleonPool({ baseAssetId, targetAssetId });
-      const chameleonAssetId = isChameleon ? getChameleonPoolBaseAssetId(baseAssetId) : null;
-      const chameleonReserves = chameleonAssetReserves ?? BigInt(0);
-      const baseReserves = isChameleon ? baseAssetReserves - chameleonReserves : baseAssetReserves;
-
-      const baseAsset = await assetStorage.getEntity(block, baseAssetId);
-      const lockedBaseReserves = lockedAssets.get(baseAssetId) ?? BigInt(0);
-
-      liquidityUSD = liquidityUSD.plus(calcTvlUSD(baseAsset, baseReserves));
-      lockedAssets.set(baseAssetId, lockedBaseReserves + baseReserves);
-
-      const targetAsset = await assetStorage.getEntity(block, targetAssetId);
-      const lockedTargetReserves = lockedAssets.get(targetAssetId) ?? BigInt(0);
-
-      liquidityUSD = liquidityUSD.plus(calcTvlUSD(targetAsset, targetReserves));
-      lockedAssets.set(targetAssetId, lockedTargetReserves + targetReserves);
-
-      if (chameleonAssetId) {
-        const chameleonAsset = await assetStorage.getEntity(block, chameleonAssetId);
-        const lockedChameleonReserves = lockedAssets.get(chameleonAssetId) ?? BigInt(0);
-
-        liquidityUSD = liquidityUSD.plus(calcTvlUSD(chameleonAsset, chameleonReserves));
-        lockedAssets.set(chameleonAssetId, lockedChameleonReserves + chameleonReserves);
-      }
-
-      await poolsSnapshotsStorage.updateLiquidityUSD(block, id, liquidityUSD);
-    }
-
-    let lockedUSD = new BigNumber(0);
-
-    // update locked luqidity for assets
-    for (const [assetId, liquidity] of lockedAssets.entries()) {
-      const asset = await assetStorage.updateLiquidity(block, assetId, liquidity);
-      const assetLockedUSD = calcTvlUSD(asset, asset.liquidity);
-
-      lockedUSD = lockedUSD.plus(assetLockedUSD);
-    }
-
-    return lockedUSD;
-  }
-
   async updateApy(block: SubstrateBlock, id: string, strategicBonusApy: string): Promise<void> {
     const pool = await this.getPoolById(block, id);
 
@@ -437,6 +383,66 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
     }
   }
 
+  protected async syncLiquidityUSD(block: SubstrateBlock): Promise<Map<string, bigint>> {
+    const lockedAssets = new Map<string, bigint>();
+
+    for (const {
+      id,
+      baseAssetId,
+      targetAssetId,
+      baseAssetReserves,
+      targetAssetReserves: targetReserves,
+      chameleonAssetReserves,
+    } of this.entityStorage.values) {
+      let liquidityUSD = new BigNumber(0);
+
+      const isChameleon = getChameleonPool({ baseAssetId, targetAssetId });
+      const chameleonAssetId = isChameleon ? getChameleonPoolBaseAssetId(baseAssetId) : null;
+      const chameleonReserves = chameleonAssetReserves ?? BigInt(0);
+      const baseReserves = isChameleon ? baseAssetReserves - chameleonReserves : baseAssetReserves;
+
+      const baseAsset = await assetStorage.getEntity(block, baseAssetId);
+      const lockedBaseReserves = lockedAssets.get(baseAssetId) ?? BigInt(0);
+
+      liquidityUSD = liquidityUSD.plus(calcTvlUSD(baseAsset, baseReserves));
+      lockedAssets.set(baseAssetId, lockedBaseReserves + baseReserves);
+
+      const targetAsset = await assetStorage.getEntity(block, targetAssetId);
+      const lockedTargetReserves = lockedAssets.get(targetAssetId) ?? BigInt(0);
+
+      liquidityUSD = liquidityUSD.plus(calcTvlUSD(targetAsset, targetReserves));
+      lockedAssets.set(targetAssetId, lockedTargetReserves + targetReserves);
+
+      if (chameleonAssetId) {
+        const chameleonAsset = await assetStorage.getEntity(block, chameleonAssetId);
+        const lockedChameleonReserves = lockedAssets.get(chameleonAssetId) ?? BigInt(0);
+
+        liquidityUSD = liquidityUSD.plus(calcTvlUSD(chameleonAsset, chameleonReserves));
+        lockedAssets.set(chameleonAssetId, lockedChameleonReserves + chameleonReserves);
+      }
+
+      await poolsSnapshotsStorage.updateLiquidityUSD(block, id, liquidityUSD);
+    }
+
+    return lockedAssets;
+  }
+
+  async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
+    const lockedAssets = await this.syncLiquidityUSD(block);
+
+    let lockedUSD = new BigNumber(0);
+
+    // update locked luqidity for assets
+    for (const [assetId, liquidity] of lockedAssets.entries()) {
+      const asset = await assetStorage.updateLiquidity(block, assetId, liquidity);
+      const assetLockedUSD = calcTvlUSD(asset, asset.liquidity);
+
+      lockedUSD = lockedUSD.plus(assetLockedUSD);
+    }
+
+    return lockedUSD;
+  }
+
   protected async updateVolume(
     block: SubstrateBlock,
     id: string,
@@ -479,7 +485,7 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
     }
   }
 
-  async updateLiquidityUSD(
+  protected async updateLiquidityUSD(
     block: SubstrateBlock,
     id: string,
     liquidityUSD: BigNumber,

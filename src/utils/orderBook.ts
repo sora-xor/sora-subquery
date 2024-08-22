@@ -191,38 +191,6 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
 
     this.log(block, true).debug({ dexId, baseAssetId, quoteAssetId, price }, 'OrderBook price updated');
   }
-
-  public async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
-    const lockedAssets = new Map<string, bigint>();
-
-    for (const { dexId, baseAssetId, quoteAssetId, baseAssetReserves, quoteAssetReserves } of this.storage.values()) {
-      const a = lockedAssets.get(baseAssetId) ?? BigInt(0);
-      const b = lockedAssets.get(quoteAssetId) ?? BigInt(0);
-
-      lockedAssets.set(baseAssetId, a + baseAssetReserves);
-      lockedAssets.set(quoteAssetId, b + quoteAssetReserves);
-
-      const baseAsset = await assetStorage.getEntity(block, baseAssetId);
-      const quoteAsset = await assetStorage.getEntity(block, quoteAssetId);
-      const baseAssetLiquidityUSD = calcTvlUSD(baseAsset, baseAssetReserves);
-      const quoteAssetLiquidityUSD = calcTvlUSD(quoteAsset, quoteAssetReserves);
-      const liquidityUSD = baseAssetLiquidityUSD.plus(quoteAssetLiquidityUSD);
-
-      await orderBooksSnapshotsStorage.updateLiquidityUSD(block, dexId, baseAssetId, quoteAssetId, liquidityUSD);
-    }
-
-    let lockedUSD = new BigNumber(0);
-
-    // update locked luqidity for assets
-    for (const [assetId, liquidity] of lockedAssets.entries()) {
-      const asset = await assetStorage.updateLiquidityBooks(block, assetId, liquidity);
-      const assetLockedUSD = calcTvlUSD(asset, asset.liquidityBooks);
-
-      lockedUSD = lockedUSD.plus(assetLockedUSD);
-    }
-
-    return lockedUSD;
-  }
 }
 
 export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook, OrderBookSnapshot, OrderBooksStorage> {
@@ -298,7 +266,45 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook
     await networkSnapshotsStorage.updateVolumeStats(block, quoteVolumeUSD);
   }
 
-  async updateLiquidityUSD(
+  protected async syncLiquidityUSD(block: SubstrateBlock): Promise<Map<string, bigint>> {
+    const lockedAssets = new Map<string, bigint>();
+
+    for (const { dexId, baseAssetId, quoteAssetId, baseAssetReserves, quoteAssetReserves } of this.entityStorage.values) {
+      const a = lockedAssets.get(baseAssetId) ?? BigInt(0);
+      const b = lockedAssets.get(quoteAssetId) ?? BigInt(0);
+
+      lockedAssets.set(baseAssetId, a + baseAssetReserves);
+      lockedAssets.set(quoteAssetId, b + quoteAssetReserves);
+
+      const baseAsset = await assetStorage.getEntity(block, baseAssetId);
+      const quoteAsset = await assetStorage.getEntity(block, quoteAssetId);
+      const baseAssetLiquidityUSD = calcTvlUSD(baseAsset, baseAssetReserves);
+      const quoteAssetLiquidityUSD = calcTvlUSD(quoteAsset, quoteAssetReserves);
+      const liquidityUSD = baseAssetLiquidityUSD.plus(quoteAssetLiquidityUSD);
+
+      await orderBooksSnapshotsStorage.updateLiquidityUSD(block, dexId, baseAssetId, quoteAssetId, liquidityUSD);
+    }
+
+    return lockedAssets;
+  }
+
+  async getLockedLiquidityUSD(block: SubstrateBlock): Promise<BigNumber> {
+    const lockedAssets = await this.syncLiquidityUSD(block);
+
+    let lockedUSD = new BigNumber(0);
+
+    // update locked luqidity for assets
+    for (const [assetId, liquidity] of lockedAssets.entries()) {
+      const asset = await assetStorage.updateLiquidity(block, assetId, liquidity);
+      const assetLockedUSD = calcTvlUSD(asset, asset.liquidity);
+
+      lockedUSD = lockedUSD.plus(assetLockedUSD);
+    }
+
+    return lockedUSD;
+  }
+
+  protected async updateLiquidityUSD(
     block: SubstrateBlock,
     dexId: number,
     baseAssetId: string,
