@@ -65,6 +65,45 @@ export const getPoolProperties = async (block: SubstrateBlock, baseAssetId: stri
   }
 }
 
+export const getAllPoolProviders = async (block: SubstrateBlock, poolId: string): Promise<Record<string, string>> => {
+  try {
+    getUtilsLog(block).debug({ poolId }, 'Pool providers request...');
+    const providers = (await api.query.poolXYK.poolProviders.entries(poolId)) as any;
+    getUtilsLog(block).debug({ poolId }, 'Pool providers request completed');
+
+    const buffer = {};
+
+    for (const [key, value] of providers) {
+      const account = key.args[1].toString();
+      const tokens = value.toString();
+
+      buffer[account] = tokens;
+    }
+
+    return buffer;
+  } catch (error) {
+    getUtilsLog(block).error('Error getting pool providers');
+		getUtilsLog(block).error(error);
+    return {};
+  }
+}
+
+export const getPoolProviderBalance = async (block: SubstrateBlock, poolId: string, providerId: string): Promise<string> => {
+  try {
+    getUtilsLog(block).debug({ poolId, providerId }, 'Pool provider balance request...');
+    const balance = (await api.query.poolXYK.poolProviders(poolId, providerId)) as any;
+    getUtilsLog(block).debug({ poolId, providerId }, 'Pool provider balance request completed');
+
+    if (!balance.isSome) return '0';
+
+    return balance.unwrap().toString();
+  } catch (error) {
+    getUtilsLog(block).error('Error getting pool provider balance');
+		getUtilsLog(block).error(error);
+    return '0';
+  }
+}
+
 // https://github.com/sora-xor/sora2-network/blob/master/runtime/src/lib.rs#L1026
 export const getChameleonPool = (pool: Partial<PoolXYK>): boolean => {
   if (pool.baseAssetId === XOR && pool.targetAssetId === ETH) {

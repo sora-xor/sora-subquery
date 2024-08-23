@@ -121,6 +121,21 @@ type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool
   liquidityUSD: String!
 }
 
+type AccountLiquidity @entity {
+  id: ID! # account id - pool id
+  account: Account! @index #relation to Account
+  pool: PoolXYK! @index #relation to PoolXYK
+  data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
+}
+
+type AccountLiquiditySnapshot @entity {
+  id: ID!
+  accountLiquidity: AccountLiquidity! @index #relation to AccountLiquidity
+  block: Int!
+  timestamp: Int!
+  poolTokens: BigInt! # pool tokens
+}
+
 type Account @entity {
   id: ID!
   latestHistoryElement: HistoryElement
