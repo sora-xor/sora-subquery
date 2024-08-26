@@ -27,6 +27,8 @@ dataSources:
           kind: substrate/BlockHandler
         - handler: initializePools
           kind: substrate/BlockHandler
+        - handler: initializeAccountLiquidities
+          kind: substrate/BlockHandler
         - handler: initializeOrderBooks
           kind: substrate/BlockHandler
         - handler: handleAssetRegistration

@@ -3,6 +3,7 @@ enum SnapshotType {
   HOUR
   DAY
   MONTH
+  BLOCK
 }
 
 enum PayeeType {
@@ -126,13 +127,14 @@ type AccountLiquidity @entity {
   account: Account! @index #relation to Account
   pool: PoolXYK! @index #relation to PoolXYK
   data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
+  poolTokens: BigInt! # pool tokens
 }
 
-type AccountLiquiditySnapshot @entity {
+type AccountLiquiditySnapshot implements ISnapshot @entity {
   id: ID!
-  accountLiquidity: AccountLiquidity! @index #relation to AccountLiquidity
-  block: Int!
   timestamp: Int!
+  type: SnapshotType!
+  accountLiquidity: AccountLiquidity! @index #relation to AccountLiquidity
   poolTokens: BigInt! # pool tokens
 }
 

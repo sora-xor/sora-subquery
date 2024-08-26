@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateBlock, SubstrateExtrinsic } from '@subql/types';
-import { PoolSnapshot, PoolXYK, SnapshotType } from '../types';
+import { PoolSnapshot, PoolXYK, AccountLiquidity, SnapshotType } from '../types';
 import { XOR, KXOR, ETH, DOUBLE_PRICE_POOL } from './consts';
 import { assetStorage, calcTvlUSD } from "./assets";
 import { getUtilsLog } from './logs';
@@ -131,6 +131,10 @@ class PoolAccountsStorage {
     this.accountIds = new Map();
   }
 
+  get accounts(): string[] {
+    return [...this.accountIds.keys()];
+  }
+
   add(baseAssetId: string, targetAssetId: string, poolAccountId: string): void {
     if (!this.storage.has(baseAssetId)) {
       this.storage.set(baseAssetId, new Map());
@@ -171,6 +175,24 @@ class PoolAccountsStorage {
     return poolAccountId;
   }
 };
+
+class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
+  constructor() {
+    super('AccountLiquidity');
+  }
+
+  public createEntity(block: SubstrateBlock, id: string, accountId: string, poolId: string): AccountLiquidity {
+    const accountLiquidity = new AccountLiquidity(id, accountId, poolId, BigInt(0));
+
+    return accountLiquidity;
+  }
+
+  public async getLiquidity(block: SubstrateBlock, accountId: string, poolId: string): Promise<AccountLiquidity> {
+    const id = this.getId(accountId, poolId);
+
+    return await this.getEntity(block, id);
+  }
+}
 
 class PoolsStorage extends EntityStorage<PoolXYK> {
   constructor() {
@@ -548,3 +570,4 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 export const poolAccounts = new PoolAccountsStorage();
 export const poolsStorage = new PoolsStorage();
 export const poolsSnapshotsStorage = new PoolsSnapshotsStorage(poolsStorage);
+export const accountLiquidityStorage = new AccountLiquidityStorage();
