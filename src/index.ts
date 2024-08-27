@@ -22,6 +22,7 @@ export * from "./mappings/calls/staking";
 export * from "./mappings/calls/orderBook";
 export * from "./mappings/calls/band";
 export * from "./mappings/calls/kensetsu";
+export * from "./mappings/calls/defiR";
 
 export * from "./mappings/events/assetsRegistration";
 export * from "./mappings/events/transfer";
