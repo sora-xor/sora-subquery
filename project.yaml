@@ -4,10 +4,10 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 5.0.1
+    version: 5.2.3
   query:
     name: '@subql/query'
-    version: 2.13.3
+    version: 2.15.1
 description: ''
 repository: https://github.com/sora-xor/sora-subquery
 schema:
