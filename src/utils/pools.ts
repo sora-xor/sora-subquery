@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateBlock, SubstrateExtrinsic } from '@subql/types';
-import { PoolSnapshot, PoolXYK, AccountLiquidity, SnapshotType } from '../types';
+import { PoolSnapshot, PoolXYK, AccountLiquidity, AccountLiquiditySnapshot,SnapshotType } from '../types';
 import { XOR, KXOR, ETH, DOUBLE_PRICE_POOL } from './consts';
 import { assetStorage, calcTvlUSD } from "./assets";
 import { getUtilsLog } from './logs';
@@ -191,6 +191,56 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     const id = this.getId(accountId, poolId);
 
     return await this.getEntity(block, id);
+  }
+
+  public async syncPoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<AccountLiquidity> {
+    const accountLiquidity = await this.getLiquidity(block, accountId, poolId);
+    const accountLiquidityBalance = await getPoolProviderBalance(block, poolId, accountId);
+    const poolTokens = BigInt(accountLiquidityBalance);
+
+    accountLiquidity.poolTokens = poolTokens;
+
+    await this.save(block, accountLiquidity);
+
+    return accountLiquidity;
+  }
+}
+
+class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<AccountLiquidity, AccountLiquiditySnapshot, AccountLiquidityStorage> {
+  public readonly updateTypes = [SnapshotType.BLOCK];
+  public readonly removeTypes = [];
+
+  constructor(accountLiquidityStorage: AccountLiquidityStorage) {
+    super('AccountLiquiditySnapshot', accountLiquidityStorage);
+  }
+
+  createEntity(block: SubstrateBlock, id: string, timestamp: number, type: SnapshotType, accountLiquidity: AccountLiquidity): AccountLiquiditySnapshot {
+    const snapshot = new AccountLiquiditySnapshot(
+      id,
+      timestamp,
+      type,
+      accountLiquidity.id,
+      accountLiquidity.poolTokens,
+    );
+
+    return snapshot;
+  }
+
+  async syncPoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<void> {
+    const accountLiquidity = await this.entityStorage.syncPoolTokens(block, accountId, poolId);
+    const { id, poolTokens } = accountLiquidity;
+
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
+
+    for (const type of snapshotTypes) {
+      const snapshot = await this.getSnapshot(block, id, type);
+
+      snapshot.poolTokens = poolTokens;
+
+      this.log(block, true).debug({ id, poolTokens }, 'Account Liquidity snapshot pool tokens updated')
+
+      await this.save(block, snapshot);
+    }
   }
 }
 
@@ -568,6 +618,9 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 }
 
 export const poolAccounts = new PoolAccountsStorage();
+
 export const poolsStorage = new PoolsStorage();
 export const poolsSnapshotsStorage = new PoolsSnapshotsStorage(poolsStorage);
+
 export const accountLiquidityStorage = new AccountLiquidityStorage();
+export const accountLiquiditySnapshotsStorage = new AccountLiquiditySnapshotsStorage(accountLiquidityStorage);

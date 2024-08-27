@@ -1,5 +1,5 @@
 import { SnapshotType } from "../types";
-import type { AssetSnapshot, OrderBookSnapshot, PoolSnapshot, NetworkSnapshot } from '../types';
+import type { AssetSnapshot, OrderBookSnapshot, PoolSnapshot, AccountLiquiditySnapshot, NetworkSnapshot } from '../types';
 
 import { getStorageLog, type BlockContext } from './logs';
 import { shouldUpdate, formatDateTimestamp, getSnapshotIndex, getSnapshotTypeTimeDepth } from './index';
@@ -7,7 +7,7 @@ import { shouldUpdate, formatDateTimestamp, getSnapshotIndex, getSnapshotTypeTim
 import { SubstrateBlock } from '@subql/types';
 import type { Entity as BaseEntity } from "@subql/types-core";
 
-type Snapshot = AssetSnapshot | OrderBookSnapshot | PoolSnapshot | NetworkSnapshot;
+type Snapshot = AssetSnapshot | OrderBookSnapshot | PoolSnapshot | AccountLiquiditySnapshot | NetworkSnapshot;
 
 export class EntityStorage<Entity extends BaseEntity> {
   protected entityName!: string;
@@ -134,6 +134,8 @@ export class EntitySnapshotsStorage<
   }
 
   protected async syncSnapshots(block: SubstrateBlock): Promise<void> {
+    await super.sync(block);
+
     const blockTimestamp = formatDateTimestamp(block.timestamp);
 
     for (const snapshot of this.storage.values()) {
@@ -161,7 +163,7 @@ export class EntitySnapshotsStorage<
       const { index } = getSnapshotIndex(diff, type);
       const ids = entityIds.map((id) => this.getId(id, type, index));
 
-      await store.bulkRemove(this.entityName, ids);
+      await this.delete(...ids);
 
       this.log(block).info(`Outdated snapshots cleaning: type: ${type}, index: ${index}`);
     }

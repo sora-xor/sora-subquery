@@ -4,7 +4,7 @@ import { AnyTuple, CallBase } from '@polkadot/types/types';
 
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { poolsStorage } from '../../utils/pools';
+import { poolsStorage, accountLiquiditySnapshotsStorage } from '../../utils/pools';
 import { logStartProcessingCall } from '../../utils/logs';
 import { getEntityId } from '../../utils';
 import { HistoryElementCall } from '../../types';
@@ -90,7 +90,8 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
     const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
 
     if (initializePool) {
-        await poolsStorage.getPool(extrinsic.block, initializePool.data.args.asset_a, initializePool.data.args.asset_b);
+        const pool = await poolsStorage.getPool(extrinsic.block, initializePool.data.args.asset_a, initializePool.data.args.asset_b);
+        await accountLiquiditySnapshotsStorage.syncPoolTokens(extrinsic.block, extrinsic.extrinsic.signer.toString(), pool.id);
     }
 
     const historyElementId = getEntityId(extrinsic);

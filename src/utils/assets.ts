@@ -101,7 +101,7 @@ class AssetStorage extends EntityStorage<Asset> {
     return asset;
   }
 
-  async updateLiquidityBooks(block: SubstrateBlock ,id: string, liquidity: bigint): Promise<Asset> {
+  async updateLiquidityBooks(block: SubstrateBlock, id: string, liquidity: bigint): Promise<Asset> {
     const asset = await this.getEntity(block, id);
 
     asset.liquidityBooks = liquidity;

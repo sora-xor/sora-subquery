@@ -3,7 +3,7 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { isAssetTransferEvent } from '../../utils/events';
-import { poolsStorage } from '../../utils/pools';
+import { poolsStorage, accountLiquiditySnapshotsStorage } from '../../utils/pools';
 import { logStartProcessingCall } from '../../utils/logs';
 
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -34,7 +34,8 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
         details.targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
     }
 
-    await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
+    const pool = await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
+    await accountLiquiditySnapshotsStorage.syncPoolTokens(extrinsic.block, extrinsic.extrinsic.signer.toString(), pool.id);
 
     await createHistoryElement(extrinsic, details);
 }
