@@ -354,7 +354,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     const b = new BigNumber(targetAssetReserves.toString());
     const poolTokens = multiplyAndSqrt(a, b);
 
-    return BigInt(poolTokens.toFixed(18));
+    return BigInt(poolTokens.toString());
   }
 
   async updateApy(block: SubstrateBlock, id: string, strategicBonusApy: string): Promise<void> {
@@ -579,8 +579,19 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
   }
 
   protected async updateReserves(block: SubstrateBlock, pool: PoolXYK) {
-    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
+    const { baseAssetReserves, targetAssetReserves } = pool;
+
+    this.log(block, true).info({ baseAssetReserves: baseAssetReserves.toString(), targetAssetReserves: targetAssetReserves.toString() })
+
+    const a = new BigNumber(baseAssetReserves.toString()).sqrt();
+    const b = new BigNumber(targetAssetReserves.toString()).sqrt();
+    const c = a.multipliedBy(b).toExponential(18);
+
+    this.log(block, true).info({ a: a.toString(), b: b.toString(), c: c });
+
     const poolTokenSupply = this.entityStorage.getPoolTokens(pool);
+
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, pool.id, type);
