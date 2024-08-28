@@ -109,7 +109,7 @@ dataSources:
           filter:
             module: ethBridge
             method: transferToSidechain
-         - handler: bridgeProxyOutgoingHandler
+        - handler: bridgeProxyOutgoingHandler
           kind: substrate/CallHandler
           filter:
             module: bridgeProxy

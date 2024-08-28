@@ -73,9 +73,9 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
         });
         // save in DB
         await store.bulkUpdate('PoolXYK', created);
-        getInitializePoolsLog(block).debug(`${entities.length} Pool XYKs initialized!`);
+        getInitializePoolsLog(block).info(`${entities.length} Pool XYKs initialized!`);
     } else {
-        getInitializePoolsLog(block).debug('No Pool XYKs to initialize!');
+        getInitializePoolsLog(block).info('No Pool XYKs to initialize!');
     }
 
     initializedAtBlock = block.block.header.number.toNumber();

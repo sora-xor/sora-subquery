@@ -169,9 +169,9 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         });
         // save in DB
         await store.bulkUpdate('Asset', created);
-        getInitializeAssetsLog(block).debug(`${entities.length} Assets initialized!`);
+        getInitializeAssetsLog(block).info(`${entities.length} Assets initialized!`);
     } else {
-        getInitializeAssetsLog(block).debug('No Assets to initialize!');
+        getInitializeAssetsLog(block).info('No Assets to initialize!');
     }
 
     isFirstBlockIndexed = true;
