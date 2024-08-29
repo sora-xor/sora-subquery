@@ -63,9 +63,9 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
     });
     // save in DB
     await store.bulkUpdate('OrderBook', created);
-    getInitializeOrderBooksLog(block).debug(`${entities.length} Order Books initialized!`);
+    getInitializeOrderBooksLog(block).info(`${entities.length} Order Books initialized!`);
   } else {
-    getInitializeOrderBooksLog(block).debug('No Order Books to initialize!');
+    getInitializeOrderBooksLog(block).info('No Order Books to initialize!');
   }
 
   isFirstBlockIndexed = true;
