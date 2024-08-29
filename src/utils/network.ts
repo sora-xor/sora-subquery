@@ -4,8 +4,8 @@ import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
 import { getSnapshotIndex, getSnapshotTypes, formatDateTimestamp } from "./index";
 import { SubstrateBlock } from "@subql/types";
 import { getNetworkSnapshotsStorageLog } from "./logs";
-import { orderBooksStorage } from './orderBook';
-import { poolsStorage } from './pools';
+import { orderBooksSnapshotsStorage } from './orderBook';
+import { poolsSnapshotsStorage } from './pools';
 
 const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
 
@@ -196,8 +196,8 @@ class NetworkSnapshotsStorage {
   async updateLiquidityStats(block: SubstrateBlock): Promise<void> {
     getNetworkSnapshotsStorageLog(block).debug('Update liquidity stats in network snapshots')
 
-    const poolsLockedUSD = await poolsStorage.getLockedLiquidityUSD(block);
-    const booksLockedUSD = await orderBooksStorage.getLockedLiquidityUSD(block);
+    const poolsLockedUSD = await poolsSnapshotsStorage.getLockedLiquidityUSD(block);
+    const booksLockedUSD = await orderBooksSnapshotsStorage.getLockedLiquidityUSD(block);
     const liquiditiesUSD = poolsLockedUSD.plus(booksLockedUSD);
 
     const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);

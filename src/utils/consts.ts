@@ -44,6 +44,7 @@ export const SECONDS_IN_BLOCK = 6;
 
 // Intervals for snapshots (in seconds)
 export const SnapshotSecondsMap = {
+  [SnapshotType.BLOCK]: 6, // 6 seconds
   [SnapshotType.DEFAULT]: 300, // 5 min
   [SnapshotType.HOUR]: 3_600, // hour
   [SnapshotType.DAY]: 86_400, // day

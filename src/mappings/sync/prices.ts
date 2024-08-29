@@ -4,7 +4,7 @@ import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from "../../types";
 
 import { assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/assets';
-import { poolAccounts, PoolsPrices, poolsStorage, getChameleonPoolBaseAssetId } from '../../utils/pools';
+import { poolAccounts, PoolsPrices, poolsStorage, poolsSnapshotsStorage, getChameleonPoolBaseAssetId } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
 import { getPoolsStorageLog, getSyncPricesLog } from "../../utils/logs";
 
@@ -78,8 +78,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
         // If base asset has price in DAI
         if (!baseAssetPriceInDAI.isZero()) {
-            // update pools prices
-            pools[baseAssetId].forEach(p => {
+            for (const p of pools[baseAssetId]) {
                 const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
                 const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
                 const chameleonAssetReserves = new BigNumber((p.chameleonAssetReserves ?? BigInt(0)).toString());
@@ -98,11 +97,13 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
                 p.priceUSD = daiPrice.toFixed(18);
 
+                await poolsSnapshotsStorage.updatePrice(block, p.id, p.priceUSD);
+
                 // update PSWAP price (price from pair with XOR)
                 if (p.targetAssetId === PSWAP && p.baseAssetId === XOR) {
                     pswapPriceInDAI = daiPrice;
                 }
-            });
+            }
         }
 
         // update price samples

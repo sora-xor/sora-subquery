@@ -7,6 +7,7 @@ import { isExchangeEvent } from '../../utils/events';
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
+import { poolsSnapshotsStorage } from '../../utils/pools';
 import { XOR } from '../../utils/consts';
 import { logStartProcessingCall } from '../../utils/logs';
 
@@ -173,16 +174,19 @@ export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> 
   logStartProcessingCall(extrinsic);
 
   await handleAndSaveSwapExtrinsic(extrinsic);
+  await poolsSnapshotsStorage.processSwap(extrinsic);
 }
 
 export async function handleSwapTransfers(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
   await handleAndSaveSwapExtrinsic(extrinsic);
+  await poolsSnapshotsStorage.processSwap(extrinsic);
 }
 
 export async function handleSwapTransferBatch(extrinsic: SubstrateExtrinsic): Promise <void> {
   logStartProcessingCall(extrinsic);
 
   await handleAndSaveBatchExtrinsic(extrinsic);
+  await poolsSnapshotsStorage.processSwap(extrinsic);
 }

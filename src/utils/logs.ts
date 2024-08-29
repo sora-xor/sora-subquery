@@ -3,7 +3,7 @@ import type BigNumber from "bignumber.js";
 import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 import { testLogMode } from '../config';
 
-type BlockContext = SubstrateExtrinsic | SubstrateEvent | SubstrateBlock
+export type BlockContext = SubstrateExtrinsic | SubstrateEvent | SubstrateBlock
 
 type LogAttr = boolean | string | number | bigint | BigNumber;
 
@@ -102,28 +102,18 @@ export function getSyncPricesLog(ctx: BlockContext, onlyWithTestLogMode: boolean
 	return getLog(ctx, 'SyncPrices', {}, onlyWithTestLogMode)
 }
 
-export function getAssetStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-	return getLog(ctx, 'AssetStorage', {}, onlyWithTestLogMode)
-}
-
-export function getAssetSnapshotsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-	return getLog(ctx, 'AssetSnapshotsStorage', {}, onlyWithTestLogMode)
+export function getStorageLog(entityName: string) {
+	return function (ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+    return getLog(ctx, entityName, {}, onlyWithTestLogMode);
+  }
 }
 
 export function getNetworkSnapshotsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
 	return getLog(ctx, 'NetworkSnapshotsStorage', {}, onlyWithTestLogMode)
 }
 
-export function getOrderBooksSnapshotsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-	return getLog(ctx, 'OrderBooksSnapshotsStorage', {}, onlyWithTestLogMode)
-}
-
 export function getPoolsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
 	return getLog(ctx, 'PoolsStorage', {}, onlyWithTestLogMode)
-}
-
-export function getOrderBooksStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-	return getLog(ctx, 'OrderBooksStorage', {}, onlyWithTestLogMode)
 }
 
 export function getUtilsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {

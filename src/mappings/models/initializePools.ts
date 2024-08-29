@@ -62,17 +62,13 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     if (entities.length) {
         // get or create entities in DB & memory
         // We don't use Promise.all here because we need consistent order of requests in the log
-        const created = [];
         for (const entity of entities) {
             const pool = await poolsStorage.getPoolById(block, entity.id);
-            created.push(pool);
+            // update data in memory storage
+            Object.assign(pool, entity);
         }
-        // update data in memory storage
-        created.forEach((entity) => {
-            Object.assign(entity, poolsBuffer.get(entity.id))
-        });
         // save in DB
-        await store.bulkUpdate('PoolXYK', created);
+        await poolsStorage.sync(block);
         getInitializePoolsLog(block).info(`${entities.length} Pool XYKs initialized!`);
     } else {
         getInitializePoolsLog(block).info('No Pool XYKs to initialize!');

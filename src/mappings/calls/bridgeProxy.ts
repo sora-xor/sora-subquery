@@ -108,7 +108,7 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 
     const assetId = getAssetId(assetCodec);
     const amount = formatU128ToBalance(amountCodec.toString(), assetId);
-    const asset = await assetStorage.getAsset(extrinsic.block, assetId);
+    const asset = await assetStorage.getEntity(extrinsic.block, assetId);
     const amountUSD = new BigNumber(asset.priceUSD).multipliedBy(new BigNumber(amount)).toFixed(2);
 
     details.networkType = subNetworkId.toString();
@@ -134,7 +134,7 @@ export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic):
 
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
-  const asset = await assetStorage.getAsset(extrinsic.block, assetId);
+  const asset = await assetStorage.getEntity(extrinsic.block, assetId);
   const amountUSD = new BigNumber(asset.priceUSD).multipliedBy(new BigNumber(amount)).toFixed(2);
   const to = getAccount(recipient);
 
