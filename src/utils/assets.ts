@@ -73,7 +73,7 @@ class AssetStorage extends EntityStorage<Asset> {
     super('Asset')
   }
 
-  public override createEntity(block: SubstrateBlock, id: string): Asset {
+  public override async createEntity(block: SubstrateBlock, id: string): Promise<Asset> {
     return new Asset(id, '0', BigInt(0));
   }
 
@@ -117,7 +117,13 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
     super('AssetSnapshot', assetStorage)
   }
 
-  public override createEntity(block: SubstrateBlock, id: string, timestamp: number, type: SnapshotType, asset: Asset): AssetSnapshot {
+  public override async createEntity(
+    block: SubstrateBlock,
+    id: string,
+    timestamp: number,
+    type: SnapshotType,
+    asset: Asset
+  ): Promise<AssetSnapshot> {
     const snapshot = new AssetSnapshot(id, asset.id, timestamp, type, asset.supply, BigInt(0), BigInt(0));
 
     snapshot.volume = {

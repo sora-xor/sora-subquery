@@ -130,7 +130,7 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
     return [orderBookId, orderId].join('_');
   }
 
-  public override createEntity(block: SubstrateBlock, id: string): OrderBook {
+  public override async createEntity(block: SubstrateBlock, id: string): Promise<OrderBook> {
     const { dexId, baseAssetId, quoteAssetId } = this.parseId(id);
 
     return new OrderBook(
@@ -198,7 +198,13 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook
     super('OrderBookSnapshot', orderBooksStorage);
   }
 
-  createEntity(block: SubstrateBlock, id: string, timestamp: number, type: SnapshotType, orderBook: OrderBook): OrderBookSnapshot {
+  public override async createEntity(
+    block: SubstrateBlock,
+    id: string,
+    timestamp: number,
+    type: SnapshotType,
+    orderBook: OrderBook
+  ): Promise<OrderBookSnapshot> {
     const price = {
       open: orderBook.price,
       close: orderBook.price,

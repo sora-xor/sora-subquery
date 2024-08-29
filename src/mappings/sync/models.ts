@@ -3,7 +3,7 @@ import type { SubstrateBlock } from "@subql/types";
 import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
-import { poolsStorage } from '../../utils/pools';
+import { poolsStorage, poolsSnapshotsStorage } from '../../utils/pools';
 import { shouldUpdate } from '../../utils';
 import { getSyncModelsLog } from "../../utils/logs";
 
@@ -12,6 +12,7 @@ const STATS_UPDATE_DIFF = 60 * 60; // seconds
 export async function syncModels(block: SubstrateBlock): Promise<void> {
   getSyncModelsLog(block).debug('Sync models');
 
+  await poolsSnapshotsStorage.sync(block);
   await poolsStorage.sync(block);
   await assetSnapshotsStorage.sync(block);
   await assetStorage.sync(block);

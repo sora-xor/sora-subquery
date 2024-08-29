@@ -104,6 +104,22 @@ export const getPoolProviderBalance = async (block: SubstrateBlock, poolId: stri
   }
 }
 
+export const getPoolBalance = async (block: SubstrateBlock, poolId: string): Promise<string> => {
+  try {
+    getUtilsLog(block).debug({ poolId }, 'Pool balance request...');
+    const balance = (await api.query.poolXYK.totalIssuances(poolId)) as any;
+    getUtilsLog(block).debug({ poolId }, 'Pool balance request completed');
+
+    if (!balance.isSome) return '0';
+
+    return balance.unwrap().toString();
+  } catch (error) {
+    getUtilsLog(block).error('Error getting pool balance');
+		getUtilsLog(block).error(error);
+    return '0';
+  }
+}
+
 // https://github.com/sora-xor/sora2-network/blob/master/runtime/src/lib.rs#L1026
 export const getChameleonPool = (pool: Partial<PoolXYK>): boolean => {
   if (pool.baseAssetId === XOR && pool.targetAssetId === ETH) {
@@ -181,7 +197,12 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     super('AccountLiquidity');
   }
 
-  public createEntity(block: SubstrateBlock, id: string, accountId: string, poolId: string): AccountLiquidity {
+  public override async createEntity(
+    block: SubstrateBlock,
+    id: string,
+    accountId: string,
+    poolId: string
+  ): Promise<AccountLiquidity> {
     const accountLiquidity = new AccountLiquidity(id, accountId, poolId, BigInt(0));
 
     return accountLiquidity;
@@ -193,7 +214,7 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     return await this.getEntity(block, id);
   }
 
-  public async syncPoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<AccountLiquidity> {
+  public async updatePoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<AccountLiquidity> {
     const accountLiquidity = await this.getLiquidity(block, accountId, poolId);
     const accountLiquidityBalance = await getPoolProviderBalance(block, poolId, accountId);
     const poolTokens = BigInt(accountLiquidityBalance);
@@ -214,7 +235,13 @@ class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<AccountLiq
     super('AccountLiquiditySnapshot', accountLiquidityStorage);
   }
 
-  createEntity(block: SubstrateBlock, id: string, timestamp: number, type: SnapshotType, accountLiquidity: AccountLiquidity): AccountLiquiditySnapshot {
+  public override async createEntity(
+    block: SubstrateBlock,
+    id: string,
+    timestamp: number,
+    type: SnapshotType,
+    accountLiquidity: AccountLiquidity
+  ): Promise<AccountLiquiditySnapshot> {
     const snapshot = new AccountLiquiditySnapshot(
       id,
       timestamp,
@@ -226,8 +253,8 @@ class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<AccountLiq
     return snapshot;
   }
 
-  async syncPoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<void> {
-    const accountLiquidity = await this.entityStorage.syncPoolTokens(block, accountId, poolId);
+  async updatePoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<void> {
+    const accountLiquidity = await this.entityStorage.updatePoolTokens(block, accountId, poolId);
     const { id, poolTokens } = accountLiquidity;
 
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
@@ -239,7 +266,7 @@ class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<AccountLiq
 
       this.log(block, true).debug({ id, poolTokens }, 'Account Liquidity snapshot pool tokens updated')
 
-      await this.save(block, snapshot);
+      await this.save(block, snapshot, true);
     }
   }
 }
@@ -249,7 +276,12 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     super('PoolXYK');
   }
 
-  public createEntity(block: SubstrateBlock, id: string, baseAssetId: string, targetAssetId: string): PoolXYK {
+  public override async createEntity(
+    block: SubstrateBlock,
+    id: string,
+    baseAssetId: string,
+    targetAssetId: string
+  ): Promise<PoolXYK> {
     const multiplier = baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
 
     const pool = new PoolXYK(id, baseAssetId, targetAssetId, BigInt(0), BigInt(0), multiplier);
@@ -347,14 +379,10 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     return pool;
   }
 
-  public getPoolTokens(pool: PoolXYK): bigint {
-    const { baseAssetReserves, targetAssetReserves } = pool;
+  public async getPoolTokens(block: SubstrateBlock, poolId: string): Promise<bigint> {
+    const balance = await getPoolBalance(block, poolId);
 
-    const a = new BigNumber(baseAssetReserves.toString());
-    const b = new BigNumber(targetAssetReserves.toString());
-    const poolTokens = multiplyAndSqrt(a, b);
-
-    return BigInt(poolTokens.toString());
+    return BigInt(balance);
   }
 
   async updateApy(block: SubstrateBlock, id: string, strategicBonusApy: string): Promise<void> {
@@ -373,10 +401,16 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
     super('PoolSnapshot', poolsStorage);
   }
 
-  createEntity(block: SubstrateBlock, id: string, timestamp: number, type: SnapshotType, pool: PoolXYK): PoolSnapshot {
+  public override async createEntity(
+    block: SubstrateBlock,
+    id: string,
+    timestamp: number,
+    type: SnapshotType,
+    pool: PoolXYK
+  ): Promise<PoolSnapshot> {
     const { priceUSD: price, baseAssetReserves, targetAssetReserves, chameleonAssetReserves } = pool;
 
-    const poolTokenSupply = this.entityStorage.getPoolTokens(pool);
+    const poolTokenSupply = await this.entityStorage.getPoolTokens(block, pool.id);
     const poolPrice = price ?? '0';
     const priceUSD = {
       open: poolPrice,
@@ -395,7 +429,7 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
       priceUSD,
       baseAssetReserves,
       targetAssetReserves,
-      chameleonAssetReserves,
+      chameleonAssetReserves ?? BigInt(0),
       '0',
       '0',
       '0',
@@ -430,6 +464,22 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
         { id, newPrice: price },
         'Pool snapshot price updated',
       )
+
+      await this.save(block, snapshot);
+    }
+  }
+
+  async updatePoolTokens(block: SubstrateBlock, id: string) {
+    const poolBalance = await this.entityStorage.getPoolTokens(block, id);
+
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
+
+    for (const type of snapshotTypes) {
+      const snapshot = await this.getSnapshot(block, id, type);
+
+      snapshot.poolTokenSupply = poolBalance;
+
+      this.log(block, true).debug({}, `${this.entityName} pool token supply updated`);
 
       await this.save(block, snapshot);
     }
@@ -579,18 +629,6 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
   }
 
   protected async updateReserves(block: SubstrateBlock, pool: PoolXYK) {
-    const { baseAssetReserves, targetAssetReserves } = pool;
-
-    this.log(block, true).info({ baseAssetReserves: baseAssetReserves.toString(), targetAssetReserves: targetAssetReserves.toString() })
-
-    const a = new BigNumber(baseAssetReserves.toString()).sqrt();
-    const b = new BigNumber(targetAssetReserves.toString()).sqrt();
-    const c = a.multipliedBy(b).toExponential(18);
-
-    this.log(block, true).info({ a: a.toString(), b: b.toString(), c: c });
-
-    const poolTokenSupply = this.entityStorage.getPoolTokens(pool);
-
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
@@ -598,8 +636,7 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 
       snapshot.baseAssetReserves = pool.baseAssetReserves;
       snapshot.targetAssetReserves = pool.targetAssetReserves;
-      snapshot.chameleonAssetReserves = pool.chameleonAssetReserves;
-      snapshot.poolTokenSupply = poolTokenSupply;
+      snapshot.chameleonAssetReserves = pool.chameleonAssetReserves ?? BigInt(0);
 
       this.log(block, true).debug({}, `${this.entityName} reserves updated`);
 
@@ -612,8 +649,7 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
     id: string,
     liquidityUSD: BigNumber,
   ): Promise<void> {
-    const pool = await this.entityStorage.getPoolById(block, id);
-    const poolTokenSupply = this.entityStorage.getPoolTokens(pool);
+    const poolTokenSupply = await this.entityStorage.getPoolTokens(block, id);
     const poolTokens = new BigNumber(poolTokenSupply.toString()).dividedBy(Math.pow(10, 18));
     const poolTokenPriceUSD = liquidityUSD.dividedBy(poolTokens).toString();
 

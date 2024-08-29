@@ -3,7 +3,7 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { isAssetTransferEvent } from '../../utils/events';
-import { poolsStorage, accountLiquiditySnapshotsStorage } from '../../utils/pools';
+import { poolsStorage, poolsSnapshotsStorage, accountLiquiditySnapshotsStorage } from '../../utils/pools';
 import { logStartProcessingCall } from '../../utils/logs';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -35,7 +35,8 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
   }
 
   const pool = await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
-  await accountLiquiditySnapshotsStorage.syncPoolTokens(extrinsic.block, extrinsic.extrinsic.signer.toString(), pool.id);
+  await poolsSnapshotsStorage.updatePoolTokens(extrinsic.block, pool.id);
+  await accountLiquiditySnapshotsStorage.updatePoolTokens(extrinsic.block, extrinsic.extrinsic.signer.toString(), pool.id);
 
   await createHistoryElement(extrinsic, details);
 }
@@ -69,7 +70,8 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
   }
 
   const pool = await poolsStorage.getPool(extrinsic.block, baseAssetId, targetAssetId);
-  await accountLiquiditySnapshotsStorage.syncPoolTokens(extrinsic.block, extrinsic.extrinsic.signer.toString(), pool.id);
+  await poolsSnapshotsStorage.updatePoolTokens(extrinsic.block, pool.id);
+  await accountLiquiditySnapshotsStorage.updatePoolTokens(extrinsic.block, extrinsic.extrinsic.signer.toString(), pool.id);
 
   await createHistoryElement(extrinsic, details);
 }

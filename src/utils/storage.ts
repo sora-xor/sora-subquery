@@ -62,7 +62,7 @@ export class EntityStorage<Entity extends BaseEntity> {
     let entity = await this.load(id);
 
     if (!entity) {
-      entity = this.createEntity(block, id, ...args);
+      entity = await this.createEntity(block, id, ...args);
 
       await this.save(block, entity, true);
       this.log(block).debug({ id }, `${this.entityName} created and saved`);
@@ -73,7 +73,7 @@ export class EntityStorage<Entity extends BaseEntity> {
     return entity;
   }
 
-  public createEntity(block: SubstrateBlock, id: string, ...args: any[]): Entity {
+  public async createEntity(block: SubstrateBlock, id: string, ...args: any[]): Promise<Entity> {
     throw new Error(`[${this.constructor.name}] "createEntity" is not implemented`);
   }
 
@@ -106,21 +106,21 @@ export class EntitySnapshotsStorage<
   async getSnapshot(block: SubstrateBlock, entityId: string, type: SnapshotType): Promise<SnapshotEntity> {
     const blockTimestamp = formatDateTimestamp(block.timestamp);
     const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
-    const id = this.getId(entityId, type, index);
+    const snapshotId = this.getId(entityId, type, index);
 
-    if (this.storage.has(id)) {
-      this.log(block, true).debug({ id }, `${this.entityName} found in storage`);
-      return this.storage.get(id);
+    if (this.storage.has(snapshotId)) {
+      this.log(block, true).debug({ id: snapshotId }, `${this.entityName} found in storage`);
+      return this.storage.get(snapshotId);
     }
 
-    let snapshot = await this.load(id);
+    let snapshot = await this.load(snapshotId);
 
     if (!snapshot) {
       const entity = await this.entityStorage.getEntity(block, entityId);
 
-      snapshot = this.createEntity(block, id, timestamp, type, entity);
+      snapshot = await this.createEntity(block, snapshotId, timestamp, type, entity);
 
-      this.log(block).debug({ id }, `${this.entityName} created and saved`);
+      this.log(block).debug({ id: snapshotId }, `${this.entityName} created and saved`);
     }
 
     this.storage.set(snapshot.id, snapshot);
