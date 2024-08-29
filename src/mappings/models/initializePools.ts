@@ -64,7 +64,8 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
         // We don't use Promise.all here because we need consistent order of requests in the log
         for (const entity of entities) {
             const pool = await poolsStorage.getPoolById(block, entity.id);
-            Object.assign(pool, poolsBuffer.get(entity.id))
+            // update data in memory storage
+            Object.assign(pool, entity);
         }
         // save in DB
         await poolsStorage.sync(block);

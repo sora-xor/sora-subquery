@@ -2,7 +2,8 @@ import { SubstrateBlock } from "@subql/types";
 import { AccountLiquidity } from '../../types';
 
 import { getAccountEntity } from '../../utils/account';
-import { poolAccounts, getAllPoolProviders, accountLiquidityStorage } from '../../utils/pools';
+import { accountLiquidityStorage } from '../../utils/accountLiquidity';
+import { poolAccounts, getAllPoolProviders } from '../../utils/pools';
 import { getInitializePoolsLog } from "../../utils/logs";
 
 let isFirstBlockIndexed = false;
@@ -37,7 +38,7 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
       for (const entity of entities) {
         const liquidity = await accountLiquidityStorage.getEntity(block, entity.id);
         // update data in memory storage
-        Object.assign(liquidity, accountLiquidities.get(entity.id));
+        Object.assign(liquidity, entity);
       }
       // save in DB
       await accountLiquidityStorage.sync(block);

@@ -3,7 +3,8 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { isAssetTransferEvent } from '../../utils/events';
-import { poolsStorage, poolsSnapshotsStorage, accountLiquiditySnapshotsStorage } from '../../utils/pools';
+import { accountLiquiditySnapshotsStorage } from '../../utils/accountLiquidity';
+import { poolsStorage, poolsSnapshotsStorage } from '../../utils/pools';
 import { logStartProcessingCall } from '../../utils/logs';
 
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {

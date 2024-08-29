@@ -9,12 +9,6 @@ import { SnapshotType } from "../types";
 import { SnapshotSecondsMap, SnapshotTimeDepthMap } from './consts';
 import { SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 
-export const multiplyAndSqrt = (a: BigNumber, b: BigNumber) => {
-  const lhs = a.sqrt();
-  const rhs = b.sqrt();
-  return lhs.multipliedBy(rhs);
-};
-
 export const toFloat = (value: BigNumber) => Number(value.toFixed(2));
 
 export const last = <T>(snapshots: T[]) => {

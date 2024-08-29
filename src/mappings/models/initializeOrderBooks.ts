@@ -52,17 +52,13 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
   if (entities.length) {
     // get or create entities in DB & memory
     // We don't use Promise.all here because we need consistent order of requests in the log
-    const created = [];
     for (const entity of entities) {
         const orderBook = await orderBooksStorage.getEntity(block, entity.id);
-        created.push(orderBook);
+        // update data in memory storage
+        Object.assign(orderBook, entity);
     }
-    // update data in memory storage
-    created.forEach((entity) => {
-      Object.assign(entity, buffer.get(entity.id))
-    });
     // save in DB
-    await store.bulkUpdate('OrderBook', created);
+    await orderBooksStorage.sync(block);
     getInitializeOrderBooksLog(block).info(`${entities.length} Order Books initialized!`);
   } else {
     getInitializeOrderBooksLog(block).info('No Order Books to initialize!');
