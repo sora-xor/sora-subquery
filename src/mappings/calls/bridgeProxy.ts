@@ -1,9 +1,8 @@
-import BigNumber from "bignumber.js";
 import { u8aToHex } from '@polkadot/util';
 
 import { SubstrateExtrinsic } from "@subql/types";
 import { createHistoryElement } from "../../utils/history";
-import { getAssetId, formatU128ToBalance, assetStorage } from '../../utils/assets';
+import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { logStartProcessingCall } from "../../utils/logs";
 
@@ -108,8 +107,7 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 
     const assetId = getAssetId(assetCodec);
     const amount = formatU128ToBalance(amountCodec.toString(), assetId);
-    const asset = await assetStorage.getEntity(extrinsic.block, assetId);
-    const amountUSD = new BigNumber(asset.priceUSD).multipliedBy(new BigNumber(amount)).toFixed(2);
+    const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
     details.networkType = subNetworkId.toString();
     details.networkId = null;
@@ -134,8 +132,7 @@ export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic):
 
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
-  const asset = await assetStorage.getEntity(extrinsic.block, assetId);
-  const amountUSD = new BigNumber(asset.priceUSD).multipliedBy(new BigNumber(amount)).toFixed(2);
+  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
   const to = getAccount(recipient);
 
   const details: any = {

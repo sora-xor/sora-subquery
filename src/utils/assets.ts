@@ -28,6 +28,19 @@ export const calcTvlUSD = (asset: Asset, reserves?: bigint): BigNumber => {
   return price.multipliedBy(amount);
 };
 
+export const getAmountUSD = async (
+  block: SubstrateBlock,
+  assetId: string,
+  amount: string,
+  double = false,
+) => {
+  const asset = await assetStorage.getEntity(block, assetId);
+  const amountUSD = new BigNumber(asset.priceUSD).multipliedBy(new BigNumber(amount));
+  const result = double ? amountUSD.multipliedBy(new BigNumber(2)) : amountUSD;
+
+  return result.toFixed(2);
+};
+
 export let assetPrecisions = new Map<string, number>();
 
 // <ticker string, assetId string>

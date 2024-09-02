@@ -5,7 +5,7 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { bytesToString } from "../../utils";
 import { isExchangeEvent } from '../../utils/events';
 import { createHistoryElement } from "../../utils/history";
-import { getAssetId, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
+import { getAssetId, getAmountUSD, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolsSnapshotsStorage } from '../../utils/pools';
 import { XOR } from '../../utils/consts';
@@ -91,7 +91,12 @@ const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promis
 
     details.baseAssetAmount = formatU128ToBalance(baseAssetAmount.toString(), baseAssetId);
     details.targetAssetAmount = formatU128ToBalance(targetAssetAmount.toString(), targetAssetId);
+  }
 
+  details.baseAssetAmountUSD = await getAmountUSD(extrinsic.block, details.baseAssetId, details.baseAssetAmount);
+  details.targetAssetAmountUSD = await getAmountUSD(extrinsic.block, details.targetAssetId, details.targetAssetAmount);
+
+  if (exchangeEvent) {
     // update assets volume
     const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount);
     const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount);
@@ -124,10 +129,14 @@ const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promi
     const assetId = getAssetId(swapBatchInfo.outcomeAssetId);
 
     for (const receiverInfo of swapBatchInfo.receivers) {
+      const amount = formatU128ToBalance(receiverInfo.targetAmount.toString(), assetId);
+      const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
+
       details.receivers.push({
         assetId,
+        amount,
+        amountUSD,
         accountId: receiverInfo.accountId.toString(),
-        amount: formatU128ToBalance(receiverInfo.targetAmount.toString(), assetId)
       });
     }
   }
@@ -149,16 +158,20 @@ const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promi
   const receiverIds = details.receivers.map((receiver) => receiver.accountId);
 
   for (const assetTransferEvent of assetTransferEvents) {
-    const { event: { data: [from, to, asset, amount] } } = assetTransferEvent;
+    const { event: { data: [from, to, asset, amountCodec] } } = assetTransferEvent;
     const sender = from.toString();
     const receiver = to.toString();
     // if technical transfer, skip
     if (!(sender === extrinsicSigner && receiverIds.includes(receiver))) continue;
 
     const assetId =  getAssetId(asset);
+    const amount = formatU128ToBalance(amountCodec.toString(), assetId);
+    const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
+
     const transfer = {
       assetId,
-      amount: formatU128ToBalance(amount.toString(), assetId),
+      amount,
+      amountUSD,
       from: sender,
       to: receiver,
     };

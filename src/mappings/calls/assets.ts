@@ -5,7 +5,7 @@ import { bytesToString } from "../../utils";
 import { XOR } from '../../utils/consts';
 import { isExchangeEvent } from "../../utils/events";
 import { createHistoryElement, getExtrinsicNetworkFee } from "../../utils/history";
-import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { logStartProcessingCall } from "../../utils/logs";
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -33,12 +33,16 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 export async function assetBurnHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [asset, amount] } } = extrinsic;
+  const { extrinsic: { args: [assetCodec, amountCodec] } } = extrinsic;
 
-  const assetId = getAssetId(asset);
+  const assetId = getAssetId(assetCodec);
+  const amount = formatU128ToBalance(amountCodec.toString(), assetId);
+  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
+
   const details: any = {
     assetId,
-    amount: formatU128ToBalance(amount.toString(), assetId),
+    amount,
+    amountUSD,
   };
 
   await createHistoryElement(extrinsic, details);
@@ -47,12 +51,16 @@ export async function assetBurnHandler(extrinsic: SubstrateExtrinsic): Promise<v
 export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [asset, to, amount] } } = extrinsic;
+  const { extrinsic: { args: [assetCodec, to, amountCodec] } } = extrinsic;
 
-  const assetId = getAssetId(asset);
+  const assetId = getAssetId(assetCodec);
+  const amount = formatU128ToBalance(amountCodec.toString(), assetId);
+  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
+
   const details: any = {
     assetId,
-    amount: formatU128ToBalance(amount.toString(), assetId),
+    amount,
+    amountUSD,
     to: to.toString()
   };
 
@@ -62,12 +70,16 @@ export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<v
 export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [asset, to, amount] } } = extrinsic;
+  const { extrinsic: { args: [assetCodec, to, amountCodec] } } = extrinsic;
 
-  const assetId = getAssetId(asset);
+  const assetId = getAssetId(assetCodec);
+  const amount = formatU128ToBalance(amountCodec.toString(), assetId);
+  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
+
   const details: any = {
     assetId,
-    amount: formatU128ToBalance(amount.toString(), assetId),
+    amount,
+    amountUSD,
     from: extrinsic.extrinsic.signer.toString(),
     to: to.toString(),
   };
@@ -80,14 +92,18 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
 
   const {
     extrinsic: {
-      args: [dexId, asset, receiver, amount, desiredXorAmount, maxAmountIn, selectedSources, filterMode, additionalData ]
+      args: [dexId, assetCodec, receiver, amountCodec, desiredXorAmount, maxAmountIn, selectedSources, filterMode, additionalData ]
     }
   } = extrinsic;
 
-  const assetId = getAssetId(asset);
+  const assetId = getAssetId(assetCodec);
+  const amount = formatU128ToBalance(amountCodec.toString(), assetId);
+  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
+
   const details: any = {
     assetId,
-    amount: formatU128ToBalance(amount.toString(), assetId),
+    amount,
+    amountUSD,
     from: extrinsic.extrinsic.signer.toString(),
     to: receiver.toString(),
     comment: !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null,

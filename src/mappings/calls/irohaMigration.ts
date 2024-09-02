@@ -1,34 +1,30 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
+import { isAssetDepositedEvent, getDepositedEventData, isAssetTransferEvent, getTransferEventData } from '../../utils/events';
 import { createHistoryElement } from "../../utils/history";
-import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
 
 export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Promise<void> {
-    logStartProcessingCall(extrinsic);
+  logStartProcessingCall(extrinsic);
 
-    const details: any = {};
+  const details: any = {};
 
-    let assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Deposited' && e.event.section === 'currencies')
+  const currenciesEvent = extrinsic.events.find(e => isAssetDepositedEvent(e) || isAssetTransferEvent(e));
 
-    if (assetTransferEvent) {
-        const { event: { data: [asset, , amount] } } = assetTransferEvent;
-        const assetId = getAssetId(asset);
+  if (currenciesEvent) {
+    const { assetId, amount: assetAmount, to } = isAssetDepositedEvent(currenciesEvent)
+      ? getDepositedEventData(currenciesEvent)
+      : getTransferEventData(currenciesEvent);
 
-        details.assetId = assetId;
-        details.amount = formatU128ToBalance(amount.toString(), assetId);
+    const amount = formatU128ToBalance(assetAmount, assetId);
+    const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
-    } else {
-        assetTransferEvent = extrinsic.events.find(e => e.event.method === 'Transferred' && e.event.section === 'currencies')
+    details.assetId = assetId;
+    details.amount = amount;
+    details.amountUSD = amountUSD;
+    details.to = to;
+  }
 
-        if (assetTransferEvent) {
-            const { event: { data: [asset, , , amount] } } = assetTransferEvent;
-            const assetId = getAssetId(asset);
-
-            details.assetId = assetId;
-            details.amount = formatU128ToBalance(amount.toString(), assetId);
-        }
-    }
-
-    await createHistoryElement(extrinsic, details)
+  await createHistoryElement(extrinsic, details)
 }

@@ -1,22 +1,25 @@
-import { formatU128ToBalance } from '../../utils/assets'
+import { formatU128ToBalance, getAmountUSD } from '../../utils/assets'
 import { VAL } from '../../utils/consts'
 import { getActiveStakingEra, getStakingStaker } from '../../utils/staking'
 import { SubstrateEvent } from '@subql/types'
 import { logStartProcessingEvent } from '../../utils/logs'
 import { createHistoryElement } from '../../utils/history'
 
-function getRewardData(event: SubstrateEvent): { stash: string; amount: string } {
-	const data = event.event.data as any
-	const stash = Array.isArray(data) ? data[0] : data.stash
-	const amount = Array.isArray(data) ? data[1] : data.amount
+async function getRewardData(event: SubstrateEvent): Promise<{ stash: string; amount: string; amountUSD: string }> {
+	const data = event.event.data as any;
+	const stash = Array.isArray(data) ? data[0] : data.stash;
+	const valAmount = Array.isArray(data) ? data[1] : data.amount;
 
-	return { stash: stash.toString(), amount: formatU128ToBalance(amount.toString(), VAL) }
+	const amount = formatU128ToBalance(valAmount.toString(), VAL);
+	const amountUSD = await getAmountUSD(event.block, VAL, amount);
+
+	return { stash: stash.toString(), amount, amountUSD }
 }
 
 export async function stakingRewardedEventHandler(event: SubstrateEvent): Promise<void> {
 	logStartProcessingEvent(event);
 
-	const { stash, amount } = getRewardData(event);
+	const { stash, amount, amountUSD } = await getRewardData(event);
 
 	const stakingEra = await getActiveStakingEra(event.block);
 	const staker = await getStakingStaker(event.block, stash);
@@ -26,6 +29,7 @@ export async function stakingRewardedEventHandler(event: SubstrateEvent): Promis
 		stash,
 		payee,
 		amount,
+		amountUSD,
 		era: stakingEra.index
 	};
 
