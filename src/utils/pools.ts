@@ -4,6 +4,7 @@ import { SubstrateBlock, SubstrateExtrinsic } from '@subql/types';
 import { PoolSnapshot, PoolXYK, SnapshotType } from '../types';
 import { XOR, KXOR, ETH, DOUBLE_PRICE_POOL } from './consts';
 import { assetStorage, calcTvlUSD } from "./assets";
+import { accountLiquiditySnapshotsStorage } from './accountLiquidity';
 import { getUtilsLog } from './logs';
 import { poolXykApyUpdatesStream } from "./stream";
 import { EntityStorage, EntitySnapshotsStorage } from './storage';
@@ -53,11 +54,15 @@ export const getPoolProperties = async (block: SubstrateBlock, baseAssetId: stri
     getUtilsLog(block).debug({ baseAssetId, targetAssetId }, 'Pool properties request...');
     const props = (await api.query.poolXYK.properties(baseAssetId, targetAssetId)).toJSON() as any;
     getUtilsLog(block).debug({ baseAssetId, targetAssetId }, 'Pool properties request completed');
-    if (!Array.isArray(props)) return null;
 
-    const poolAccountId = props[0];
-
-    return poolAccountId;
+    if (!Array.isArray(props)) {
+      getUtilsLog(block).debug({ baseAssetId, targetAssetId }, 'Pool id not exists');
+      return null;
+    } else {
+      const poolAccountId = props[0];
+      getUtilsLog(block).debug({ baseAssetId, targetAssetId, poolAccountId }, 'Pool id exists');
+      return poolAccountId;
+    }
   } catch (error) {
     getUtilsLog(block).error('Error getting pool properties');
 		getUtilsLog(block).error(error);
@@ -573,3 +578,18 @@ export const poolAccounts = new PoolAccountsStorage();
 
 export const poolsStorage = new PoolsStorage();
 export const poolsSnapshotsStorage = new PoolsSnapshotsStorage(poolsStorage);
+
+
+export const onPoolInitialization = async (
+  block: SubstrateBlock,
+  baseAssetId: string,
+  targetAssetId: string,
+  signer: string
+) => {
+  const pool = await poolsStorage.getPool(block, baseAssetId, targetAssetId);
+
+  if (pool) {
+    await poolsSnapshotsStorage.updatePoolTokens(block, pool.id);
+    await accountLiquiditySnapshotsStorage.updatePoolTokens(block, signer, pool.id);
+  }
+}

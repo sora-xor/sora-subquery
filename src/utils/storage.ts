@@ -31,6 +31,10 @@ export class EntityStorage<Entity extends BaseEntity> {
     return args.join('-');
   }
 
+  public parseId(id: string): string[] {
+    return id.split('-');
+  }
+
   protected async load(id: string): Promise<Entity> {
     return await store.get(this.entityName, id) as Entity;
   }

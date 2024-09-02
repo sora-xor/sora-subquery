@@ -116,26 +116,16 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
     return accountId;
   }
 
-  public parseId(id: string) {
-    const [dexId, baseAssetId, quoteAssetId] = id.split('-');
-
-    return {
-      dexId: Number(dexId),
-      baseAssetId,
-      quoteAssetId,
-    };
-  }
-
   public getOrderId(orderBookId: string, orderId: string | number): string {
     return [orderBookId, orderId].join('_');
   }
 
   public override async createEntity(block: SubstrateBlock, id: string): Promise<OrderBook> {
-    const { dexId, baseAssetId, quoteAssetId } = this.parseId(id);
+    const [dexId, baseAssetId, quoteAssetId] = this.parseId(id);
 
     return new OrderBook(
       id,
-      dexId,
+      Number(dexId),
       baseAssetId,
       quoteAssetId,
       BigInt(0),

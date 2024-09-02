@@ -1,6 +1,8 @@
 import { SubstrateBlock } from '@subql/types';
 import { getUtilsLog } from './logs';
 import { AccountLiquidity, AccountLiquiditySnapshot,SnapshotType } from '../types';
+import { getAccountEntity } from './account';
+import { poolsStorage } from './pools';
 import { EntityStorage, EntitySnapshotsStorage } from './storage';
 import { getSnapshotTypes } from './index';
 
@@ -28,22 +30,20 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
   public override async createEntity(
     block: SubstrateBlock,
     id: string,
-    accountId: string,
-    poolId: string
   ): Promise<AccountLiquidity> {
-    const accountLiquidity = new AccountLiquidity(id, accountId, poolId, BigInt(0));
+    const [accountId, poolId] = this.parseId(id);
+
+    const account = await getAccountEntity(block, accountId);
+    const pool = await poolsStorage.getPoolById(block, poolId);
+
+    const accountLiquidity = new AccountLiquidity(id, account.id, pool.id, BigInt(0));
 
     return accountLiquidity;
   }
 
-  public async getLiquidity(block: SubstrateBlock, accountId: string, poolId: string): Promise<AccountLiquidity> {
-    const id = this.getId(accountId, poolId);
-
-    return await this.getEntity(block, id);
-  }
-
   public async updatePoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<AccountLiquidity> {
-    const accountLiquidity = await this.getLiquidity(block, accountId, poolId);
+    const id = this.getId(accountId, poolId);
+    const accountLiquidity = await this.getEntity(block, id);
     const accountLiquidityBalance = await getPoolProviderBalance(block, poolId, accountId);
     const poolTokens = BigInt(accountLiquidityBalance);
 
