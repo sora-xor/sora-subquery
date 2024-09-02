@@ -1,20 +1,23 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { createHistoryElement } from "../../utils/history";
-import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { logStartProcessingCall } from "../../utils/logs";
 
 export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
     logStartProcessingCall(extrinsic);
 
-    const { extrinsic: { args: [asset, sidechainAddress, amount, ] } } = extrinsic;
+    const { extrinsic: { args: [asset, sidechainAddress, amountCodec, ] } } = extrinsic;
 
     const assetId = getAssetId(asset);
+    const amount = formatU128ToBalance(amountCodec.toString(), assetId);
+    const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
     const details: any = {
         assetId,
+        amount,
+        amountUSD,
         sidechainAddress: sidechainAddress.toString(),
-        amount: formatU128ToBalance(amount.toString(), assetId)
     };
 
     const soraEthTransferEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered');

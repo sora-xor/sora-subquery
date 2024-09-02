@@ -1,15 +1,18 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { createHistoryElement } from "../../utils/history";
-import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { logStartProcessingCall } from "../../utils/logs";
 
 export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [orderBookId, price, amount, side, lifetimeOption] } } = extrinsic as any;
+  const { extrinsic: { args: [orderBookId, price, amountCodec, side, lifetimeOption] } } = extrinsic as any;
 
   const baseAssetId = getAssetId(orderBookId.base);
   const quoteAssetId = getAssetId(orderBookId.quote);
+
+  const amount = formatU128ToBalance(amountCodec.toString(), baseAssetId);
+  const amountUSD = await getAmountUSD(extrinsic.block, baseAssetId, amount);
 
   const details = {
     dexId: orderBookId.dexId.toNumber(),
@@ -17,7 +20,8 @@ export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrin
     quoteAssetId,
     orderId: null,
     price: formatU128ToBalance(price.toString(), quoteAssetId),
-    amount: formatU128ToBalance(amount.toString(), baseAssetId),
+    amount,
+    amountUSD,
     side: side.toHuman(),
     lifetime: !lifetimeOption.isEmpty ? Number(lifetimeOption.unwrap()) / 1000 : null,
   };

@@ -24,12 +24,20 @@ export const isTokenDepositedEvent = (e: TypedEventRecord<Codec[]>) => {
   return e.event.method === 'Deposited' && e.event.section === 'tokens';
 };
 
+export const isCurrencyDepositedEvent = (e: TypedEventRecord<Codec[]>) => {
+  return e.event.method === 'Deposited' && e.event.section === 'currencies';
+};
+
+export const isCurrencyTransferEvent = (e: TypedEventRecord<Codec[]>) => {
+  return e.event.method === 'Transferred' && e.event.section === 'currencies';
+};
+
 export const isAssetTransferEvent = (e: TypedEventRecord<Codec[]>): boolean => {
-  return isXorTransferEvent(e) || isTokenTransferEvent(e);
+  return isXorTransferEvent(e) || isTokenTransferEvent(e) || isCurrencyTransferEvent(e);
 };
 
 export const isAssetDepositedEvent = (e: TypedEventRecord<Codec[]>): boolean => {
-  return isXorDepositedEvent(e) || isTokenDepositedEvent(e);
+  return isXorDepositedEvent(e) || isTokenDepositedEvent(e) || isCurrencyDepositedEvent(e);
 };
 
 export const getTransferEventData = (e: TypedEventRecord<Codec[]>) => {
@@ -42,7 +50,7 @@ export const getTransferEventData = (e: TypedEventRecord<Codec[]>) => {
     to: to.toString(),
     amount: amount.toString(),
   };
-}
+};
 
 export const getDepositedEventData = (e: TypedEventRecord<Codec[]>) => {
   const [amount, to, currencyId] = e.event.data.slice().reverse();
@@ -53,4 +61,4 @@ export const getDepositedEventData = (e: TypedEventRecord<Codec[]>) => {
     to: to.toString(),
     amount: amount.toString(),
   };
-}
+};

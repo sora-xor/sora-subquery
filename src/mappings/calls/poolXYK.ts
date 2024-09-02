@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
 import { createHistoryElement } from "../../utils/history";
-import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { isAssetTransferEvent } from '../../utils/events';
 import { onPoolInitialization } from '../../utils/pools';
 import { logStartProcessingCall } from '../../utils/logs';
@@ -14,7 +14,7 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
   const baseAssetId = getAssetId(assetAId);
   const targetAssetId = getAssetId(assetBId);
 
-  const details = {
+  const details: any = {
     type: "Deposit",
     baseAssetId,
     targetAssetId,
@@ -34,6 +34,9 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
     details.targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
   }
 
+  details.baseAssetAmountUSD = await getAmountUSD(extrinsic.block, details.baseAssetId, details.baseAssetAmount);
+  details.targetAssetAmountUSD = await getAmountUSD(extrinsic.block, details.targetAssetId, details.targetAssetAmount);
+
   await onPoolInitialization(extrinsic.block, baseAssetId, targetAssetId, extrinsic.extrinsic.signer.toString());
 
   await createHistoryElement(extrinsic, details);
@@ -47,7 +50,7 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
   const baseAssetId = getAssetId(assetAId);
   const targetAssetId = getAssetId(assetBId);
 
-  const details = {
+  const details: any = {
     type: "Removal",
     baseAssetId,
     targetAssetId,
@@ -66,6 +69,9 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
     details.baseAssetAmount = formatU128ToBalance(amountA.toString(), baseAssetId);
     details.targetAssetAmount = formatU128ToBalance(amountB.toString(), targetAssetId);
   }
+
+  details.baseAssetAmountUSD = await getAmountUSD(extrinsic.block, details.baseAssetId, details.baseAssetAmount);
+  details.targetAssetAmountUSD = await getAmountUSD(extrinsic.block, details.targetAssetId, details.targetAssetAmount);
 
   await onPoolInitialization(extrinsic.block, baseAssetId, targetAssetId, extrinsic.extrinsic.signer.toString());
 
