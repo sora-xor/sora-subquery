@@ -91,7 +91,12 @@ const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promis
 
     details.baseAssetAmount = formatU128ToBalance(baseAssetAmount.toString(), baseAssetId);
     details.targetAssetAmount = formatU128ToBalance(targetAssetAmount.toString(), targetAssetId);
+  }
 
+  details.baseAssetAmountUSD = await getAmountUSD(extrinsic.block, details.baseAssetId, details.baseAssetAmount);
+  details.targetAssetAmountUSD = await getAmountUSD(extrinsic.block, details.targetAssetId, details.targetAssetAmount);
+
+  if (exchangeEvent) {
     // update assets volume
     const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount);
     const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount);
@@ -100,9 +105,6 @@ const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promis
 
     await networkSnapshotsStorage.updateVolumeStats(extrinsic.block, volumeUSD);
   }
-
-  details.baseAssetAmountUSD = await getAmountUSD(extrinsic.block, details.baseAssetId, details.baseAssetAmount);
-  details.targetAssetAmountUSD = await getAmountUSD(extrinsic.block, details.targetAssetId, details.targetAssetAmount);
 
   await createHistoryElement(extrinsic, details);
 }
