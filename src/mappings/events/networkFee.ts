@@ -1,5 +1,7 @@
 import { SubstrateEvent } from "@subql/types";
 
+import { XOR } from '../../utils/consts';
+import { getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { accountMetaStorage } from '../../utils/account';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { logStartProcessingEvent } from "../../utils/logs";
@@ -10,8 +12,10 @@ export async function handleNetworkFee(event: SubstrateEvent): Promise<void> {
   const { event: { data: [account, fee] } } = event;
 
   const accountId = account.toString();
-  const formattedFee = fee.toString();
+  const assetId = XOR;
+  const amount = formatU128ToBalance(fee.toString(), assetId);
+  const amountUSD = await getAmountUSD(event.block, assetId, amount);
 
-  await accountMetaStorage.updateFees(event.block, accountId, formattedFee);
-  await networkSnapshotsStorage.updateFeesStats(event.block, BigInt(formattedFee));
+  await accountMetaStorage.updateFees(event.block, accountId, amount, amountUSD);
+  await networkSnapshotsStorage.updateFeesStats(event.block, BigInt(fee.toString()));
 }

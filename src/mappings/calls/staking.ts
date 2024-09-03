@@ -1,4 +1,5 @@
 import { SubstrateExtrinsic } from "@subql/types";
+import { getExtrinsicSigner } from '../../utils';
 import { createHistoryElement } from "../../utils/history";
 import { XOR } from "../../utils/consts";
 import { formatU128ToBalance, getAmountUSD } from "../../utils/assets";
@@ -230,7 +231,7 @@ export async function stakingSetControllerCallHandler(extrinsic: SubstrateExtrin
 
     const { extrinsic: { args: [controller] }} = extrinsic as any;
 
-    const extrinsicSigner = extrinsic.extrinsic.signer.toString();
+    const extrinsicSigner = getExtrinsicSigner(extrinsic);
     const stakingStaker = await getStakingStaker(extrinsic.block, extrinsicSigner);
 
     stakingStaker.controller = controller.toString();
@@ -285,7 +286,7 @@ export async function stakingSetPayeeCallHandler(extrinsic: SubstrateExtrinsic):
 
     const { extrinsic: { args }} = extrinsic as any;
 
-    const extrinsicSigner = extrinsic.extrinsic.signer.toString();
+    const extrinsicSigner = getExtrinsicSigner(extrinsic);
     const stakingStaker = await getStakingStaker(extrinsic.block, extrinsicSigner);
     const kind = args[0];
 

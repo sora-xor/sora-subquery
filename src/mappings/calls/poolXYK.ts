@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
+import { getExtrinsicSigner } from '../../utils';
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { isAssetTransferEvent } from '../../utils/events';
@@ -37,7 +38,7 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
   details.baseAssetAmountUSD = await getAmountUSD(extrinsic.block, details.baseAssetId, details.baseAssetAmount);
   details.targetAssetAmountUSD = await getAmountUSD(extrinsic.block, details.targetAssetId, details.targetAssetAmount);
 
-  await onPoolInitialization(extrinsic.block, baseAssetId, targetAssetId, extrinsic.extrinsic.signer.toString());
+  await onPoolInitialization(extrinsic.block, baseAssetId, targetAssetId, getExtrinsicSigner(extrinsic));
 
   await createHistoryElement(extrinsic, details);
 }
@@ -73,7 +74,7 @@ export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Pro
   details.baseAssetAmountUSD = await getAmountUSD(extrinsic.block, details.baseAssetId, details.baseAssetAmount);
   details.targetAssetAmountUSD = await getAmountUSD(extrinsic.block, details.targetAssetId, details.targetAssetAmount);
 
-  await onPoolInitialization(extrinsic.block, baseAssetId, targetAssetId, extrinsic.extrinsic.signer.toString());
+  await onPoolInitialization(extrinsic.block, baseAssetId, targetAssetId, getExtrinsicSigner(extrinsic));
 
   await createHistoryElement(extrinsic, details);
 }

@@ -4,8 +4,6 @@ import { SubstrateBlock } from "@subql/types";
 import { Account, AccountMeta } from "../types";
 
 import { EntityStorage } from "./storage";
-import { XOR } from './consts';
-import { formatU128ToBalance, getAmountUSD } from './assets';
 import { formatDateTimestamp, getBlockNumber } from "./index";
 import { networkSnapshotsStorage } from './network';
 import { getUtilsLog } from "./logs";
@@ -51,14 +49,20 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     return entity;
   }
 
-  public async updateFees(block: SubstrateBlock, id: string, fee: string) {
+  public async updateFees(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
     const meta = await this.getEntity(block, id);
 
-    const feeAmount = formatU128ToBalance(fee, XOR);
-    const feeAmountUSD = await getAmountUSD(block, XOR, feeAmount);
+    meta.xorFees.amount = new BigNumber(meta.xorFees.amount).plus(amount).toString();
+    meta.xorFees.amountUSD = new BigNumber(meta.xorFees.amountUSD).plus(amountUSD).toFixed(2);
 
-    meta.xorFees.amount = new BigNumber(meta.xorFees.amount).plus(feeAmount).toString();
-    meta.xorFees.amountUSD = new BigNumber(meta.xorFees.amountUSD).plus(feeAmountUSD).toFixed(2);
+    await this.save(block, meta);
+  }
+
+  public async updateBurned(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
+    const meta = await this.getEntity(block, id);
+
+    meta.xorBurned.amount = new BigNumber(meta.xorBurned.amount).plus(amount).toString();
+    meta.xorBurned.amountUSD = new BigNumber(meta.xorBurned.amountUSD).plus(amountUSD).toFixed(2);
 
     await this.save(block, meta);
   }

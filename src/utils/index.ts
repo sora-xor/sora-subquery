@@ -74,13 +74,16 @@ export const bytesToString = (ticker: any): string => {
 
 export const getCallId = (call: SubstrateExtrinsic): string => {
 	return call.extrinsic.hash.toString()
-}
+};
 
 export const getEventId = (event: SubstrateEvent): string => {
-	return `${getBlockNumber(event.block)}-${event.idx}`
-}
+  return `${getBlockNumber(event.block)}-${event.idx}`
+};
 
 export const getEntityId = (entity: SubstrateExtrinsic | SubstrateEvent): string => {
-	return 'event' in entity ? getEventId(entity) : getCallId(entity)
-}
+  return 'event' in entity ? getEventId(entity) : getCallId(entity)
+};
 
+export const getExtrinsicSigner = (extrinsic: SubstrateExtrinsic): string => {
+  return extrinsic.extrinsic.signer.toString();
+};

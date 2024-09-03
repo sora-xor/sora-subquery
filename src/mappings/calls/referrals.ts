@@ -1,4 +1,5 @@
 import { SubstrateExtrinsic } from "@subql/types";
+import { getExtrinsicSigner } from '../../utils';
 import { createHistoryElement } from "../../utils/history";
 import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
 import { isXorTransferEvent, getTransferEventData } from '../../utils/events';
@@ -11,7 +12,7 @@ export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise
   const { extrinsic: { args: [referrer] } } = extrinsic;
 
   const details: any = {
-    from: extrinsic.extrinsic.signer.toString(),
+    from: getExtrinsicSigner(extrinsic),
     to: referrer.toString()
   };
 

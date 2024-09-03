@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 
 import { SubstrateExtrinsic } from "@subql/types";
-import { bytesToString } from "../../utils";
+import { bytesToString, getExtrinsicSigner } from "../../utils";
 import { XOR } from '../../utils/consts';
 import { isExchangeEvent } from "../../utils/events";
 import { createHistoryElement, getExtrinsicNetworkFee } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
+import { accountMetaStorage } from '../../utils/account';
 import { logStartProcessingCall } from "../../utils/logs";
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -46,6 +47,15 @@ export async function assetBurnHandler(extrinsic: SubstrateExtrinsic): Promise<v
   };
 
   await createHistoryElement(extrinsic, details);
+
+  if (assetId === XOR) {
+    await accountMetaStorage.updateBurned(
+      extrinsic.block,
+      getExtrinsicSigner(extrinsic),
+      amount,
+      amountUSD,
+    );
+  }
 }
 
 export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -80,7 +90,7 @@ export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promis
     assetId,
     amount,
     amountUSD,
-    from: extrinsic.extrinsic.signer.toString(),
+    from: getExtrinsicSigner(extrinsic),
     to: to.toString(),
   };
 
@@ -104,7 +114,7 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     assetId,
     amount,
     amountUSD,
-    from: extrinsic.extrinsic.signer.toString(),
+    from: getExtrinsicSigner(extrinsic),
     to: receiver.toString(),
     comment: !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null,
     assetFee: '0', // fee paid in asset

@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { bytesToString } from "../../utils";
+import { bytesToString, getExtrinsicSigner } from "../../utils";
 import { isExchangeEvent } from '../../utils/events';
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
@@ -113,7 +113,7 @@ const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promi
   const [swapBatches, inputAsset, maxInputAmount, liquiditySources, filterMode, additionalData] = extrinsic.extrinsic.args.slice();
 
   const inputAssetId = getAssetId(inputAsset);
-  const extrinsicSigner = extrinsic.extrinsic.signer.toString();
+  const extrinsicSigner = getExtrinsicSigner(extrinsic);
 
   const details: any = {};
 

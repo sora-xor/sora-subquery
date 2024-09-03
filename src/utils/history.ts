@@ -3,7 +3,7 @@ import type { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from "@subql/
 import { HistoryElement, HistoryElementCall, HistoryElementType } from "../types";
 import { getAccountEntity } from './account';
 import { networkSnapshotsStorage } from './network';
-import { formatDateTimestamp, getEntityId, shouldUpdate, getBlockNumber } from './index';
+import { formatDateTimestamp, getEntityId, shouldUpdate, getBlockNumber, getExtrinsicSigner } from './index';
 import { getUtilsLog } from "./logs";
 
 const INCOMING_TRANSFER_METHODS = ['transfer', 'xorlessTransfer', 'swapTransfer', 'swapTransferBatch'];
@@ -144,7 +144,7 @@ export const createHistoryElement = async (
     const networkFee = isEvent ? '0' : getExtrinsicNetworkFee(extrinsic);
     const section = isEvent ? ctx.event.section : extrinsic.extrinsic.method.section;
     const method = isEvent ? ctx.event.method : extrinsic.extrinsic.method.method;
-    const owner = address ?? extrinsic.extrinsic.signer.toString();
+    const owner = address ?? getExtrinsicSigner(extrinsic);
 
 	const historyElement = new HistoryElement(
         getEntityId(ctx),

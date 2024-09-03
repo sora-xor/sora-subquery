@@ -6,7 +6,7 @@ import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { onPoolInitialization } from '../../utils/pools';
 import { logStartProcessingCall } from '../../utils/logs';
-import { getEntityId, getBlockNumber } from '../../utils';
+import { getEntityId, getBlockNumber, getExtrinsicSigner } from '../../utils';
 import { HistoryElementCall } from '../../types';
 
 function formatSpecificCalls(
@@ -93,7 +93,7 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
         const baseAssetId = initializePool.data.args.asset_a;
         const targetAssetId = initializePool.data.args.asset_b;
 
-        await onPoolInitialization(extrinsic.block, baseAssetId, targetAssetId, extrinsic.extrinsic.signer.toString());
+        await onPoolInitialization(extrinsic.block, baseAssetId, targetAssetId, getExtrinsicSigner(extrinsic));
     }
 
     const historyElementId = getEntityId(extrinsic);
