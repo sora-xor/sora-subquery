@@ -1,4 +1,5 @@
 import { PayeeType, StakingEra, StakingStaker } from '../types'
+import { getBlockNumber } from './index';
 import { getUtilsLog } from './logs'
 import { SubstrateBlock } from '@subql/types';
 
@@ -6,7 +7,7 @@ let eraBlock!: number;
 let eraData!: any;
 
 const getActiveEraData = async (block: SubstrateBlock) => {
-	const key = block.block.header.number.toNumber();
+	const key = getBlockNumber(block);
 
 	if (eraBlock === key) {
 		return eraData;

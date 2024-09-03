@@ -1,6 +1,7 @@
 import type BigNumber from "bignumber.js";
 
 import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
+import { getEventId } from '../utils';
 import { testLogMode } from '../config';
 
 export type BlockContext = SubstrateExtrinsic | SubstrateEvent | SubstrateBlock
@@ -71,7 +72,7 @@ export function getEventHandlerLog(event: SubstrateEvent, onlyWithTestLogMode: b
 	const extrinsicHash = event.extrinsic?.extrinsic.hash.toString()
     const extrinsicIndex = event.extrinsic?.idx;
 	const eventName = toPascalCase(`${event.event.section}.${event.event.method}`);
-	const eventId = `${event.block.block.header.number.toNumber()}-${event.idx}`;
+	const eventId = getEventId(event);
 	const attributes: any = { eventName, eventId }
 	if (extrinsicHash) {
 		attributes['extrinsicHash'] = extrinsicHash

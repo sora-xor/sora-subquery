@@ -1,6 +1,7 @@
 import { SubstrateBlock } from "@subql/types";
 import { PoolXYK } from '../../types';
 
+import { getBlockNumber } from '../../utils';
 import { getAssetId, getAssetBalance } from '../../utils/assets';
 import { poolAccounts, getAllReserves, getAllProperties, poolsStorage, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
 import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
@@ -74,5 +75,5 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
         getInitializePoolsLog(block).info('No Pool XYKs to initialize!');
     }
 
-    initializedAtBlock = block.block.header.number.toNumber();
+    initializedAtBlock = getBlockNumber(block);
 }

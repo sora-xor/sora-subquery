@@ -1,4 +1,5 @@
 import { SubstrateEvent } from "@subql/types";
+import { getBlockNumber } from '../../utils';
 import { getAssetId, assetSnapshotsStorage } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
@@ -7,7 +8,7 @@ import { initializedAtBlock } from '../models/initializePools'
 export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
     logStartProcessingEvent(event)
 
-    if (initializedAtBlock === event.block.block.header.number.toNumber()) {
+    if (initializedAtBlock === getBlockNumber(event.block)) {
         return;
     }
 
@@ -22,7 +23,7 @@ export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
 export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
     logStartProcessingEvent(event)
 
-    if (initializedAtBlock === event.block.block.header.number.toNumber()) {
+    if (initializedAtBlock === getBlockNumber(event.block)) {
         return;
     }
     
@@ -37,7 +38,7 @@ export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
 export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
     logStartProcessingEvent(event)
 
-    if (initializedAtBlock === event.block.block.header.number.toNumber()) {
+    if (initializedAtBlock === getBlockNumber(event.block)) {
         return;
     }
 
@@ -53,7 +54,7 @@ export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
 export async function handleXorMint(event: SubstrateEvent): Promise<void> {
     logStartProcessingEvent(event)
 
-    if (initializedAtBlock === event.block.block.header.number.toNumber()) {
+    if (initializedAtBlock === getBlockNumber(event.block)) {
         return;
     }
 

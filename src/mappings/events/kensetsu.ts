@@ -1,7 +1,7 @@
 import { SubstrateEvent } from "@subql/types";
 import { Vault, VaultAccount, VaultStatus, VaultEvent, VaultEventType } from '../../types'
 
-import { formatDateTimestamp, getEventId } from '../../utils';
+import { formatDateTimestamp, getEventId, getBlockNumber } from '../../utils';
 import { getVaultAccountEntity } from '../../utils/kensetsu';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
@@ -34,7 +34,7 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   }
 
   const vauldId = vaultIdCodec.toString();
-  const blockNumber = event.block.block.header.number.toNumber();
+  const blockNumber = getBlockNumber(event.block);
   const timestamp = formatDateTimestamp(event.block.timestamp);
 
   if (eventType === VaultEventType.Created) {

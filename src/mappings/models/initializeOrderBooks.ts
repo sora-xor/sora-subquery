@@ -1,6 +1,7 @@
 import { SubstrateBlock } from "@subql/types";
 
 import { OrderBookStatus } from '../../types'
+import { getBlockNumber } from '../../utils';
 import { getAssetId, getAssetBalance } from '../../utils/assets';
 import { getAllOrderBooks, orderBooksStorage } from '../../utils/orderBook';
 import { getInitializeOrderBooksLog } from "../../utils/logs";
@@ -17,7 +18,7 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
   const orderBooks = await getAllOrderBooks(block);
 
   const buffer = new Map();
-  const updatedAtBlock = block.block.header.number.toNumber();
+  const updatedAtBlock = getBlockNumber(block);
 
   if (orderBooks) {
     for (const [key, value] of orderBooks) {

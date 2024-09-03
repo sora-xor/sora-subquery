@@ -35,6 +35,10 @@ export const calcPriceChange = (current: BigNumber, prev: BigNumber): number => 
   return toFloat(change);
 };
 
+export const getBlockNumber = (block: SubstrateBlock) => {
+  return block.block.header.number.toNumber();
+};
+
 export const formatDateTimestamp = (date: Date): number => parseInt((date.getTime() / 1000).toFixed(0));
 
 export const shouldUpdate = (block: SubstrateBlock, diff = 3_600) => {
@@ -73,7 +77,7 @@ export const getCallId = (call: SubstrateExtrinsic): string => {
 }
 
 export const getEventId = (event: SubstrateEvent): string => {
-	return `${event.block.block.header.number.toString()}-${event.idx}`
+	return `${getBlockNumber(event.block)}-${event.idx}`
 }
 
 export const getEntityId = (entity: SubstrateExtrinsic | SubstrateEvent): string => {

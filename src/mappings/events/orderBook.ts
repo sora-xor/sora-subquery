@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateEvent } from "@subql/types";
 import { OrderBookOrder, OrderType, OrderStatus } from '../../types'
 
-import { formatDateTimestamp, getEventId } from '../../utils';
+import { formatDateTimestamp, getEventId, getBlockNumber } from '../../utils';
 import { getAccountEntity } from '../../utils/account';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
@@ -55,7 +55,7 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
 
   const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount, lifetime] } } = event as any;
 
-  const blockNumber = event.block.block.header.number.toNumber();
+  const blockNumber = getBlockNumber(event.block);
   const timestamp = formatDateTimestamp(event.block.timestamp);
   const orderLifetime = lifetime.toNumber() / 1000;
 
@@ -104,7 +104,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
   const limitOrder = await OrderBookOrder.get(id);
 
   if (limitOrder) {
-    const blockNumber = event.block.block.header.number.toNumber();
+    const blockNumber = getBlockNumber(event.block);
 
     limitOrder.amountFilled = new BigNumber(limitOrder.amountFilled).plus(new BigNumber(newAmount)).toString();
     limitOrder.updatedAtBlock = blockNumber;
@@ -128,7 +128,7 @@ export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<voi
   const limitOrder = await OrderBookOrder.get(id);
 
   if (limitOrder) {
-    const blockNumber = event.block.block.header.number.toNumber();
+    const blockNumber = getBlockNumber(event.block);
     const newAmount = formatU128ToBalance(amount.inner.toString(), baseAssetId);
 
     limitOrder.amount = newAmount;
@@ -151,7 +151,7 @@ export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void
   const limitOrder = await OrderBookOrder.get(id);
 
   if (limitOrder) {
-    const blockNumber = event.block.block.header.number.toNumber();
+    const blockNumber = getBlockNumber(event.block);
     limitOrder.status = OrderStatus.Filled;
     limitOrder.updatedAtBlock = blockNumber;
 
@@ -172,7 +172,7 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
   const limitOrder = await OrderBookOrder.get(id);
 
   if (limitOrder) {
-    const blockNumber = event.block.block.header.number.toNumber();
+    const blockNumber = getBlockNumber(event.block);
     const reason = reasonCodec.toHuman();
     const status = reason === 'Manual' ? OrderStatus.Canceled : reason;
     limitOrder.status = status;
@@ -191,7 +191,7 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
 
   const { event: { data: [orderBookCodec, ownerId, side, amountCodec, price] } } = event as any;
 
-  const blockNumber = event.block.block.header.number.toNumber();
+  const blockNumber = getBlockNumber(event.block);
   const timestamp = formatDateTimestamp(event.block.timestamp);
 
   const orderId = getEventId(event);

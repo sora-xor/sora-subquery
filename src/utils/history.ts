@@ -1,9 +1,9 @@
 import type { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from "@subql/types";
 
-import { Account, HistoryElement, HistoryElementCall, HistoryElementType } from "../types";
+import { HistoryElement, HistoryElementCall, HistoryElementType } from "../types";
 import { getAccountEntity } from './account';
 import { networkSnapshotsStorage } from './network';
-import { formatDateTimestamp, getEntityId, shouldUpdate } from './index';
+import { formatDateTimestamp, getEntityId, shouldUpdate, getBlockNumber } from './index';
 import { getUtilsLog } from "./logs";
 
 const INCOMING_TRANSFER_METHODS = ['transfer', 'xorlessTransfer', 'swapTransfer', 'swapTransferBatch'];
@@ -140,7 +140,7 @@ export const createHistoryElement = async (
     }
 
     const block = extrinsic.block;
-    const blockNumber = block.block.header.number.toNumber();
+    const blockNumber = getBlockNumber(block);
     const networkFee = isEvent ? '0' : getExtrinsicNetworkFee(extrinsic);
     const section = isEvent ? ctx.event.section : extrinsic.extrinsic.method.section;
     const method = isEvent ? ctx.event.method : extrinsic.extrinsic.method.method;
@@ -197,7 +197,7 @@ const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | SubstrateEvent,
 		historyElement.dataFrom = data.from
 	}
 
-	historyElement.updatedAtBlock = extrinsic.block.block.header.number.toNumber()
+	historyElement.updatedAtBlock = getBlockNumber(extrinsic.block)
 
 	getUtilsLog(ctx).debug({
         historyElementId: historyElement.id,
@@ -207,7 +207,7 @@ const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | SubstrateEvent,
 
 const addCallsToHistoryElement = async (extrinsic: SubstrateExtrinsic, historyElement: HistoryElement, calls: HistoryElementCall[]) => {
 	historyElement.callNames = calls.map((call) => call.module + '.' + call.method)
-	historyElement.updatedAtBlock = extrinsic.block.block.header.number.toNumber()
+	historyElement.updatedAtBlock = getBlockNumber(extrinsic.block)
 }
 
 const getHistoryElementAccountAddresses = (block: SubstrateBlock, history: HistoryElement) => {

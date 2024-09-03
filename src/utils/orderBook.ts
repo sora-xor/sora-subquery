@@ -4,7 +4,7 @@ import { OrderBook, OrderBookStatus, SnapshotType, OrderBookSnapshot, OrderBookD
 
 import { SubstrateBlock } from '@subql/types';
 import { getUtilsLog } from './logs';
-import { formatDateTimestamp, getSnapshotIndex, getSnapshotTypes, prevSnapshotsIndexesRow, last, calcPriceChange } from './index';
+import { formatDateTimestamp, getSnapshotIndex, getSnapshotTypes, prevSnapshotsIndexesRow, last, calcPriceChange, getBlockNumber } from './index';
 import { assetStorage, assetSnapshotsStorage, calcTvlUSD } from './assets';
 import { networkSnapshotsStorage } from "./network";
 import { EntityStorage, EntitySnapshotsStorage } from './storage';
@@ -68,7 +68,7 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
   }
 
   protected override async save(block: SubstrateBlock, orderBook: OrderBook, force = false): Promise<void> {
-    orderBook.updatedAtBlock = block.block.header.number.toNumber();
+    orderBook.updatedAtBlock = getBlockNumber(block);
 
     super.save(block, orderBook, force);
   }
@@ -131,7 +131,7 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
       BigInt(0),
       BigInt(0),
       OrderBookStatus.Trade,
-      block.block.header.number.toNumber()
+      getBlockNumber(block)
     );
   }
 

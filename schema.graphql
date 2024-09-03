@@ -143,6 +143,15 @@ type Account @entity {
   latestHistoryElement: HistoryElement
 }
 
+type AccountMeta @entity {
+  id: ID!
+  account: Account! @index #relation to Account
+  createdAtTimestamp: Int! # timestamp
+  createdAtBlock: Int! # block
+  xorFees: AssetVolume!
+  xorBurned: AssetVolume!
+}
+
 type HistoryElement @entity {
   id: ID!
 	type: HistoryElementType!

@@ -1,5 +1,6 @@
 import { SubstrateEvent } from "@subql/types";
 
+import { getBlockNumber } from '../../utils';
 import { getTransferEventData } from '../../utils/events';
 import { poolAccounts, poolsSnapshotsStorage } from '../../utils/pools';
 import { orderBooksStorage } from "../../utils/orderBook";
@@ -9,7 +10,7 @@ import { initializedAtBlock } from '../models/initializePools'
 export async function handleTransferEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event)
 
-  if (initializedAtBlock === event.block.block.header.number.toNumber()) {
+  if (initializedAtBlock === getBlockNumber(event.block)) {
 		return
 	}
 

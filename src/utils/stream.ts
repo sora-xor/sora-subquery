@@ -2,6 +2,8 @@ import { SubstrateBlock } from '@subql/types';
 
 import { UpdatesStream } from "../types";
 
+import { getBlockNumber } from './index';
+
 const PriceUpdateStreamId = 'price';
 const PoolXYKApyUpdateStreamId = 'apy';
 const AssetRegistrationStreamId = 'assetRegistration';
@@ -47,7 +49,7 @@ class BlockUpdatesStream {
     }
 
     entity.data = JSON.stringify(updates);
-    entity.block = block.block.header.number.toNumber();
+    entity.block = getBlockNumber(block);
 
     await entity.save();
   }

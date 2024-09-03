@@ -6,7 +6,7 @@ import { createHistoryElement } from "../../utils/history";
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { onPoolInitialization } from '../../utils/pools';
 import { logStartProcessingCall } from '../../utils/logs';
-import { getEntityId } from '../../utils';
+import { getEntityId, getBlockNumber } from '../../utils';
 import { HistoryElementCall } from '../../types';
 
 function formatSpecificCalls(
@@ -105,7 +105,7 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
             call.module,
             call.method,
             call.hash,
-            extrinsic.block.block.header.number.toNumber()
+            getBlockNumber(extrinsic.block),
         );
 
 		historyElementCall.data = call.data;
