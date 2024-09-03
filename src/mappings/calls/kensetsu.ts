@@ -64,9 +64,8 @@ export async function vaultDepositCollateralCallHandler(extrinsic: SubstrateExtr
 
     details.collateralAssetId = collateralAssetId;
     details.collateralAmount = formatU128ToBalance(collateralAmount.toString(), collateralAssetId);
+    details.collateralAmountUSD = await getAmountUSD(extrinsic.block, details.collateralAssetId, details.collateralAmount);
   }
-
-  details.collateralAmountUSD = await getAmountUSD(extrinsic.block, details.collateralAssetId, details.collateralAmount);
 
   await createHistoryElement(extrinsic, details);
 }
@@ -90,9 +89,8 @@ export async function vaultDecreaseDebtCallHandler(extrinsic: SubstrateExtrinsic
 
     details.debtAssetId = debtAssetId;
     details.debtAmount = formatU128ToBalance(debtAmount.toString(), debtAssetId);
+    details.debtAmountUSD = await getAmountUSD(extrinsic.block, details.debtAssetId, details.debtAmount);
   }
-
-  details.debtAmountUSD = await getAmountUSD(extrinsic.block, details.debtAssetId, details.debtAmount);
 
   await createHistoryElement(extrinsic, details);
 }
@@ -116,9 +114,8 @@ export async function vaultIncreaseDeptCallHandler(extrinsic: SubstrateExtrinsic
 
     details.debtAssetId = debtAssetId;
     details.debtAmount = formatU128ToBalance(debtAmount.toString(), debtAssetId);
+    details.debtAmountUSD = await getAmountUSD(extrinsic.block, details.debtAssetId, details.debtAmount);
   }
-
-  details.debtAmountUSD = await getAmountUSD(extrinsic.block, details.debtAssetId, details.debtAmount);
 
   await createHistoryElement(extrinsic, details);
 }
