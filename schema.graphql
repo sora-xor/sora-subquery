@@ -150,6 +150,21 @@ type AccountMeta @entity {
   createdAtBlock: Int! # block
   xorFees: AssetVolume!
   xorBurned: AssetVolume!
+  orderBook: AccountOrderBookMeta!
+  vault: AccountVaultMeta!
+}
+
+type AccountOrderBookMeta @jsonField {
+  created: Int!
+  executed: Int!
+  volumeUSD: String!
+}
+
+# KUSD\KGOLD only
+type AccountVaultMeta @jsonField {
+  created: Int!
+  executed: Int! # closed vauls
+  volumeUSD: String!
 }
 
 type HistoryElement @entity {

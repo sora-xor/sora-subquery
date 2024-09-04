@@ -4,6 +4,7 @@ import { SubstrateBlock } from "@subql/types";
 import { Account, AccountMeta } from "../types";
 
 import { EntityStorage } from "./storage";
+import { getAmountUSD } from "./assets";
 import { formatDateTimestamp, getBlockNumber } from "./index";
 import { networkSnapshotsStorage } from './network';
 import { getUtilsLog } from "./logs";
@@ -30,20 +31,18 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
 
   public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountMeta> {
     const account = await getAccountEntity(block, id);
+    const assetVolumeData = { amount: '0', amountUSD: '0' };
+    const countData = { created: 0, executed: 0, volumeUSD: '0' };
 
     const entity = new AccountMeta(
       id,
       account.id,
       formatDateTimestamp(block.timestamp),
       getBlockNumber(block),
-      {
-        amount: '0',
-        amountUSD: '0'
-      },
-      {
-        amount: '0',
-        amountUSD: '0'
-      }
+      assetVolumeData,
+      assetVolumeData,
+      countData,
+      countData,
     );
 
     return entity;
@@ -63,6 +62,35 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
 
     meta.xorBurned.amount = new BigNumber(meta.xorBurned.amount).plus(amount).toString();
     meta.xorBurned.amountUSD = new BigNumber(meta.xorBurned.amountUSD).plus(amountUSD).toFixed(2);
+
+    await this.save(block, meta);
+  }
+
+  public async updateOrderCreated(block: SubstrateBlock, id: string) {
+    const meta = await this.getEntity(block, id);
+
+    meta.orderBook.created = meta.orderBook.created + 1;
+
+    await this.save(block, meta);
+  }
+
+  public async updateOrderFilled(block: SubstrateBlock, id: string) {
+    const meta = await this.getEntity(block, id);
+
+    meta.orderBook.executed = meta.orderBook.executed + 1;
+
+    await this.save(block, meta);
+  }
+
+  public async updateOrderExecuted(block: SubstrateBlock, id: string, quoteAssetId: string, price: string, amount: string) {
+    const meta = await this.getEntity(block, id);
+
+    const quotePrice = new BigNumber(price);
+    const baseAmount = new BigNumber(amount);
+    const quoteAmount = baseAmount.multipliedBy(quotePrice);
+    const volumeUSD = await getAmountUSD(block, quoteAssetId, quoteAmount.toString());
+
+    meta.orderBook.volumeUSD = new BigNumber(meta.orderBook.volumeUSD).plus(volumeUSD).toFixed(2);
 
     await this.save(block, meta);
   }
