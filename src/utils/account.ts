@@ -33,13 +33,14 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
   public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountMeta> {
     const account = await getAccountEntity(block, id);
     const assetVolumeData = { amount: '0', amountUSD: '0' };
-    const counterData = { created: 0, executed: 0, volumeUSD: '0' };
+    const counterData = { created: 0, closed: 0, volumeUSD: '0' };
 
     const entity = new AccountMeta(
       id,
       account.id,
       formatDateTimestamp(block.timestamp),
       getBlockNumber(block),
+      assetVolumeData,
       assetVolumeData,
       assetVolumeData,
       counterData,
@@ -67,6 +68,15 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     await this.save(block, meta);
   }
 
+  public async updateStakingRewards(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
+    const meta = await this.getEntity(block, id);
+
+    meta.xorStakingValRewards.amount = new BigNumber(meta.xorStakingValRewards.amount).plus(amount).toString();
+    meta.xorStakingValRewards.amountUSD = new BigNumber(meta.xorStakingValRewards.amountUSD).plus(amountUSD).toFixed(2);
+
+    await this.save(block, meta);
+  }
+
   public async updateOrderCreated(block: SubstrateBlock, id: string) {
     const meta = await this.getEntity(block, id);
 
@@ -78,7 +88,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
   public async updateOrderClosed(block: SubstrateBlock, id: string) {
     const meta = await this.getEntity(block, id);
 
-    meta.orderBook.executed = meta.orderBook.executed + 1;
+    meta.orderBook.closed = meta.orderBook.closed + 1;
 
     await this.save(block, meta);
   }
@@ -111,7 +121,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
 
     const meta = await this.getEntity(block, id);
 
-    meta.vault.executed = meta.vault.executed + 1;
+    meta.vault.closed = meta.vault.closed + 1;
 
     await this.save(block, meta);
   }

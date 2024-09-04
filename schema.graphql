@@ -150,13 +150,14 @@ type AccountMeta @entity {
   createdAtBlock: Int! # block
   xorFees: AssetVolume!
   xorBurned: AssetVolume!
+  xorStakingValRewards: AssetVolume!
   orderBook: AccountMetaEventCounter!
   vault: AccountMetaEventCounter!
 }
 
 type AccountMetaEventCounter @jsonField {
   created: Int!
-  executed: Int!
+  closed: Int!
   volumeUSD: String!
 }
 
