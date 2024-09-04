@@ -1,21 +1,7 @@
 import { SubstrateEvent } from '@subql/types';
-import { VAL } from '../../utils/consts';
-import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
-import { accountMetaStorage } from '../../utils/account';
 import { StakingEraNomination, StakingEraNominator, StakingEraValidator, StakingValidator } from '../../types';
 import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 import { getActiveStakingEra, getStakingStaker } from '../../utils/staking';
-
-export async function stakingRewardedEventHandler(event: SubstrateEvent): Promise<void> {
-  const { event: { data: [accountCodec, amountCodec] } } = event as any;
-
-  const accountId = accountCodec.toString();
-  const assetId = VAL;
-  const amount = formatU128ToBalance(amountCodec.toString(), assetId);
-  const amountUSD = await getAmountUSD(event.block, assetId, amount);
-
-  await accountMetaStorage.updateStakingRewards(event.block, accountId, amount, amountUSD);
-}
 
 export async function stakingStakersElectedEventHandler(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event)

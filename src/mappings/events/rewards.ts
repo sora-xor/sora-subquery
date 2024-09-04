@@ -1,4 +1,5 @@
 import { formatU128ToBalance, getAmountUSD } from '../../utils/assets'
+import { accountMetaStorage } from '../../utils/account';
 import { VAL } from '../../utils/consts'
 import { getActiveStakingEra, getStakingStaker } from '../../utils/staking'
 import { SubstrateEvent } from '@subql/types'
@@ -34,4 +35,6 @@ export async function stakingRewardedEventHandler(event: SubstrateEvent): Promis
 	};
 
 	await createHistoryElement(event, details, undefined, payee);
+
+	await accountMetaStorage.updateStakingRewards(event.block, stash, amount, amountUSD);
 }
