@@ -3,6 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateBlock } from "@subql/types";
 import { Account, AccountMeta } from "../types";
 
+import { KXOR } from './consts';
 import { EntityStorage } from "./storage";
 import { getAmountUSD } from "./assets";
 import { formatDateTimestamp, getBlockNumber } from "./index";
@@ -32,7 +33,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
   public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountMeta> {
     const account = await getAccountEntity(block, id);
     const assetVolumeData = { amount: '0', amountUSD: '0' };
-    const countData = { created: 0, executed: 0, volumeUSD: '0' };
+    const counterData = { created: 0, executed: 0, volumeUSD: '0' };
 
     const entity = new AccountMeta(
       id,
@@ -41,8 +42,8 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
       getBlockNumber(block),
       assetVolumeData,
       assetVolumeData,
-      countData,
-      countData,
+      counterData,
+      counterData,
     );
 
     return entity;
@@ -74,7 +75,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     await this.save(block, meta);
   }
 
-  public async updateOrderFilled(block: SubstrateBlock, id: string) {
+  public async updateOrderClosed(block: SubstrateBlock, id: string) {
     const meta = await this.getEntity(block, id);
 
     meta.orderBook.executed = meta.orderBook.executed + 1;
@@ -91,6 +92,38 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     const volumeUSD = await getAmountUSD(block, quoteAssetId, quoteAmount.toString());
 
     meta.orderBook.volumeUSD = new BigNumber(meta.orderBook.volumeUSD).plus(volumeUSD).toFixed(2);
+
+    await this.save(block, meta);
+  }
+
+  public async updateVaultCreated(block: SubstrateBlock, id: string, assetId: string) {
+    if (assetId === KXOR) return;
+
+    const meta = await this.getEntity(block, id);
+
+    meta.vault.created = meta.vault.created + 1;
+
+    await this.save(block, meta);
+  }
+
+  public async updateVaultClosed(block: SubstrateBlock, id: string, assetId: string) {
+    if (assetId === KXOR) return;
+
+    const meta = await this.getEntity(block, id);
+
+    meta.vault.executed = meta.vault.executed + 1;
+
+    await this.save(block, meta);
+  }
+
+  public async updateVaultExecuted(block: SubstrateBlock, id: string, assetId: string, amount: string, isCollateral = false) {
+    if (!isCollateral && assetId === KXOR) return;
+
+    const meta = await this.getEntity(block, id);
+
+    const volumeUSD = await getAmountUSD(block, assetId, amount);
+
+    meta.vault.volumeUSD = new BigNumber(meta.vault.volumeUSD).plus(volumeUSD).toFixed(2);
 
     await this.save(block, meta);
   }

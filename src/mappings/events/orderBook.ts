@@ -169,7 +169,7 @@ export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void
     getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
   }
 
-  await accountMetaStorage.updateOrderFilled(event.block, accountId);
+  await accountMetaStorage.updateOrderClosed(event.block, accountId);
 }
 
 export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<void> {
@@ -236,5 +236,5 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
 
   await accountMetaStorage.updateOrderCreated(event.block, accountId);
   await accountMetaStorage.updateOrderExecuted(event.block, accountId, quoteAssetId, price, amount);
-  await accountMetaStorage.updateOrderFilled(event.block, accountId);
+  await accountMetaStorage.updateOrderClosed(event.block, accountId);
 }

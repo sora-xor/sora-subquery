@@ -2,6 +2,7 @@ import { SubstrateEvent } from "@subql/types";
 import { Vault, VaultAccount, VaultStatus, VaultEvent, VaultEventType } from '../../types'
 
 import { formatDateTimestamp, getEventId, getBlockNumber } from '../../utils';
+import { accountMetaStorage } from '../../utils/account';
 import { getVaultAccountEntity } from '../../utils/kensetsu';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
@@ -50,6 +51,8 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
       blockNumber,
       blockNumber,
     );
+
+    await accountMetaStorage.updateVaultCreated(event.block, vault.ownerId, vault.debtAssetId);
   } else {
     vault = await Vault.get(vauldId);
   }
@@ -77,11 +80,19 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
     case VaultEventType.Closed: {
       vault.status = Number(amount) === 0 ? VaultStatus.Liquidated : VaultStatus.Closed;
       vault.collateralAmountReturned = amount;
+
+      await accountMetaStorage.updateVaultClosed(event.block, vault.ownerId, vault.debtAssetId);
+      break;
+    }
+    case VaultEventType.DebtPayment: {
+      await accountMetaStorage.updateVaultExecuted(event.block, vault.ownerId, vault.debtAssetId, amount);
       break;
     }
     case VaultEventType.Liquidated: {
       account = await getVaultAccountEntity(event.block, vault.ownerId);
       account.lastLiquidationId = vaultEvent.id;
+
+      await accountMetaStorage.updateVaultExecuted(event.block, vault.ownerId, vault.collateralAssetId, amount, true);
       break;
     }
   }
