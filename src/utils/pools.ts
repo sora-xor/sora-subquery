@@ -311,6 +311,9 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
     super('PoolSnapshot', poolsStorage);
   }
 
+  public readonly updateTypes = [SnapshotType.HOUR, SnapshotType.DAY];
+  public readonly removeTypes = [SnapshotType.HOUR];
+
   public override async createEntity(
     block: SubstrateBlock,
     id: string,
