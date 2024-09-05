@@ -30,6 +30,7 @@ export * from "./mappings/events/staking";
 export * from "./mappings/events/rewards";
 export * from "./mappings/events/orderBook";
 export * from "./mappings/events/kensetsu";
+export * from "./mappings/events/democracy";
 
 export * from './mappings/sync/prices';
 export * from "./mappings/sync/models";

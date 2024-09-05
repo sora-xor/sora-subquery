@@ -33,7 +33,8 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
   public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountMeta> {
     const account = await getAccountEntity(block, id);
     const assetVolumeData = { amount: '0', amountUSD: '0' };
-    const counterData = { created: 0, closed: 0, volumeUSD: '0' };
+    const counterData = { created: 0, closed: 0, amountUSD: '0' };
+    const governanceData = { votes: 0, amount: '0', amountUSD: '0' };
 
     const entity = new AccountMeta(
       id,
@@ -45,6 +46,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
       assetVolumeData,
       counterData,
       counterData,
+      governanceData,
     );
 
     return entity;
@@ -64,6 +66,16 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
 
     meta.xorBurned.amount = new BigNumber(meta.xorBurned.amount).plus(amount).toString();
     meta.xorBurned.amountUSD = new BigNumber(meta.xorBurned.amountUSD).plus(amountUSD).toFixed(2);
+
+    await this.save(block, meta);
+  }
+
+  public async updateGovernance(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
+    const meta = await this.getEntity(block, id);
+
+    meta.governance.votes = meta.governance.votes + 1;
+    meta.governance.amount = new BigNumber(meta.governance.amount).plus(amount).toString();
+    meta.governance.amountUSD = new BigNumber(meta.governance.amountUSD).plus(amountUSD).toFixed(2);
 
     await this.save(block, meta);
   }
@@ -99,9 +111,9 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     const quotePrice = new BigNumber(price);
     const baseAmount = new BigNumber(amount);
     const quoteAmount = baseAmount.multipliedBy(quotePrice);
-    const volumeUSD = await getAmountUSD(block, quoteAssetId, quoteAmount.toString());
+    const amountUSD = await getAmountUSD(block, quoteAssetId, quoteAmount.toString());
 
-    meta.orderBook.volumeUSD = new BigNumber(meta.orderBook.volumeUSD).plus(volumeUSD).toFixed(2);
+    meta.orderBook.amountUSD = new BigNumber(meta.orderBook.amountUSD).plus(amountUSD).toFixed(2);
 
     await this.save(block, meta);
   }
@@ -131,9 +143,9 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
 
     const meta = await this.getEntity(block, id);
 
-    const volumeUSD = await getAmountUSD(block, assetId, amount);
+    const amountUSD = await getAmountUSD(block, assetId, amount);
 
-    meta.vault.volumeUSD = new BigNumber(meta.vault.volumeUSD).plus(volumeUSD).toFixed(2);
+    meta.vault.amountUSD = new BigNumber(meta.vault.amountUSD).plus(amountUSD).toFixed(2);
 
     await this.save(block, meta);
   }

@@ -153,12 +153,19 @@ type AccountMeta @entity {
   xorStakingValRewards: AssetVolume!
   orderBook: AccountMetaEventCounter!
   vault: AccountMetaEventCounter!
+  governance: AccountMetaGovernance!
 }
 
 type AccountMetaEventCounter @jsonField {
   created: Int!
   closed: Int!
-  volumeUSD: String!
+  amountUSD: String!
+}
+
+type AccountMetaGovernance @jsonField {
+  votes: Int!
+  amount: String!
+  amountUSD: String!
 }
 
 type HistoryElement @entity {
