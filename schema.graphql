@@ -159,6 +159,7 @@ type AccountMeta @entity {
   orderBook: AccountMetaEventCounter!
   vault: AccountMetaEventCounter!
   governance: AccountMetaGovernance!
+  deposit: AccountMetaDeposit!
 }
 
 type AccountMetaEventCounter @jsonField {
@@ -171,6 +172,11 @@ type AccountMetaGovernance @jsonField {
   votes: Int!
   amount: String!
   amountUSD: String!
+}
+
+type AccountMetaDeposit @jsonField {
+  incomingUSD: String!
+  outgoingUSD: String!
 }
 
 type HistoryElement @entity {

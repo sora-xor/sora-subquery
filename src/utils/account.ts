@@ -35,6 +35,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     const assetVolumeData = { amount: '0', amountUSD: '0' };
     const counterData = { created: 0, closed: 0, amountUSD: '0' };
     const governanceData = { votes: 0, amount: '0', amountUSD: '0' };
+    const depositData = { incomingUSD: '0', outgoingUSD: '0' };
 
     const entity = new AccountMeta(
       id,
@@ -47,6 +48,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
       counterData,
       counterData,
       governanceData,
+      depositData,
     );
 
     return entity;
@@ -146,6 +148,22 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     const amountUSD = await getAmountUSD(block, assetId, amount);
 
     meta.vault.amountUSD = new BigNumber(meta.vault.amountUSD).plus(amountUSD).toFixed(2);
+
+    await this.save(block, meta);
+  }
+
+  public async updateIncomingDeposit(block: SubstrateBlock, id: string, amountUSD: string) {
+    const meta = await this.getEntity(block, id);
+
+    meta.deposit.incomingUSD = new BigNumber(meta.deposit.incomingUSD).plus(amountUSD).toFixed(2);
+
+    await this.save(block, meta);
+  }
+
+  public async updateOutgoingDeposit(block: SubstrateBlock, id: string, amountUSD: string) {
+    const meta = await this.getEntity(block, id);
+
+    meta.deposit.outgoingUSD = new BigNumber(meta.deposit.outgoingUSD).plus(amountUSD).toFixed(2);
 
     await this.save(block, meta);
   }

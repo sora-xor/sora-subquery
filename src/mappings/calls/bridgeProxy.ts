@@ -1,6 +1,8 @@
 import { u8aToHex } from '@polkadot/util';
 
 import { SubstrateExtrinsic } from "@subql/types";
+import { getExtrinsicSigner } from '../../utils';
+import { accountMetaStorage } from "../../utils/account";
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
@@ -103,8 +105,9 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
   );
 
   if (bridgeAppMinted) {
-    const { event: { data: [subNetworkId, assetCodec, _sender, recipient, amountCodec] } } = bridgeAppMinted;
+    const { event: { data: [subNetworkId, assetCodec, _sender, recipientCodec, amountCodec] } } = bridgeAppMinted;
 
+    const recipient = recipientCodec.toString();
     const assetId = getAssetId(assetCodec);
     const amount = formatU128ToBalance(amountCodec.toString(), assetId);
     const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
@@ -114,7 +117,9 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
     details.assetId = assetId;
     details.amount = amount;
     details.amountUSD = amountUSD;
-    details.to = recipient.toString();
+    details.to = recipient;
+
+    await accountMetaStorage.updateIncomingDeposit(extrinsic.block, recipient, amountUSD);
   }
 
   details.hash = getBridgeProxyHash(extrinsic);
@@ -130,6 +135,7 @@ export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic):
   const networkType = getNetworkId(subNetworkId);
   const networkId = getNetwork(recipient);
 
+  const sender = getExtrinsicSigner(extrinsic);
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
   const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
@@ -149,4 +155,6 @@ export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic):
   await networkSnapshotsStorage.updateBridgeOutgoingTransactionsStats(extrinsic.block);
 
   await createHistoryElement(extrinsic, details);
+
+  await accountMetaStorage.updateOutgoingDeposit(extrinsic.block, sender, amountUSD);
 }
