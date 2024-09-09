@@ -1,3 +1,5 @@
+import BigNumber from "bignumber.js";
+
 import { SubstrateBlock } from '@subql/types';
 import { getUtilsLog } from './logs';
 import { AccountLiquidity, AccountLiquiditySnapshot,SnapshotType } from '../types';
@@ -36,7 +38,7 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     const account = await getAccountEntity(block, accountId);
     const pool = await poolsStorage.getPoolById(block, poolId);
 
-    const accountLiquidity = new AccountLiquidity(id, account.id, pool.id, BigInt(0));
+    const accountLiquidity = new AccountLiquidity(id, account.id, pool.id, BigInt(0), '0');
 
     return accountLiquidity;
   }
@@ -45,9 +47,13 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     const id = this.getId(accountId, poolId);
     const accountLiquidity = await this.getEntity(block, id);
     const accountLiquidityBalance = await getPoolProviderBalance(block, poolId, accountId);
-    const poolTokens = BigInt(accountLiquidityBalance);
 
-    accountLiquidity.poolTokens = poolTokens;
+    const pool = await poolsStorage.getPoolById(block, poolId);
+    const poolTokens = new BigNumber(accountLiquidityBalance).dividedBy(Math.pow(10, 18));
+    const liquidityUSD = new BigNumber(pool.poolTokenPriceUSD).multipliedBy(poolTokens);
+
+    accountLiquidity.poolTokens = BigInt(accountLiquidityBalance);
+    accountLiquidity.liquidityUSD = liquidityUSD.toFixed(2);
 
     await this.save(block, accountLiquidity);
 
@@ -76,13 +82,14 @@ class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<AccountLiq
       type,
       accountLiquidity.id,
       accountLiquidity.poolTokens,
+      accountLiquidity.liquidityUSD,
     );
 
     return snapshot;
   }
 
   async updatePoolTokensSupply(block: SubstrateBlock, accountId: string, poolId: string): Promise<void> {
-    const { id, poolTokens } = await this.entityStorage.updatePoolTokensSupply(block, accountId, poolId);
+    const { id, poolTokens, liquidityUSD } = await this.entityStorage.updatePoolTokensSupply(block, accountId, poolId);
 
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
@@ -90,6 +97,7 @@ class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<AccountLiq
       const snapshot = await this.getSnapshot(block, id, type);
 
       snapshot.poolTokens = poolTokens;
+      snapshot.liquidityUSD = liquidityUSD;
 
       this.log(block, true).debug({ id, poolTokens }, 'Account Liquidity snapshot pool tokens updated')
 

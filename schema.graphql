@@ -131,6 +131,7 @@ type AccountLiquidity @entity {
   pool: PoolXYK! @index #relation to PoolXYK
   data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
   poolTokens: BigInt! # pool tokens
+  liquidityUSD: String!
 }
 
 type AccountLiquiditySnapshot implements ISnapshot @entity {
@@ -139,6 +140,7 @@ type AccountLiquiditySnapshot implements ISnapshot @entity {
   type: SnapshotType!
   accountLiquidity: AccountLiquidity! @index #relation to AccountLiquidity
   poolTokens: BigInt! # pool tokens
+  liquidityUSD: String!
 }
 
 type Account @entity {
