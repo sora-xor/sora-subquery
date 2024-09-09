@@ -102,6 +102,9 @@ type PoolXYK @entity {
   multiplier: Int!
   priceUSD: String
   strategicBonusApy: String
+  poolTokenSupply: BigInt
+  poolTokenPriceUSD: String
+  liquidityUSD: String
 }
 
 type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool", "type"]]) {
@@ -109,8 +112,6 @@ type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool
   pool: PoolXYK! @index #relation to PoolXYK
   timestamp: Int!
   type: SnapshotType!
-  poolTokenSupply: BigInt!
-  poolTokenPriceUSD: String!
   priceUSD: AssetPrice! # price of target asset
   baseAssetReserves: BigInt! # (base + chameleon) reserves
   targetAssetReserves: BigInt! # target reserves
@@ -118,8 +119,10 @@ type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool
   baseAssetVolume: String!
   targetAssetVolume: String!
   chameleonAssetVolume: String!
-  volumeUSD: String!
+  poolTokenSupply: BigInt!
+  poolTokenPriceUSD: String!
   liquidityUSD: String!
+  volumeUSD: String!
 }
 
 type AccountLiquidity @entity {

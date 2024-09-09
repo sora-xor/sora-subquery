@@ -3,7 +3,7 @@ import { PoolXYK } from '../../types';
 
 import { getBlockNumber } from '../../utils';
 import { getAssetId, getAssetBalance } from '../../utils/assets';
-import { poolAccounts, getAllReserves, getAllProperties, poolsStorage, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
+import { poolAccounts, getAllReserves, getAllProperties, getPoolBalance,poolsStorage, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
 import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
 import { getInitializePoolsLog } from "../../utils/logs";
 
@@ -56,6 +56,13 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
 
             pool.chameleonAssetReserves = chameleonAssetReserves;
         }
+    }
+
+    for (const poolId of [...poolsBuffer.keys()]) {
+        const pool = poolsBuffer.get(poolId);
+        const poolTokens = await getPoolBalance(block, poolId);
+
+        pool.poolTokenSupply = BigInt(poolTokens);
     }
 
     const entities = [...poolsBuffer.values()];

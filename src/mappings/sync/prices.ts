@@ -83,7 +83,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                 const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
                 const chameleonAssetReserves = new BigNumber((p.chameleonAssetReserves ?? BigInt(0)).toString());
 
-                let daiPrice = new BigNumber(0);
+                let targetAssetPrice = new BigNumber(0);
 
                 if (!targetAssetReserves.isZero()) {
                     const baseAssetVolume = baseAssetReserves.minus(chameleonAssetReserves)
@@ -92,16 +92,14 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                         .multipliedBy(chameleonAssetPriceInBaseAsset)
                         .multipliedBy(baseAssetPriceInDAI);
 
-                    daiPrice = baseAssetVolume.plus(chameleonAssetVolume).dividedBy(targetAssetReserves);
+                    targetAssetPrice = baseAssetVolume.plus(chameleonAssetVolume).dividedBy(targetAssetReserves);
                 }
 
-                p.priceUSD = daiPrice.toFixed(18);
-
-                await poolsSnapshotsStorage.updatePrice(block, p.id, p.priceUSD);
+                p.priceUSD = targetAssetPrice.toFixed(18);
 
                 // update PSWAP price (price from pair with XOR)
                 if (p.targetAssetId === PSWAP && p.baseAssetId === XOR) {
-                    pswapPriceInDAI = daiPrice;
+                    pswapPriceInDAI = targetAssetPrice;
                 }
             }
         }
@@ -147,7 +145,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                         .multipliedBy(new BigNumber(p.multiplier))
                         .toFixed(18);
 
-                    await poolsStorage.updateApy(block, p.id, strategicBonusApy);
+                    p.strategicBonusApy = strategicBonusApy;
                 }
             }
         }
@@ -158,6 +156,14 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         // do not update price from XYK pool for synthetic assets
         if (!syntheticAssetsIds.includes(assetId)) {
             await assetSnapshotsStorage.updatePrice(block, assetId, price);
+        }
+    }
+
+    // update pools data
+    for (const dexPools of Object.values(pools)) {
+        for (const dexPool of dexPools) {
+            await poolsStorage.updateApy(block, dexPool.id, dexPool.strategicBonusApy);
+            await poolsSnapshotsStorage.processPriceChange(block, dexPool.id, dexPool.priceUSD);
         }
     }
 

@@ -41,7 +41,7 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     return accountLiquidity;
   }
 
-  public async updatePoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<AccountLiquidity> {
+  public async updatePoolTokensSupply(block: SubstrateBlock, accountId: string, poolId: string): Promise<AccountLiquidity> {
     const id = this.getId(accountId, poolId);
     const accountLiquidity = await this.getEntity(block, id);
     const accountLiquidityBalance = await getPoolProviderBalance(block, poolId, accountId);
@@ -81,9 +81,8 @@ class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<AccountLiq
     return snapshot;
   }
 
-  async updatePoolTokens(block: SubstrateBlock, accountId: string, poolId: string): Promise<void> {
-    const accountLiquidity = await this.entityStorage.updatePoolTokens(block, accountId, poolId);
-    const { id, poolTokens } = accountLiquidity;
+  async updatePoolTokensSupply(block: SubstrateBlock, accountId: string, poolId: string): Promise<void> {
+    const { id, poolTokens } = await this.entityStorage.updatePoolTokensSupply(block, accountId, poolId);
 
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 

@@ -274,8 +274,8 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook
 
       const baseAsset = await assetStorage.getEntity(block, baseAssetId);
       const quoteAsset = await assetStorage.getEntity(block, quoteAssetId);
-      const baseAssetLiquidityUSD = calcTvlUSD(baseAsset, baseAssetReserves);
-      const quoteAssetLiquidityUSD = calcTvlUSD(quoteAsset, quoteAssetReserves);
+      const baseAssetLiquidityUSD = calcTvlUSD(baseAsset.id, baseAsset.priceUSD, baseAssetReserves);
+      const quoteAssetLiquidityUSD = calcTvlUSD(quoteAsset.id, quoteAsset.priceUSD, quoteAssetReserves);
       const liquidityUSD = baseAssetLiquidityUSD.plus(quoteAssetLiquidityUSD);
 
       await orderBooksSnapshotsStorage.updateLiquidityUSD(block, dexId, baseAssetId, quoteAssetId, liquidityUSD);
@@ -292,7 +292,7 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook
     // update locked luqidity for assets
     for (const [assetId, liquidity] of lockedAssets.entries()) {
       const asset = await assetStorage.updateLiquidity(block, assetId, liquidity);
-      const assetLockedUSD = calcTvlUSD(asset, asset.liquidity);
+      const assetLockedUSD = calcTvlUSD(asset.id, asset.priceUSD, asset.liquidity);
 
       lockedUSD = lockedUSD.plus(assetLockedUSD);
     }

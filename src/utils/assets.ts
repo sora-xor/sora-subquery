@@ -18,11 +18,11 @@ const calcVolumeUSD = (snapshots: AssetSnapshot[]): number => {
   return toFloat(totalVolume);
 };
 
-export const calcTvlUSD = (asset: Asset, reserves?: bigint): BigNumber => {
-  if (!reserves) return new BigNumber(0);
+export const calcTvlUSD = (assetId: string, assetPriceUSD: string, reserves?: bigint): BigNumber => {
+  if (!(assetId && reserves)) return new BigNumber(0);
 
-  const price = new BigNumber(asset.priceUSD);
-  const decimals = assetPrecisions.get(asset.id) ?? 18;
+  const price = new BigNumber(assetPriceUSD);
+  const decimals = assetPrecisions.get(assetId) ?? 18;
   const amount = new BigNumber(reserves.toString()).dividedBy(Math.pow(10, decimals));
 
   return price.multipliedBy(amount);
@@ -252,7 +252,7 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
   }
 
   private async calcStats(block: SubstrateBlock, asset: Asset, type: SnapshotType, snapshotsCount: number) {
-    const { id, priceUSD } = asset;
+    const { id, priceUSD, liquidity, liquidityBooks } = asset;
     const blockTimestamp = formatDateTimestamp(block.timestamp);
     const { index } = getSnapshotIndex(blockTimestamp, type);
     const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
@@ -262,8 +262,8 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
 
     const currentPriceUSD = new BigNumber(priceUSD);
     const startPriceUSD = new BigNumber(last(snapshots)?.priceUSD?.open ?? '0');
-    const tvlPools = calcTvlUSD(asset, asset.liquidity);
-    const tvlOrderBooks = calcTvlUSD(asset, asset.liquidityBooks);
+    const tvlPools = calcTvlUSD(id, priceUSD, liquidity);
+    const tvlOrderBooks = calcTvlUSD(id, priceUSD, liquidityBooks);
     const tvl = tvlPools.plus(tvlOrderBooks);
 
     const priceChange = calcPriceChange(currentPriceUSD, startPriceUSD);
