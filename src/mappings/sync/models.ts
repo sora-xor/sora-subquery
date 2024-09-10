@@ -3,7 +3,7 @@ import type { SubstrateBlock } from "@subql/types";
 import { accountMetaStorage } from '../../utils/account';
 import { accountLiquidityStorage, accountLiquiditySnapshotsStorage } from '../../utils/accountLiquidity';
 import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
-import { networkSnapshotsStorage } from '../../utils/network';
+import { networkSnapshotsStorage, networkStatsStorage } from '../../utils/network';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { poolsStorage, poolsSnapshotsStorage } from '../../utils/pools';
 import { shouldUpdate } from '../../utils';
@@ -34,6 +34,7 @@ export async function updateNetworkStats(block: SubstrateBlock): Promise<void> {
 
   await networkSnapshotsStorage.updateLiquidityStats(block);
   await networkSnapshotsStorage.sync(block);
+  await networkStatsStorage.sync(block);
 }
 
 export async function updateDailyStats(block: SubstrateBlock): Promise<void> {
