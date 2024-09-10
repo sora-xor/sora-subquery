@@ -10,8 +10,6 @@ import { poolsSnapshotsStorage } from './pools';
 
 import { EntityStorage, EntitySnapshotsStorage } from './storage';
 
-const NetworkSnapshots = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
-
 const NetworkStatsId = '0';
 
 class NetworkStatsStorage extends EntityStorage<NetworkStats>{
@@ -72,7 +70,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
     stats.totalAccounts = stats.totalAccounts + 1;
 
-    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
@@ -88,7 +86,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
     stats.totalTransactions = stats.totalTransactions + 1;
 
-    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
@@ -104,7 +102,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
     stats.totalBridgeIncomingTransactions = stats.totalBridgeIncomingTransactions + 1;
 
-    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
@@ -120,7 +118,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
     stats.totalBridgeOutgoingTransactions = stats.totalBridgeOutgoingTransactions + 1;
 
-    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
@@ -136,7 +134,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
     stats.totalFees = stats.totalFees + fee;
 
-    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
@@ -154,7 +152,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
     const booksLockedUSD = await orderBooksSnapshotsStorage.getLockedLiquidityUSD(block);
     const liquiditiesUSD = poolsLockedUSD.plus(booksLockedUSD);
 
-    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
@@ -168,7 +166,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
     const stats = await this.entityStorage.getStats(block);
 
-    const snapshotTypes = getSnapshotTypes(block, NetworkSnapshots);
+    const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
