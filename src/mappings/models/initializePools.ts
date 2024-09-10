@@ -3,8 +3,8 @@ import { PoolXYK } from '../../types';
 
 import { getBlockNumber } from '../../utils';
 import { getAssetId, getAssetBalance } from '../../utils/assets';
-import { poolAccounts, getAllReserves, getAllProperties, getPoolBalance,poolsStorage, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
-import { BASE_ASSETS, XOR, DOUBLE_PRICE_POOL } from '../../utils/consts';
+import { poolAccounts, getAllReserves, getAllProperties, getAllBalances, poolsStorage, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
+import { BASE_ASSETS } from '../../utils/consts';
 import { getInitializePoolsLog } from "../../utils/logs";
 
 export let initializedAtBlock: number | null = null
@@ -13,6 +13,7 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     if (initializedAtBlock !== null) return;
 
     getInitializePoolsLog(block).debug('Initialize Pool XYK entities');
+
     const poolsBuffer: Map<string, Partial<PoolXYK>> = new Map();
 
     for (const baseAssetId of BASE_ASSETS) {
@@ -32,7 +33,6 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
                 id: poolAccountId,
                 baseAssetId,
                 targetAssetId,
-                multiplier: baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1,
             })
         }
 
@@ -58,11 +58,12 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
         }
     }
 
-    for (const poolId of [...poolsBuffer.keys()]) {
-        const pool = poolsBuffer.get(poolId);
-        const poolTokens = await getPoolBalance(block, poolId);
+    const poolsTokens = await getAllBalances(block);
 
-        pool.poolTokenSupply = BigInt(poolTokens);
+    for (const [poolId, balance] of Object.entries(poolsTokens)) {
+        const pool = poolsBuffer.get(poolId);
+
+        pool.poolTokenSupply = BigInt(balance);
     }
 
     const entities = [...poolsBuffer.values()];

@@ -93,6 +93,29 @@ export const getAllPoolProviders = async (block: SubstrateBlock, poolId: string)
   }
 }
 
+export const getAllBalances = async (block: SubstrateBlock): Promise<Record<string, string>> => {
+  try {
+    getUtilsLog(block).debug({}, 'Pools balances request...');
+    const results = (await api.query.poolXYK.totalIssuances.entries()) as any;
+    getUtilsLog(block).debug({}, 'Pools balances request completed');
+
+    const buffer = {};
+
+    for (const [key, value] of results ) {
+      const account = key.args[0].toString();
+      const tokens = value.toString();
+
+      buffer[account] = tokens;
+    }
+
+    return buffer;
+  } catch (error) {
+    getUtilsLog(block).error('Error getting pools balances');
+		getUtilsLog(block).error(error);
+    return {};
+  }
+}
+
 export const getPoolBalance = async (block: SubstrateBlock, poolId: string): Promise<string> => {
   try {
     getUtilsLog(block).debug({ poolId }, 'Pool balance request...');
@@ -205,17 +228,11 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   }
 
   async getPoolById(block: SubstrateBlock, poolId: string): Promise<PoolXYK | null> {
-    if (this.storage.has(poolId)) {
-      return this.storage.get(poolId);
-    }
-
     const addresses = poolAccounts.getById(poolId);
 
-    if (addresses) {
-      return await this.getPool(block, ...addresses);
-    }
+    if (!addresses) return null;
 
-    return null;
+    return await this.getEntity(block, poolId, ...addresses);
   }
 
   async getPool(block: SubstrateBlock, baseAssetId: string, targetAssetId: string): Promise<PoolXYK | null> {
@@ -260,11 +277,14 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
 
       const lockedBase = lockedAssets.get(baseAssetId) ?? BigInt(0);
       const lockedTarget = lockedAssets.get(targetAssetId) ?? BigInt(0);
-      const lockedChameleon = lockedAssets.get(chameleonAssetId) ?? BigInt(0);
 
       lockedAssets.set(baseAssetId, lockedBase + baseReserves);
       lockedAssets.set(targetAssetId, lockedTarget + targetReserves);
-      lockedAssets.set(chameleonAssetId, lockedChameleon + chameleonReserves);
+
+      if (chameleonAssetId) {
+        const lockedChameleon = lockedAssets.get(chameleonAssetId) ?? BigInt(0);
+        lockedAssets.set(chameleonAssetId, lockedChameleon + chameleonReserves);
+      }
     }
 
     return lockedAssets;
@@ -428,14 +448,14 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
       pool.id,
       timestamp,
       type,
-      poolTokenSupply ?? BigInt(0),
-      '0',
       priceUSD,
       baseAssetReserves,
       targetAssetReserves,
       chameleonAssetReserves ?? BigInt(0),
       '0',
       '0',
+      '0',
+      poolTokenSupply ?? BigInt(0),
       '0',
       '0',
       '0'

@@ -87,6 +87,10 @@ export function getInitializeAssetsLog(ctx: BlockContext, onlyWithTestLogMode: b
 	return getLog(ctx, 'InitializeAssets', {}, onlyWithTestLogMode)
 }
 
+export function getInitializeAccountLiquiditiesLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
+	return getLog(ctx, 'InitializeAccountLiquidities', {}, onlyWithTestLogMode)
+}
+
 export function getInitializePoolsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
 	return getLog(ctx, 'InitializePools', {}, onlyWithTestLogMode)
 }
