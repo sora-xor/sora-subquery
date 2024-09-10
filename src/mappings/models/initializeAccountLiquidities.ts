@@ -16,11 +16,10 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
   const accountLiquidities: Map<string, Partial<AccountLiquidity>> = new Map();
 
   for (const poolId of poolAccounts.accounts) {
-    const pool = await poolsStorage.getPoolById(block, poolId);
+    const pool = await poolsStorage.getEntity(block, poolId);
 
     // if no pool tokens - no providers
     if (!pool.poolTokenSupply) {
-      getInitializeAccountLiquiditiesLog(block).info({ poolId: pool.id, supply: pool.poolTokenSupply }, 'No pool tokens - continue');
       continue;
     }
 

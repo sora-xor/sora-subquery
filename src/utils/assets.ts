@@ -280,11 +280,12 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
   async updateDailyStats(block: SubstrateBlock): Promise<void> {
     this.log(block).debug(`Assets Daily stats updating...`);
 
-    for (const asset of this.entityStorage.values) {
+    for (const asset of this.entityStorage.entities) {
       const { priceChange, volumeUSD } = await this.calcStats(block, asset, SnapshotType.HOUR, 24);
 
       asset.priceChangeDay = priceChange;
       asset.volumeDayUSD = volumeUSD;
+
       this.log(block, true).debug(
         { assetId: asset.id, priceChange, volumeUSD },
         'Asset daily stats updated',
@@ -294,12 +295,13 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
 
   async updateWeeklyStats(block: SubstrateBlock): Promise<void> {
     this.log(block).debug(`Assets Weekly stats updating...`);
-    for (const asset of this.entityStorage.values) {
+    for (const asset of this.entityStorage.entities) {
       const { priceChange, volumeUSD, velocity } = await this.calcStats(block, asset, SnapshotType.DAY, 7);
 
       asset.priceChangeWeek = priceChange;
       asset.volumeWeekUSD = volumeUSD;
       asset.velocity = velocity;
+
       this.log(block, true).debug(
         { assetId: asset.id, priceChange, volumeUSD, velocity },
         'Asset weekly stats updated',

@@ -53,7 +53,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         getSyncPricesLog(block).debug({ baseAssetId }, `Update ${poolsMap.size} pools`);
 
         for (const poolId of poolsMap.values()) {
-            const pool = await poolsStorage.getPoolById(block, poolId);
+            const pool = await poolsStorage.getEntity(block, poolId);
 
             if (!pool) continue;
 

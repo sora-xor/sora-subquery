@@ -1,5 +1,7 @@
 import type { SubstrateBlock } from "@subql/types";
 
+import { accountMetaStorage } from '../../utils/account';
+import { accountLiquidityStorage, accountLiquiditySnapshotsStorage } from '../../utils/accountLiquidity';
 import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
@@ -14,10 +16,17 @@ export async function syncModels(block: SubstrateBlock): Promise<void> {
 
   await poolsSnapshotsStorage.sync(block);
   await poolsStorage.sync(block);
+
   await assetSnapshotsStorage.sync(block);
   await assetStorage.sync(block);
+
   await orderBooksSnapshotsStorage.sync(block);
   await orderBooksStorage.sync(block);
+
+  await accountLiquidityStorage.sync(block);
+  await accountLiquiditySnapshotsStorage.sync(block);
+
+  await accountMetaStorage.sync(block);
 }
 
 export async function updateNetworkStats(block: SubstrateBlock): Promise<void> {

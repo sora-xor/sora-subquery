@@ -265,7 +265,7 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook
   protected async syncLiquidityUSD(block: SubstrateBlock): Promise<Map<string, bigint>> {
     const lockedAssets = new Map<string, bigint>();
 
-    for (const { dexId, baseAssetId, quoteAssetId, baseAssetReserves, quoteAssetReserves } of this.entityStorage.values) {
+    for (const { dexId, baseAssetId, quoteAssetId, baseAssetReserves, quoteAssetReserves } of this.entityStorage.entities) {
       const a = lockedAssets.get(baseAssetId) ?? BigInt(0);
       const b = lockedAssets.get(quoteAssetId) ?? BigInt(0);
 
@@ -341,7 +341,7 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<OrderBook
   async updateDailyStats(block: SubstrateBlock): Promise<void> {
     this.log(block).debug(`Order Books Daily stats updating...`);
 
-    for (const orderBook of this.entityStorage.values) {
+    for (const orderBook of this.entityStorage.entities) {
       const { priceChange, volumeUSD } = await this.calcStats(block, orderBook, SnapshotType.HOUR, 24);
 
       orderBook.priceChangeDay = priceChange;
