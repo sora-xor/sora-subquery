@@ -1,6 +1,6 @@
 import { SubstrateBlock } from '@subql/types';
 
-import { UpdatesStream } from "../types";
+import { UpdatesStream } from '../types';
 
 import { getBlockNumber } from './index';
 

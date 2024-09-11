@@ -1,12 +1,12 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
-import { SubstrateEvent } from "@subql/types";
+import { SubstrateEvent } from '@subql/types';
 
-import { XOR } from "../../utils/consts";
+import { XOR } from '../../utils/consts';
 import { accountMetaStorage } from '../../utils/account';
 import { getAmountUSD, formatU128ToBalance } from '../../utils/assets';
-import { getEventData } from "../../utils/events";
-import { logStartProcessingEvent } from "../../utils/logs";
+import { getEventData } from '../../utils/events';
+import { logStartProcessingEvent } from '../../utils/logs';
 
 const getVoteConvictionRate = (voteCodec: any): number => {
   const conviction = voteCodec.conviction;
@@ -26,7 +26,7 @@ const getVoteConvictionRate = (voteCodec: any): number => {
   } else {
     return 0.1;
   }
-}
+};
 
 const getVoteAmount = (voteAccountCodec: any): string => {
   let amount = BigInt(0);
@@ -53,7 +53,7 @@ const getVoteAmount = (voteAccountCodec: any): string => {
 export async function handleDemocracyVoted(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const [ voter, _refIndexCodec, voteAccountCodec ] = getEventData(event) as any;
+  const [voter, _refIndexCodec, voteAccountCodec] = getEventData(event) as any;
 
   const accountId = voter.toString();
   const assetId = XOR;

@@ -1,11 +1,17 @@
-import { SnapshotType } from "../types";
-import type { AssetSnapshot, OrderBookSnapshot, PoolSnapshot, AccountLiquiditySnapshot, NetworkSnapshot } from '../types';
+import { SnapshotType } from '../types';
+import type {
+  AssetSnapshot,
+  OrderBookSnapshot,
+  PoolSnapshot,
+  AccountLiquiditySnapshot,
+  NetworkSnapshot,
+} from '../types';
 
 import { getStorageLog, type BlockContext } from './logs';
 import { shouldUpdate, formatDateTimestamp, getSnapshotIndex, getSnapshotTypeTimeDepth } from './index';
 
 import { SubstrateBlock } from '@subql/types';
-import type { Entity as BaseEntity } from "@subql/types-core";
+import type { Entity as BaseEntity } from '@subql/types-core';
 
 type Snapshot = AssetSnapshot | OrderBookSnapshot | PoolSnapshot | AccountLiquiditySnapshot | NetworkSnapshot;
 
@@ -36,7 +42,7 @@ export class EntityStorage<Entity extends BaseEntity> {
   }
 
   protected async load(id: string): Promise<Entity | undefined> {
-    return await store.get(this.entityName, id) as Entity | undefined;
+    return (await store.get(this.entityName, id)) as Entity | undefined;
   }
 
   protected async delete(...ids: string[]): Promise<void> {
@@ -98,7 +104,7 @@ export class EntityStorage<Entity extends BaseEntity> {
 export class EntitySnapshotsStorage<
   Entity extends BaseEntity,
   SnapshotEntity extends Snapshot,
-  StorageEntity extends  EntityStorage<Entity>,
+  StorageEntity extends EntityStorage<Entity>,
 > extends EntityStorage<SnapshotEntity> {
   protected entityStorage!: StorageEntity;
 
@@ -111,10 +117,10 @@ export class EntitySnapshotsStorage<
   }
 
   protected async getSnapshotsByIds(ids: string[]): Promise<SnapshotEntity[]> {
-    const snapshots = await Promise.all(ids.map(id => this.load(id)));
+    const snapshots = await Promise.all(ids.map((id) => this.load(id)));
 
     return snapshots.filter((item) => !!item);
-  };
+  }
 
   async getSnapshot(block: SubstrateBlock, entityId: string, type: SnapshotType): Promise<SnapshotEntity> {
     const blockTimestamp = formatDateTimestamp(block.timestamp);

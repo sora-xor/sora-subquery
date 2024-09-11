@@ -1,21 +1,21 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
-import { SubstrateBlock } from "@subql/types";
-import { Account, AccountMeta } from "../types";
+import { SubstrateBlock } from '@subql/types';
+import { Account, AccountMeta } from '../types';
 
 import { KXOR } from './consts';
-import { EntityStorage } from "./storage";
-import { getAmountUSD } from "./assets";
-import { formatDateTimestamp, getBlockNumber } from "./index";
+import { EntityStorage } from './storage';
+import { getAmountUSD } from './assets';
+import { formatDateTimestamp, getBlockNumber } from './index';
 import { networkSnapshotsStorage } from './network';
-import { getUtilsLog } from "./logs";
+import { getUtilsLog } from './logs';
 
 export const getAccountEntity = async (block: SubstrateBlock, accountAddress: string) => {
   let account = await Account.get(accountAddress);
 
   if (account) {
-		getUtilsLog(block).debug({ address: accountAddress }, 'Account found in store')
-	} else {
+    getUtilsLog(block).debug({ address: accountAddress }, 'Account found in store');
+  } else {
     account = new Account(accountAddress);
     await account.save();
     getUtilsLog(block).debug({ address: accountAddress }, 'Account created');
@@ -27,7 +27,7 @@ export const getAccountEntity = async (block: SubstrateBlock, accountAddress: st
 
 class AccountMetaStorage extends EntityStorage<AccountMeta> {
   constructor() {
-    super('AccountMeta')
+    super('AccountMeta');
   }
 
   public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountMeta> {
@@ -48,7 +48,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
       counterData,
       counterData,
       governanceData,
-      depositData,
+      depositData
     );
 
     return entity;
@@ -107,7 +107,13 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     await this.save(block, meta);
   }
 
-  public async updateOrderExecuted(block: SubstrateBlock, id: string, quoteAssetId: string, price: string, amount: string) {
+  public async updateOrderExecuted(
+    block: SubstrateBlock,
+    id: string,
+    quoteAssetId: string,
+    price: string,
+    amount: string
+  ) {
     const meta = await this.getEntity(block, id);
 
     const quotePrice = new BigNumber(price);
@@ -140,7 +146,13 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     await this.save(block, meta);
   }
 
-  public async updateVaultExecuted(block: SubstrateBlock, id: string, assetId: string, amount: string, isCollateral = false) {
+  public async updateVaultExecuted(
+    block: SubstrateBlock,
+    id: string,
+    assetId: string,
+    amount: string,
+    isCollateral = false
+  ) {
     if (!isCollateral && assetId === KXOR) return;
 
     const meta = await this.getEntity(block, id);

@@ -1,12 +1,12 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
 import { SubstrateBlock, SubstrateExtrinsic } from '@subql/types';
 import { PoolSnapshot, PoolXYK, SnapshotType } from '../types';
 import { XOR, KXOR, ETH, DOUBLE_PRICE_POOL } from './consts';
-import { assetStorage, calcTvlUSD } from "./assets";
+import { assetStorage, calcTvlUSD } from './assets';
 import { accountLiquiditySnapshotsStorage } from './accountLiquidity';
 import { getUtilsLog } from './logs';
-import { poolXykApyUpdatesStream } from "./stream";
+import { poolXykApyUpdatesStream } from './stream';
 import { EntityStorage, EntitySnapshotsStorage } from './storage';
 import { getSnapshotTypes } from './index';
 import { isAssetTransferEvent, getTransferEventData } from './events';
@@ -31,7 +31,7 @@ export const getAllReserves = async (block: SubstrateBlock, baseAssetId: string)
     return reserves;
   } catch (e) {
     getUtilsLog(block).error('Error getting Reserves');
-		getUtilsLog(block).error(e);
+    getUtilsLog(block).error(e);
     return null;
   }
 };
@@ -43,13 +43,17 @@ export const getAllProperties = async (block: SubstrateBlock, baseAssetId: strin
     getUtilsLog(block).debug(`'${baseAssetId}' Pools XYK Properties request completed`);
     return properties;
   } catch (e) {
-    getUtilsLog(block).error('Error getting Reserves')
-		getUtilsLog(block).error(e);
+    getUtilsLog(block).error('Error getting Reserves');
+    getUtilsLog(block).error(e);
     return null;
   }
 };
 
-export const getPoolProperties = async (block: SubstrateBlock, baseAssetId: string, targetAssetId: string): Promise<string | null> => {
+export const getPoolProperties = async (
+  block: SubstrateBlock,
+  baseAssetId: string,
+  targetAssetId: string
+): Promise<string | null> => {
   try {
     getUtilsLog(block).debug({ baseAssetId, targetAssetId }, 'Pool properties request...');
     const props = (await api.query.poolXYK.properties(baseAssetId, targetAssetId)).toJSON() as any;
@@ -65,10 +69,10 @@ export const getPoolProperties = async (block: SubstrateBlock, baseAssetId: stri
     }
   } catch (error) {
     getUtilsLog(block).error('Error getting pool properties');
-		getUtilsLog(block).error(error);
+    getUtilsLog(block).error(error);
     return null;
   }
-}
+};
 
 export const getAllPoolProviders = async (block: SubstrateBlock, poolId: string): Promise<Record<string, string>> => {
   try {
@@ -88,10 +92,10 @@ export const getAllPoolProviders = async (block: SubstrateBlock, poolId: string)
     return buffer;
   } catch (error) {
     getUtilsLog(block).error('Error getting pool providers');
-		getUtilsLog(block).error(error);
+    getUtilsLog(block).error(error);
     return {};
   }
-}
+};
 
 export const getAllBalances = async (block: SubstrateBlock): Promise<Record<string, string>> => {
   try {
@@ -101,7 +105,7 @@ export const getAllBalances = async (block: SubstrateBlock): Promise<Record<stri
 
     const buffer = {};
 
-    for (const [key, value] of results ) {
+    for (const [key, value] of results) {
       const account = key.args[0].toString();
       const tokens = value.toString();
 
@@ -111,10 +115,10 @@ export const getAllBalances = async (block: SubstrateBlock): Promise<Record<stri
     return buffer;
   } catch (error) {
     getUtilsLog(block).error('Error getting pools balances');
-		getUtilsLog(block).error(error);
+    getUtilsLog(block).error(error);
     return {};
   }
-}
+};
 
 export const getPoolBalance = async (block: SubstrateBlock, poolId: string): Promise<string> => {
   try {
@@ -127,10 +131,10 @@ export const getPoolBalance = async (block: SubstrateBlock, poolId: string): Pro
     return balance.unwrap().toString();
   } catch (error) {
     getUtilsLog(block).error('Error getting pool balance');
-		getUtilsLog(block).error(error);
+    getUtilsLog(block).error(error);
     return '0';
   }
-}
+};
 
 // https://github.com/sora-xor/sora2-network/blob/master/runtime/src/lib.rs#L1026
 export const getChameleonPool = (pool: Partial<PoolXYK>): boolean => {
@@ -153,7 +157,7 @@ export const getChameleonPoolBaseAssetId = (dexBaseAssetId: string): string | nu
 const getPoolByAssets = async (
   block: SubstrateBlock,
   baseAssetId: string,
-  targetAssetId: string,
+  targetAssetId: string
 ): Promise<PoolXYK | null> => {
   const poolId = await poolAccounts.getPoolAccountId(block, baseAssetId, targetAssetId);
 
@@ -162,13 +166,13 @@ const getPoolByAssets = async (
   const pool = await poolsStorage.getEntity(block, poolId);
 
   return pool;
-}
+};
 
 export const getPoolAmountUSD = async (
   block: SubstrateBlock,
   baseAssetId: string,
   targetAssetId: string,
-  amount: string,
+  amount: string
 ) => {
   const pool = await getPoolByAssets(block, baseAssetId, targetAssetId);
 
@@ -191,7 +195,7 @@ export const updatePoolLiquidity = async (
 
   await poolsSnapshotsStorage.updatePoolTokensSupply(block, pool.id);
   await accountLiquiditySnapshotsStorage.updatePoolTokensSupply(block, signer, pool.id);
-}
+};
 
 class PoolAccountsStorage {
   private storage: Map<string, Map<string, string>>;
@@ -230,7 +234,7 @@ class PoolAccountsStorage {
     return this.accountIds.has(poolAccountId);
   }
 
-  async getPoolAccountId (block: SubstrateBlock, baseAssetId: string, targetAssetId: string): Promise<string | null> {
+  async getPoolAccountId(block: SubstrateBlock, baseAssetId: string, targetAssetId: string): Promise<string | null> {
     const id = this.get(baseAssetId, targetAssetId);
 
     if (id) return id;
@@ -245,7 +249,7 @@ class PoolAccountsStorage {
 
     return poolAccountId;
   }
-};
+}
 
 class PoolsStorage extends EntityStorage<PoolXYK> {
   constructor() {
@@ -299,7 +303,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     return {
       base: baseReserves,
       target: targetAssetReserves,
-      chameleon: chameleonReserves
+      chameleon: chameleonReserves,
     };
   }
 
@@ -372,7 +376,9 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
 
     const baseAssetPrice = (await assetStorage.getEntity(block, baseAssetId)).priceUSD;
     const targetAssetPrice = (await assetStorage.getEntity(block, targetAssetId)).priceUSD;
-    const chameleonAssetPrice = chameleonAssetId ? (await assetStorage.getEntity(block, chameleonAssetId)).priceUSD : '0';
+    const chameleonAssetPrice = chameleonAssetId
+      ? (await assetStorage.getEntity(block, chameleonAssetId)).priceUSD
+      : '0';
 
     let liquidityUSD = new BigNumber(0);
 
@@ -387,10 +393,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     return pool;
   }
 
-  async updatePoolTokenPrice(
-    block: SubstrateBlock,
-    id: string,
-  ): Promise<PoolXYK> {
+  async updatePoolTokenPrice(block: SubstrateBlock, id: string): Promise<PoolXYK> {
     const pool = await this.getEntity(block, id);
 
     const supply = pool.poolTokenSupply ?? BigInt(0);
@@ -518,10 +521,7 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
       snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), bnPrice).toString();
       snapshot.priceUSD.low = BigNumber.min(new BigNumber(snapshot.priceUSD.low), bnPrice).toString();
 
-      this.log(block, true).debug(
-        { id, newPrice: pool.priceUSD },
-        `${this.entityName} price updated'`
-      )
+      this.log(block, true).debug({ id, newPrice: pool.priceUSD }, `${this.entityName} price updated'`);
 
       await this.save(block, snapshot);
     }
@@ -593,18 +593,21 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 
   async processSwap(extrinsic: SubstrateExtrinsic) {
     const block = extrinsic.block;
-    const transfers = extrinsic.events.filter(e => isAssetTransferEvent(e));
-    const poolTransfers: Record<string, Array<{ assetId: string; amount: string; }>> = transfers.reduce((acc, transferEvent) => {
-      const { assetId, from, to, amount } = getTransferEventData(transferEvent);
-      const poolAccountId = [from, to].find((address) => poolAccounts.has(address));
+    const transfers = extrinsic.events.filter((e) => isAssetTransferEvent(e));
+    const poolTransfers: Record<string, Array<{ assetId: string; amount: string }>> = transfers.reduce(
+      (acc, transferEvent) => {
+        const { assetId, from, to, amount } = getTransferEventData(transferEvent);
+        const poolAccountId = [from, to].find((address) => poolAccounts.has(address));
 
-      if (!poolAccountId) return acc;
-      if (!acc[poolAccountId]) acc[poolAccountId] = [];
+        if (!poolAccountId) return acc;
+        if (!acc[poolAccountId]) acc[poolAccountId] = [];
 
-      acc[poolAccountId].push({ assetId, amount });
+        acc[poolAccountId].push({ assetId, amount });
 
-      return acc;
-    }, {});
+        return acc;
+      },
+      {}
+    );
 
     for (const [poolAccountId, transfers] of Object.entries(poolTransfers)) {
       const pool = await this.entityStorage.getEntity(block, poolAccountId);
@@ -646,7 +649,7 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
     volumeUSD: BigNumber,
     baseVolume: BigNumber,
     targetVolume: BigNumber,
-    chameleonVolume: BigNumber,
+    chameleonVolume: BigNumber
   ) {
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 

@@ -1,9 +1,9 @@
-import { SubstrateBlock } from "@subql/types";
+import { SubstrateBlock } from '@subql/types';
 import { AccountLiquidity } from '../../types';
 
 import { accountLiquidityStorage } from '../../utils/accountLiquidity';
 import { poolAccounts, getAllPoolProviders, poolsStorage } from '../../utils/pools';
-import { getInitializeAccountLiquiditiesLog } from "../../utils/logs";
+import { getInitializeAccountLiquiditiesLog } from '../../utils/logs';
 
 let isFirstBlockIndexed = false;
 

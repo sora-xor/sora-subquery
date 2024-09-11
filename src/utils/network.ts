@@ -1,10 +1,10 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
-import { SubstrateBlock } from "@subql/types";
+import { SubstrateBlock } from '@subql/types';
 
-import { SnapshotType, NetworkSnapshot, NetworkStats } from "../types";
-import { getSnapshotTypes } from "./index";
-import { getNetworkSnapshotsStorageLog } from "./logs";
+import { SnapshotType, NetworkSnapshot, NetworkStats } from '../types';
+import { getSnapshotTypes } from './index';
+import { getNetworkSnapshotsStorageLog } from './logs';
 import { orderBooksSnapshotsStorage } from './orderBook';
 import { poolsSnapshotsStorage } from './pools';
 
@@ -12,19 +12,16 @@ import { EntityStorage, EntitySnapshotsStorage } from './storage';
 
 const NetworkStatsId = '0';
 
-class NetworkStatsStorage extends EntityStorage<NetworkStats>{
+class NetworkStatsStorage extends EntityStorage<NetworkStats> {
   private id!: string;
 
   constructor(id: string) {
-    super('NetworkStats')
+    super('NetworkStats');
     this.id = id;
   }
 
-  public override async createEntity(
-    block: SubstrateBlock,
-    id: string,
-  ): Promise<NetworkStats> {
-    const stats = new NetworkStats(id, BigInt(0), 0, 0, 0, 0)
+  public override async createEntity(block: SubstrateBlock, id: string): Promise<NetworkStats> {
+    const stats = new NetworkStats(id, BigInt(0), 0, 0, 0, 0);
 
     return stats;
   }
@@ -32,9 +29,9 @@ class NetworkStatsStorage extends EntityStorage<NetworkStats>{
   async getStats(block: SubstrateBlock): Promise<NetworkStats> {
     return await this.getEntity(block, this.id);
   }
-};
+}
 
-class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, NetworkSnapshot, NetworkStatsStorage>{
+class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, NetworkSnapshot, NetworkStatsStorage> {
   constructor(networkStatsStorage: NetworkStatsStorage) {
     super('NetworkSnapshot', networkStatsStorage);
   }
@@ -48,24 +45,13 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
     timestamp: number,
     type: SnapshotType
   ): Promise<NetworkSnapshot> {
-    const snapshot = new NetworkSnapshot(
-      id,
-      type,
-      timestamp,
-      0,
-      0,
-      BigInt(0),
-      '0',
-      '0',
-      0,
-      0,
-    );
+    const snapshot = new NetworkSnapshot(id, type, timestamp, 0, 0, BigInt(0), '0', '0', 0, 0);
 
     return snapshot;
   }
 
   async updateAccountsStats(block: SubstrateBlock): Promise<void> {
-    getNetworkSnapshotsStorageLog(block).debug('Update accounts stats in network snapshots')
+    getNetworkSnapshotsStorageLog(block).debug('Update accounts stats in network snapshots');
     const stats = await this.entityStorage.getStats(block);
 
     stats.totalAccounts = stats.totalAccounts + 1;
@@ -74,13 +60,13 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
-  
+
       snapshot.accounts = snapshot.accounts + 1;
     }
   }
 
   async updateTransactionsStats(block: SubstrateBlock): Promise<void> {
-    getNetworkSnapshotsStorageLog(block).debug('Update transactions stats in network snapshots')
+    getNetworkSnapshotsStorageLog(block).debug('Update transactions stats in network snapshots');
 
     const stats = await this.entityStorage.getStats(block);
 
@@ -96,7 +82,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
   }
 
   async updateBridgeIncomingTransactionsStats(block: SubstrateBlock): Promise<void> {
-    getNetworkSnapshotsStorageLog(block).debug('Update bridge incoming transactions stats in network snapshots')
+    getNetworkSnapshotsStorageLog(block).debug('Update bridge incoming transactions stats in network snapshots');
 
     const stats = await this.entityStorage.getStats(block);
 
@@ -112,7 +98,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
   }
 
   async updateBridgeOutgoingTransactionsStats(block: SubstrateBlock): Promise<void> {
-    getNetworkSnapshotsStorageLog(block).debug('Update bridge outgoing transactions stats in network snapshots')
+    getNetworkSnapshotsStorageLog(block).debug('Update bridge outgoing transactions stats in network snapshots');
 
     const stats = await this.entityStorage.getStats(block);
 
@@ -128,7 +114,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
   }
 
   async updateFeesStats(block: SubstrateBlock, fee: bigint): Promise<void> {
-    getNetworkSnapshotsStorageLog(block).debug({ fee }, 'Update fee stats in network snapshots')
+    getNetworkSnapshotsStorageLog(block).debug({ fee }, 'Update fee stats in network snapshots');
 
     const stats = await this.entityStorage.getStats(block);
 
@@ -144,7 +130,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
   }
 
   async updateLiquidityStats(block: SubstrateBlock): Promise<void> {
-    getNetworkSnapshotsStorageLog(block).debug('Update liquidity stats in network snapshots')
+    getNetworkSnapshotsStorageLog(block).debug('Update liquidity stats in network snapshots');
 
     const stats = await this.entityStorage.getStats(block);
 
@@ -170,7 +156,7 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, stats.id, type);
-  
+
       snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toFixed(2);
     }
   }

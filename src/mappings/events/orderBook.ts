@@ -1,14 +1,14 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
-import { SubstrateEvent } from "@subql/types";
-import { OrderBookOrder, OrderType, OrderStatus } from '../../types'
+import { SubstrateEvent } from '@subql/types';
+import { OrderBookOrder, OrderType, OrderStatus } from '../../types';
 
 import { formatDateTimestamp, getEventId, getBlockNumber } from '../../utils';
 import { getAccountEntity, accountMetaStorage } from '../../utils/account';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { getEventData } from '../../utils/events';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 
 const getBookData = (orderBookCodec: any) => {
   const dexId = orderBookCodec.dexId.toNumber();
@@ -16,7 +16,7 @@ const getBookData = (orderBookCodec: any) => {
   const quoteAssetId = getAssetId(orderBookCodec.quote);
 
   return { dexId, baseAssetId, quoteAssetId };
-}
+};
 
 const getOrderData = (orderBookCodec: any, orderId: string | number) => {
   const { dexId, baseAssetId, quoteAssetId } = getBookData(orderBookCodec);
@@ -24,7 +24,7 @@ const getOrderData = (orderBookCodec: any, orderId: string | number) => {
   const id = orderBooksStorage.getOrderId(orderBookId, orderId);
 
   return { dexId, baseAssetId, quoteAssetId, orderBookId, orderId, id };
-}
+};
 
 export async function orderBookCreatedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
@@ -121,7 +121,16 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
     getEventHandlerLog(event).debug({ id }, 'Limit Order not found');
   }
 
-  await orderBooksSnapshotsStorage.updateDeal(event.block, dexId, baseAssetId, quoteAssetId, Number(orderId), newPrice, newAmount, isBuy);
+  await orderBooksSnapshotsStorage.updateDeal(
+    event.block,
+    dexId,
+    baseAssetId,
+    quoteAssetId,
+    Number(orderId),
+    newPrice,
+    newAmount,
+    isBuy
+  );
 
   await accountMetaStorage.updateOrderExecuted(event.block, accountId, quoteAssetId, newPrice, newAmount);
 }
@@ -228,7 +237,7 @@ export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
     timestamp,
     amount,
     OrderStatus.Filled,
-    blockNumber,
+    blockNumber
   );
 
   await marketOrder.save();

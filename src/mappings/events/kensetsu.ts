@@ -1,17 +1,17 @@
-import { SubstrateEvent } from "@subql/types";
-import { Vault, VaultAccount, VaultStatus, VaultEvent, VaultEventType } from '../../types'
+import { SubstrateEvent } from '@subql/types';
+import { Vault, VaultAccount, VaultStatus, VaultEvent, VaultEventType } from '../../types';
 
 import { formatDateTimestamp, getEventId, getBlockNumber } from '../../utils';
 import { accountMetaStorage } from '../../utils/account';
 import { getVaultAccountEntity } from '../../utils/kensetsu';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 
 async function handleEventType(event: SubstrateEvent, eventType: VaultEventType) {
   logStartProcessingEvent(event);
 
   let vault!: Vault;
-  let account!: VaultAccount
+  let account!: VaultAccount;
   let vaultIdCodec!: any;
   let ownerCodec!: any;
   let assetCodec!: any;
@@ -49,7 +49,7 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
       getAssetId(assetCodec),
       getAssetId(debtAssetCodec),
       blockNumber,
-      blockNumber,
+      blockNumber
     );
 
     await accountMetaStorage.updateVaultCreated(event.block, vault.ownerId, vault.debtAssetId);
@@ -60,15 +60,9 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   if (!vault) {
     getEventHandlerLog(event).error({ id: vauldId }, 'Vault not found');
     return;
-  };
+  }
 
-  const vaultEvent = new VaultEvent(
-    getEventId(event),
-    eventType,
-    vault.id,
-    timestamp,
-    blockNumber,
-  );
+  const vaultEvent = new VaultEvent(getEventId(event), eventType, vault.id, timestamp, blockNumber);
 
   const assetId = getAssetId(assetCodec);
   const amount = amountCodec ? formatU128ToBalance(amountCodec.toString(), assetId) : null;

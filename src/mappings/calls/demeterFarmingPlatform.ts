@@ -1,18 +1,20 @@
-import { SubstrateExtrinsic } from "@subql/types";
+import { SubstrateExtrinsic } from '@subql/types';
 
-import { createHistoryElement } from "../../utils/history";
+import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
-import { isEvent, getEventData } from "../../utils/events";
+import { isEvent, getEventData } from '../../utils/events';
 import { getPoolAmountUSD } from '../../utils/pools';
 import { XOR } from '../../utils/consts';
-import { logStartProcessingCall } from "../../utils/logs";
+import { logStartProcessingCall } from '../../utils/logs';
 
 const Section = 'demeterFarmingPlatform';
 
 export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const [desiredAmount, isFarmCodec, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
+  const [desiredAmount, isFarmCodec, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args
+    .slice()
+    .reverse();
 
   const details: any = {};
   const isFarm = isFarmCodec.toHuman() as boolean;
@@ -26,7 +28,7 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
   // farming or staking
   details.isFarm = isFarm;
 
-  const event = extrinsic.events.find(e => isEvent(e, 'demeterFarmingPlatform', 'Deposited'));
+  const event = extrinsic.events.find((e) => isEvent(e, 'demeterFarmingPlatform', 'Deposited'));
 
   if (event) {
     const [amountCodec] = event.event.data.slice().reverse();
@@ -46,7 +48,9 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
 export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const [isFarmCodec, desiredAmount, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
+  const [isFarmCodec, desiredAmount, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args
+    .slice()
+    .reverse();
 
   const details: any = {};
   const isFarm = isFarmCodec.toHuman() as boolean;
@@ -60,7 +64,7 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
   // farming or staking
   details.isFarm = isFarm;
 
-  const event = extrinsic.events.find(e => isEvent(e, 'demeterFarmingPlatform', 'Withdrawn'));
+  const event = extrinsic.events.find((e) => isEvent(e, 'demeterFarmingPlatform', 'Withdrawn'));
 
   if (event) {
     const [who, amount] = getEventData(event);
@@ -90,7 +94,7 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
   // reward for farming or staking
   details.isFarm = isFarm.toHuman();
 
-  const event = extrinsic.events.find(e => isEvent(e, 'demeterFarmingPlatform', 'RewardWithdrawn'));
+  const event = extrinsic.events.find((e) => isEvent(e, 'demeterFarmingPlatform', 'RewardWithdrawn'));
 
   if (event) {
     const [who, amountCodec] = getEventData(event);

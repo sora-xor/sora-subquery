@@ -1,14 +1,18 @@
-import { SubstrateExtrinsic } from "@subql/types";
+import { SubstrateExtrinsic } from '@subql/types';
 import { isEvent, getEventData } from '../../utils/events';
-import { createHistoryElement } from "../../utils/history";
-import { KUSD } from "../../utils/consts";
-import { getAssetId, getAmountUSD, formatU128ToBalance } from "../../utils/assets";
-import { logStartProcessingCall } from "../../utils/logs";
+import { createHistoryElement } from '../../utils/history';
+import { KUSD } from '../../utils/consts';
+import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
+import { logStartProcessingCall } from '../../utils/logs';
 
 export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [collateralAsset, collateralAmountCodec, stablecoinAsset, _borrowAmountMin, borrowAmountMax, _cdpType] }} = extrinsic as any;
+  const {
+    extrinsic: {
+      args: [collateralAsset, collateralAmountCodec, stablecoinAsset, _borrowAmountMin, borrowAmountMax, _cdpType],
+    },
+  } = extrinsic as any;
 
   const collateralAssetId = getAssetId(collateralAsset);
   const collateralAmount = formatU128ToBalance(collateralAmountCodec.toString(), collateralAssetId);
@@ -24,7 +28,7 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
     debtAmount,
   };
 
-  const vaultCreatedEvent = extrinsic.events.find(e => isEvent(e, 'kensetsu', 'CDPCreated'));
+  const vaultCreatedEvent = extrinsic.events.find((e) => isEvent(e, 'kensetsu', 'CDPCreated'));
 
   if (vaultCreatedEvent) {
     const [id, _owner, _collateralId, _debtId, _vaultType] = getEventData(vaultCreatedEvent);
@@ -32,7 +36,7 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
     details.id = id.toString();
   }
 
-  const debtIncreasedEvent = extrinsic.events.find(e => isEvent(e, 'kensetsu', 'DebtIncreased'));
+  const debtIncreasedEvent = extrinsic.events.find((e) => isEvent(e, 'kensetsu', 'DebtIncreased'));
 
   if (debtIncreasedEvent) {
     const [_id, _owner, _debtId, debtAmount] = getEventData(debtIncreasedEvent);
@@ -40,7 +44,11 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
     details.debtAmount = formatU128ToBalance(debtAmount.toString(), details.debtAssetId);
   }
 
-  details.collateralAmountUSD = await getAmountUSD(extrinsic.block, details.collateralAssetId, details.collateralAmount);
+  details.collateralAmountUSD = await getAmountUSD(
+    extrinsic.block,
+    details.collateralAssetId,
+    details.collateralAmount
+  );
   details.debtAmountUSD = await getAmountUSD(extrinsic.block, details.debtAssetId, details.debtAmount);
 
   await createHistoryElement(extrinsic, details);
@@ -49,7 +57,11 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
 export async function vaultDepositCollateralCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [vaultId, collateralAmount] }} = extrinsic as any;
+  const {
+    extrinsic: {
+      args: [vaultId, collateralAmount],
+    },
+  } = extrinsic as any;
 
   const details: any = {
     id: vaultId.toString(),
@@ -57,7 +69,7 @@ export async function vaultDepositCollateralCallHandler(extrinsic: SubstrateExtr
     collateralAmount: formatU128ToBalance(collateralAmount.toString(), ''), // formatted with 18 decimals
   };
 
-  const vaultDepositEvent = extrinsic.events.find(e => isEvent(e, 'kensetsu', 'CollateralDeposit'));
+  const vaultDepositEvent = extrinsic.events.find((e) => isEvent(e, 'kensetsu', 'CollateralDeposit'));
 
   if (vaultDepositEvent) {
     const [_id, _owner, collateralId, collateralAmount] = getEventData(vaultDepositEvent);
@@ -65,7 +77,11 @@ export async function vaultDepositCollateralCallHandler(extrinsic: SubstrateExtr
 
     details.collateralAssetId = collateralAssetId;
     details.collateralAmount = formatU128ToBalance(collateralAmount.toString(), collateralAssetId);
-    details.collateralAmountUSD = await getAmountUSD(extrinsic.block, details.collateralAssetId, details.collateralAmount);
+    details.collateralAmountUSD = await getAmountUSD(
+      extrinsic.block,
+      details.collateralAssetId,
+      details.collateralAmount
+    );
   }
 
   await createHistoryElement(extrinsic, details);
@@ -74,7 +90,11 @@ export async function vaultDepositCollateralCallHandler(extrinsic: SubstrateExtr
 export async function vaultDecreaseDebtCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [vaultId, debtAmount] }} = extrinsic as any;
+  const {
+    extrinsic: {
+      args: [vaultId, debtAmount],
+    },
+  } = extrinsic as any;
 
   const details: any = {
     id: vaultId.toString(),
@@ -82,7 +102,7 @@ export async function vaultDecreaseDebtCallHandler(extrinsic: SubstrateExtrinsic
     debtAmount: formatU128ToBalance(debtAmount.toString(), KUSD), // default
   };
 
-  const vaultDebtPaymentEvent = extrinsic.events.find(e => isEvent(e, 'kensetsu', 'DebtPayment'));
+  const vaultDebtPaymentEvent = extrinsic.events.find((e) => isEvent(e, 'kensetsu', 'DebtPayment'));
 
   if (vaultDebtPaymentEvent) {
     const [_id, _owner, debtId, debtAmount] = getEventData(vaultDebtPaymentEvent);
@@ -99,7 +119,11 @@ export async function vaultDecreaseDebtCallHandler(extrinsic: SubstrateExtrinsic
 export async function vaultIncreaseDeptCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [vaultId, _borrowAmountMin, borrowAmountMax] }} = extrinsic as any;
+  const {
+    extrinsic: {
+      args: [vaultId, _borrowAmountMin, borrowAmountMax],
+    },
+  } = extrinsic as any;
 
   const details: any = {
     id: vaultId.toString(),
@@ -107,7 +131,7 @@ export async function vaultIncreaseDeptCallHandler(extrinsic: SubstrateExtrinsic
     debtAmount: formatU128ToBalance(borrowAmountMax.toString(), KUSD), // default
   };
 
-  const vaultDebtIncreasedEvent = extrinsic.events.find(e => isEvent(e, 'kensetsu', 'DebtIncreased'));
+  const vaultDebtIncreasedEvent = extrinsic.events.find((e) => isEvent(e, 'kensetsu', 'DebtIncreased'));
 
   if (vaultDebtIncreasedEvent) {
     const [_id, _owner, debtId, debtAmount] = getEventData(vaultDebtIncreasedEvent);
@@ -124,7 +148,11 @@ export async function vaultIncreaseDeptCallHandler(extrinsic: SubstrateExtrinsic
 export async function vaultCloseCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [vaultId] }} = extrinsic as any;
+  const {
+    extrinsic: {
+      args: [vaultId],
+    },
+  } = extrinsic as any;
 
   const details: any = {
     id: vaultId.toString(),
@@ -134,7 +162,7 @@ export async function vaultCloseCallHandler(extrinsic: SubstrateExtrinsic): Prom
     debtAmount: undefined,
   };
 
-  const vaultDebtPaymentEvent = extrinsic.events.find(e => isEvent(e, 'kensetsu', 'DebtPayment'));
+  const vaultDebtPaymentEvent = extrinsic.events.find((e) => isEvent(e, 'kensetsu', 'DebtPayment'));
 
   if (vaultDebtPaymentEvent) {
     const [_id, _owner, debtId, debtAmount] = getEventData(vaultDebtPaymentEvent);
@@ -145,7 +173,7 @@ export async function vaultCloseCallHandler(extrinsic: SubstrateExtrinsic): Prom
     details.debtAmountUSD = await getAmountUSD(extrinsic.block, details.debtAssetId, details.debtAmount);
   }
 
-  const vaultClosedEvent = extrinsic.events.find(e => isEvent(e, 'kensetsu', 'CDPClosed'));
+  const vaultClosedEvent = extrinsic.events.find((e) => isEvent(e, 'kensetsu', 'CDPClosed'));
 
   if (vaultClosedEvent) {
     const [_id, _owner, collateralId, collateralAmount] = getEventData(vaultClosedEvent);
@@ -153,7 +181,11 @@ export async function vaultCloseCallHandler(extrinsic: SubstrateExtrinsic): Prom
 
     details.collateralAssetId = collateralAssetId;
     details.collateralAmount = formatU128ToBalance(collateralAmount.toString(), collateralAssetId);
-    details.collateralAmountUSD = await getAmountUSD(extrinsic.block, details.collateralAssetId, details.collateralAmount);
+    details.collateralAmountUSD = await getAmountUSD(
+      extrinsic.block,
+      details.collateralAssetId,
+      details.collateralAmount
+    );
   }
 
   await createHistoryElement(extrinsic, details);

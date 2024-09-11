@@ -1,13 +1,13 @@
 import { u8aToHex } from '@polkadot/util';
 
-import { SubstrateExtrinsic } from "@subql/types";
+import { SubstrateExtrinsic } from '@subql/types';
 import { getExtrinsicSigner } from '../../utils';
-import { accountMetaStorage } from "../../utils/account";
-import { isEvent, getEventData } from "../../utils/events";
-import { createHistoryElement } from "../../utils/history";
+import { accountMetaStorage } from '../../utils/account';
+import { isEvent, getEventData } from '../../utils/events';
+import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
-import { logStartProcessingCall } from "../../utils/logs";
+import { logStartProcessingCall } from '../../utils/logs';
 
 function getEvmNetworkId(network: any): number {
   if (network.isEvmLegacy) return network.asEvmLegacy.toNumber();
@@ -100,9 +100,8 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 
   const details: any = {};
 
-  const bridgeAppMinted = extrinsic.events.find((e) =>
-    isEvent(e, 'parachainBridgeApp', 'Minted') ||
-    isEvent(e, 'substrateBridgeApp', 'Minted')
+  const bridgeAppMinted = extrinsic.events.find(
+    (e) => isEvent(e, 'parachainBridgeApp', 'Minted') || isEvent(e, 'substrateBridgeApp', 'Minted')
   );
 
   if (bridgeAppMinted) {
@@ -131,7 +130,11 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 }
 
 export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  const { extrinsic: { args: [subNetworkId, assetCodec, recipient, amountCodec] } } = extrinsic as any;
+  const {
+    extrinsic: {
+      args: [subNetworkId, assetCodec, recipient, amountCodec],
+    },
+  } = extrinsic as any;
 
   const networkType = getNetworkId(subNetworkId);
   const networkId = getNetwork(recipient);

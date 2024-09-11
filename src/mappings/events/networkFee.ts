@@ -1,14 +1,14 @@
-import { SubstrateEvent } from "@subql/types";
+import { SubstrateEvent } from '@subql/types';
 
 import { XOR } from '../../utils/consts';
 import { getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { accountMetaStorage } from '../../utils/account';
 import { getEventData } from '../../utils/events';
 import { networkSnapshotsStorage } from '../../utils/network';
-import { logStartProcessingEvent } from "../../utils/logs";
+import { logStartProcessingEvent } from '../../utils/logs';
 
 export async function handleNetworkFee(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event)
+  logStartProcessingEvent(event);
 
   const [account, fee] = getEventData(event);
 

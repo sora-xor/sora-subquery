@@ -1,24 +1,28 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
-import { SubstrateExtrinsic } from "@subql/types";
-import { bytesToString, getExtrinsicSigner } from "../../utils";
+import { SubstrateExtrinsic } from '@subql/types';
+import { bytesToString, getExtrinsicSigner } from '../../utils';
 import { XOR } from '../../utils/consts';
-import { isExchangeEvent, isEvent, getEventData } from "../../utils/events";
-import { createHistoryElement, getExtrinsicNetworkFee } from "../../utils/history";
+import { isExchangeEvent, isEvent, getEventData } from '../../utils/events';
+import { createHistoryElement, getExtrinsicNetworkFee } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { accountMetaStorage } from '../../utils/account';
-import { logStartProcessingCall } from "../../utils/logs";
+import { logStartProcessingCall } from '../../utils/logs';
 
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [symbol] } } = extrinsic;
+  const {
+    extrinsic: {
+      args: [symbol],
+    },
+  } = extrinsic;
 
   const details: any = {
-    assetId: symbol.toHuman()
+    assetId: symbol.toHuman(),
   };
 
-  const assetRegistrationEvent = extrinsic.events.find(e => isEvent(e, 'assets', 'AssetRegistered'));
+  const assetRegistrationEvent = extrinsic.events.find((e) => isEvent(e, 'assets', 'AssetRegistered'));
 
   if (assetRegistrationEvent) {
     const [asset] = getEventData(assetRegistrationEvent);
@@ -34,7 +38,11 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 export async function assetBurnHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [assetCodec, amountCodec] } } = extrinsic;
+  const {
+    extrinsic: {
+      args: [assetCodec, amountCodec],
+    },
+  } = extrinsic;
 
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
@@ -49,19 +57,18 @@ export async function assetBurnHandler(extrinsic: SubstrateExtrinsic): Promise<v
   await createHistoryElement(extrinsic, details);
 
   if (assetId === XOR) {
-    await accountMetaStorage.updateBurned(
-      extrinsic.block,
-      getExtrinsicSigner(extrinsic),
-      amount,
-      amountUSD,
-    );
+    await accountMetaStorage.updateBurned(extrinsic.block, getExtrinsicSigner(extrinsic), amount, amountUSD);
   }
 }
 
 export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [assetCodec, receiver, amountCodec] } } = extrinsic;
+  const {
+    extrinsic: {
+      args: [assetCodec, receiver, amountCodec],
+    },
+  } = extrinsic;
 
   const from = getExtrinsicSigner(extrinsic);
   const to = receiver.toString();
@@ -87,7 +94,11 @@ export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<v
 export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [assetCodec, receiver, amountCodec] } } = extrinsic;
+  const {
+    extrinsic: {
+      args: [assetCodec, receiver, amountCodec],
+    },
+  } = extrinsic;
 
   const from = getExtrinsicSigner(extrinsic);
   const to = receiver.toString();
@@ -115,8 +126,18 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
 
   const {
     extrinsic: {
-      args: [dexId, assetCodec, receiver, amountCodec, desiredXorAmount, maxAmountIn, selectedSources, filterMode, additionalData ]
-    }
+      args: [
+        dexId,
+        assetCodec,
+        receiver,
+        amountCodec,
+        desiredXorAmount,
+        maxAmountIn,
+        selectedSources,
+        filterMode,
+        additionalData,
+      ],
+    },
   } = extrinsic;
 
   const from = getExtrinsicSigner(extrinsic);
@@ -136,13 +157,13 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     xorFee: getExtrinsicNetworkFee(extrinsic), // fee paid in XOR (by default 100% of network fee)
   };
 
-  const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
+  const exchangeEvent = extrinsic.events.find((e) => isExchangeEvent(e));
 
   if (exchangeEvent) {
     const [, , , , baseAssetAmount, targetAssetAmount] = getEventData(exchangeEvent);
     const assetSpended = formatU128ToBalance(baseAssetAmount.toString(), assetId); // formatted
     const xorReceived = formatU128ToBalance(targetAssetAmount.toString(), XOR); // formatted
-    const xorSpended = new BigNumber(details.xorFee).minus(new BigNumber(xorReceived)).toString(); 
+    const xorSpended = new BigNumber(details.xorFee).minus(new BigNumber(xorReceived)).toString();
 
     details.assetFee = assetSpended;
     details.xorFee = xorSpended;

@@ -1,10 +1,10 @@
-import { SubstrateBlock } from "@subql/types";
+import { SubstrateBlock } from '@subql/types';
 
-import { OrderBookStatus } from '../../types'
+import { OrderBookStatus } from '../../types';
 import { getBlockNumber } from '../../utils';
 import { getAssetId, getAssetBalance } from '../../utils/assets';
 import { getAllOrderBooks, orderBooksStorage } from '../../utils/orderBook';
-import { getInitializeOrderBooksLog } from "../../utils/logs";
+import { getInitializeOrderBooksLog } from '../../utils/logs';
 
 let isFirstBlockIndexed = false;
 
@@ -32,8 +32,8 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const accountId = await orderBooksStorage.getAccountId(block, id);
 
       // We don't use Promise.all here because we need consistent order of requests in the log
-      const baseAssetReserves = await getAssetBalance(block, accountId, baseAssetId)
-      const quoteAssetReserves = await getAssetBalance(block, accountId, quoteAssetId)
+      const baseAssetReserves = await getAssetBalance(block, accountId, baseAssetId);
+      const quoteAssetReserves = await getAssetBalance(block, accountId, quoteAssetId);
 
       buffer.set(id, {
         id,
@@ -54,9 +54,9 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
     // get or create entities in DB & memory
     // We don't use Promise.all here because we need consistent order of requests in the log
     for (const entity of entities) {
-        const orderBook = await orderBooksStorage.getEntity(block, entity.id);
-        // update data in memory storage
-        Object.assign(orderBook, entity);
+      const orderBook = await orderBooksStorage.getEntity(block, entity.id);
+      // update data in memory storage
+      Object.assign(orderBook, entity);
     }
     // save in DB
     await orderBooksStorage.sync(block);

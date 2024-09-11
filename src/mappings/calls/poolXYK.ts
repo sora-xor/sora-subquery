@@ -1,7 +1,7 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
 import { getExtrinsicSigner } from '../../utils';
-import { createHistoryElement } from "../../utils/history";
+import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { isAssetTransferEvent } from '../../utils/events';
 import { updatePoolLiquidity } from '../../utils/pools';
@@ -10,20 +10,24 @@ import { logStartProcessingCall } from '../../utils/logs';
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [, assetAId, assetBId, assetADesired, assetBDesired] } } = extrinsic;
+  const {
+    extrinsic: {
+      args: [, assetAId, assetBId, assetADesired, assetBDesired],
+    },
+  } = extrinsic;
 
   const baseAssetId = getAssetId(assetAId);
   const targetAssetId = getAssetId(assetBId);
 
   const details: any = {
-    type: "Deposit",
+    type: 'Deposit',
     baseAssetId,
     targetAssetId,
     baseAssetAmount: formatU128ToBalance(assetADesired.toString(), baseAssetId),
-    targetAssetAmount: formatU128ToBalance(assetBDesired.toString(), targetAssetId)
+    targetAssetAmount: formatU128ToBalance(assetBDesired.toString(), targetAssetId),
   };
 
-  const transfers = extrinsic.events.filter(e => isAssetTransferEvent(e));
+  const transfers = extrinsic.events.filter((e) => isAssetTransferEvent(e));
 
   if (transfers.length === 2) {
     const [baseAssetTransfer, targetAssetTransfer] = transfers;
@@ -46,20 +50,24 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [dexId, assetAId, assetBId, poolTokensDesired, outputAMin, outputBMin] } } = extrinsic;
+  const {
+    extrinsic: {
+      args: [dexId, assetAId, assetBId, poolTokensDesired, outputAMin, outputBMin],
+    },
+  } = extrinsic;
 
   const baseAssetId = getAssetId(assetAId);
   const targetAssetId = getAssetId(assetBId);
 
   const details: any = {
-    type: "Removal",
+    type: 'Removal',
     baseAssetId,
     targetAssetId,
     baseAssetAmount: formatU128ToBalance(outputAMin.toString(), baseAssetId),
-    targetAssetAmount: formatU128ToBalance(outputBMin.toString(), targetAssetId)
+    targetAssetAmount: formatU128ToBalance(outputBMin.toString(), targetAssetId),
   };
 
-  const transfers = extrinsic.events.filter(e => isAssetTransferEvent(e));
+  const transfers = extrinsic.events.filter((e) => isAssetTransferEvent(e));
 
   if (transfers.length === 2) {
     const [baseAssetTransfer, targetAssetTransfer] = transfers;
