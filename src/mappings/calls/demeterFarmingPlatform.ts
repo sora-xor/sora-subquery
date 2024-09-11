@@ -2,6 +2,7 @@ import { SubstrateExtrinsic } from "@subql/types";
 
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
+import { getPoolAmountUSD } from '../../utils/pools';
 import { XOR } from '../../utils/consts';
 import { logStartProcessingCall } from "../../utils/logs";
 
@@ -34,7 +35,9 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
     details.amount = formatU128ToBalance(desiredAmount.toString(), details.assetId);
   }
 
-  details.amountUSD = !isFarm ? await getAmountUSD(extrinsic.block, details.assetId, details.amount, true) : null;
+  details.amountUSD = !isFarm
+    ? await getAmountUSD(extrinsic.block, details.assetId, details.amount, true)
+    : await getPoolAmountUSD(extrinsic.block, details.baseAssetId, details.assetId, details.amount);
 
   await createHistoryElement(extrinsic, details);
 }
@@ -66,7 +69,9 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
     details.amount = formatU128ToBalance(desiredAmount.toString(), details.assetId);
   }
 
-  details.amountUSD = !isFarm ? await getAmountUSD(extrinsic.block, details.assetId, details.amount, true) : null;
+  details.amountUSD = !isFarm
+    ? await getAmountUSD(extrinsic.block, details.assetId, details.amount, true)
+    : await getPoolAmountUSD(extrinsic.block, details.baseAssetId, details.assetId, details.amount);
 
   await createHistoryElement(extrinsic, details);
 }

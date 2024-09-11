@@ -235,16 +235,6 @@ type ReferrerReward @entity {
 	amount: BigInt!
 }
 
-# [TODO] Remove before full reindex prod
-type StakingReward @entity {
-	id: ID!
-	amount: String!
-	staker: StakingStaker!
-	payee: String @index
-	era: StakingEra!
-	timestamp: Int!
-}
-
 type StakingStaker @entity {
 	id: ID!
 	eraValidators: [StakingEraValidator!]! @derivedFrom(field: "staker")

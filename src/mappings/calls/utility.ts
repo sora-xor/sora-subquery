@@ -108,10 +108,10 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
             getBlockNumber(extrinsic.block),
         );
 
-		historyElementCall.data = call.data;
+        historyElementCall.data = call.data;
 
         return historyElementCall;
     })
 
-    await createHistoryElement(extrinsic, undefined, historyElementCalls);
+    await createHistoryElement(extrinsic, undefined, { calls: historyElementCalls });
 }

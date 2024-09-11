@@ -34,7 +34,7 @@ export async function stakingRewardedEventHandler(event: SubstrateEvent): Promis
 		era: stakingEra.index
 	};
 
-	await createHistoryElement(event, details, undefined, payee);
+	await createHistoryElement(event, details, { address: payee });
 
 	await accountMetaStorage.updateStakingRewards(event.block, stash, amount, amountUSD);
 }

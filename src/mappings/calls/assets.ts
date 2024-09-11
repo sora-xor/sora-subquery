@@ -15,17 +15,17 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
   const { extrinsic: { args: [symbol] } } = extrinsic;
 
   const details: any = {
-      assetId: symbol.toHuman()
+    assetId: symbol.toHuman()
   };
 
   const assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
 
   if (assetRegistrationEvent) {
-      const { event: { data: [asset] } } = assetRegistrationEvent;
+    const { event: { data: [asset] } } = assetRegistrationEvent;
 
-      const assetId: string = getAssetId(asset);
+    const assetId: string = getAssetId(asset);
 
-      details.assetId = assetId;
+    details.assetId = assetId;
   }
 
   await createHistoryElement(extrinsic, details);
@@ -61,8 +61,10 @@ export async function assetBurnHandler(extrinsic: SubstrateExtrinsic): Promise<v
 export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [assetCodec, to, amountCodec] } } = extrinsic;
+  const { extrinsic: { args: [assetCodec, receiver, amountCodec] } } = extrinsic;
 
+  const from = getExtrinsicSigner(extrinsic);
+  const to = receiver.toString();
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
   const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
@@ -71,17 +73,24 @@ export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<v
     assetId,
     amount,
     amountUSD,
-    to: to.toString()
+    from,
+    to,
   };
 
-  await createHistoryElement(extrinsic, details);
+  await createHistoryElement(extrinsic, details, { address: from });
+
+  if (from !== to) {
+    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  }
 }
 
 export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [assetCodec, to, amountCodec] } } = extrinsic;
+  const { extrinsic: { args: [assetCodec, receiver, amountCodec] } } = extrinsic;
 
+  const from = getExtrinsicSigner(extrinsic);
+  const to = receiver.toString();
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
   const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
@@ -90,11 +99,15 @@ export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promis
     assetId,
     amount,
     amountUSD,
-    from: getExtrinsicSigner(extrinsic),
-    to: to.toString(),
+    from,
+    to,
   };
 
-  await createHistoryElement(extrinsic, details);
+  await createHistoryElement(extrinsic, details, { address: from });
+
+  if (from !== to) {
+    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  }
 }
 
 export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
@@ -106,6 +119,8 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     }
   } = extrinsic;
 
+  const from = getExtrinsicSigner(extrinsic);
+  const to = receiver.toString();
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
   const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
@@ -114,8 +129,8 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     assetId,
     amount,
     amountUSD,
-    from: getExtrinsicSigner(extrinsic),
-    to: receiver.toString(),
+    from,
+    to,
     comment: !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null,
     assetFee: '0', // fee paid in asset
     xorFee: getExtrinsicNetworkFee(extrinsic), // fee paid in XOR (by default 100% of network fee)
@@ -133,5 +148,9 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
     details.xorFee = xorSpended;
   }
 
-  await createHistoryElement(extrinsic, details);
+  await createHistoryElement(extrinsic, details, { address: from });
+
+  if (from !== to) {
+    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  }
 }

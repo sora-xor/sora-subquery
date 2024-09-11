@@ -150,6 +150,49 @@ export const getChameleonPoolBaseAssetId = (dexBaseAssetId: string): string | nu
   }
 };
 
+const getPoolByAssets = async (
+  block: SubstrateBlock,
+  baseAssetId: string,
+  targetAssetId: string,
+): Promise<PoolXYK | null> => {
+  const poolId = await poolAccounts.getPoolAccountId(block, baseAssetId, targetAssetId);
+
+  if (!poolId) return null;
+
+  const pool = await poolsStorage.getEntity(block, poolId);
+
+  return pool;
+}
+
+export const getPoolAmountUSD = async (
+  block: SubstrateBlock,
+  baseAssetId: string,
+  targetAssetId: string,
+  amount: string,
+) => {
+  const pool = await getPoolByAssets(block, baseAssetId, targetAssetId);
+
+  if (!pool) return '0';
+
+  const result = new BigNumber(pool.poolTokenPriceUSD).multipliedBy(new BigNumber(amount));
+
+  return result.toFixed(2);
+};
+
+export const updatePoolLiquidity = async (
+  block: SubstrateBlock,
+  baseAssetId: string,
+  targetAssetId: string,
+  signer: string
+) => {
+  const pool = await getPoolByAssets(block, baseAssetId, targetAssetId);
+
+  if (!pool) return;
+
+  await poolsSnapshotsStorage.updatePoolTokensSupply(block, pool.id);
+  await accountLiquiditySnapshotsStorage.updatePoolTokensSupply(block, signer, pool.id);
+}
+
 class PoolAccountsStorage {
   private storage: Map<string, Map<string, string>>;
   private accountIds: Map<string, [string, string]>;
@@ -658,22 +701,3 @@ export const poolAccounts = new PoolAccountsStorage();
 
 export const poolsStorage = new PoolsStorage();
 export const poolsSnapshotsStorage = new PoolsSnapshotsStorage(poolsStorage);
-
-
-export const updatePoolLiquidity = async (
-  block: SubstrateBlock,
-  baseAssetId: string,
-  targetAssetId: string,
-  signer: string
-) => {
-  const poolId = await poolAccounts.getPoolAccountId(block, baseAssetId, targetAssetId);
-
-  if (!poolId) return;
-
-  const pool = await poolsStorage.getEntity(block, poolId);
-
-  if (!pool) return;
-
-  await poolsSnapshotsStorage.updatePoolTokensSupply(block, pool.id);
-  await accountLiquiditySnapshotsStorage.updatePoolTokensSupply(block, signer, pool.id);
-}

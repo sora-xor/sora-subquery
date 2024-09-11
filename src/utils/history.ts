@@ -102,88 +102,96 @@ export const getExtrinsicNetworkFee = (extrinsic: SubstrateExtrinsic): string =>
   }
 }
 
+type CreateHistoryElementOptions = {
+  calls?: HistoryElementCall[],
+  address?: string,
+  useStats?: boolean,
+};
+
 export const createHistoryElement = async (
-	ctx: SubstrateExtrinsic | SubstrateEvent,
-	data?: {},
-    calls?: HistoryElementCall[],
-    address?: string,
+  ctx: SubstrateExtrinsic | SubstrateEvent,
+  data?: {},
+  { calls, address, useStats = true }: CreateHistoryElementOptions = {},
 ): Promise<HistoryElement> => {
-    const isEvent = 'event' in ctx;
-    const type = isEvent ? HistoryElementType.EVENT : HistoryElementType.CALL;
-	const extrinsic = isEvent ? ctx.extrinsic : ctx
+  const isEvent = 'event' in ctx;
+  const type = isEvent ? HistoryElementType.EVENT : HistoryElementType.CALL;
+  const extrinsic = isEvent ? ctx.extrinsic : ctx
 
-    const failedEvent = !isEvent
-        ? extrinsic.events.find(e => e.event.method === 'ExtrinsicFailed')
-        : null;
+  const failedEvent = !isEvent
+    ? extrinsic.events.find(e => e.event.method === 'ExtrinsicFailed')
+    : null;
 
-    let historyExecution: any = {
-        success: true
-    };
+  let historyExecution: any = {
+    success: true
+  };
 
-    if (failedEvent) {
-        historyExecution.success = false;
+  if (failedEvent) {
+    historyExecution.success = false;
 
-        const { event: { data: [error] } } = failedEvent
+    const { event: { data: [error] } } = failedEvent
 
-        if ((error as any).isModule) {
-            historyExecution.error = {
-                // tricky way to get int
-                moduleErrorId: (error as any).asModule.error.toU8a()[0],
-                moduleErrorIndex: (error as any).asModule.index.toU8a()[0],
-            }
-        } else {
-            // Other, CannotLookup, BadOrigin, no extra info
-            historyExecution.error = {
-                nonModuleErrorMessage: error.toString()
-            }
-        }
+    if ((error as any).isModule) {
+      historyExecution.error = {
+        // tricky way to get int
+        moduleErrorId: (error as any).asModule.error.toU8a()[0],
+        moduleErrorIndex: (error as any).asModule.index.toU8a()[0],
+      }
+    } else {
+      // Other, CannotLookup, BadOrigin, no extra info
+      historyExecution.error = {
+        nonModuleErrorMessage: error.toString()
+      }
     }
+  }
 
-    const block = extrinsic.block;
-    const blockNumber = getBlockNumber(block);
-    const networkFee = isEvent ? '0' : getExtrinsicNetworkFee(extrinsic);
-    const section = isEvent ? ctx.event.section : extrinsic.extrinsic.method.section;
-    const method = isEvent ? ctx.event.method : extrinsic.extrinsic.method.method;
-    const owner = address ?? getExtrinsicSigner(extrinsic);
+  const block = extrinsic.block;
+  const blockNumber = getBlockNumber(block);
+  const networkFee = isEvent ? '0' : getExtrinsicNetworkFee(extrinsic);
+  const section = isEvent ? ctx.event.section : extrinsic.extrinsic.method.section;
+  const method = isEvent ? ctx.event.method : extrinsic.extrinsic.method.method;
+  const owner = address ?? getExtrinsicSigner(extrinsic);
 
-	const historyElement = new HistoryElement(
-        getEntityId(ctx),
-        type,
-        blockNumber,
-        block.block.header.hash.toString(),
-        section,
-        method,
-        owner,
-        networkFee,
-        historyExecution,
-        formatDateTimestamp(block.timestamp),
-        [],
-        blockNumber,
-    )
+  const historyElement = new HistoryElement(
+    getEntityId(ctx),
+    type,
+    blockNumber,
+    block.block.header.hash.toString(),
+    section,
+    method,
+    owner,
+    networkFee,
+    historyExecution,
+    formatDateTimestamp(block.timestamp),
+    [],
+    blockNumber,
+  )
 
-	if (data) {
-		await addDataToHistoryElement(ctx, historyElement, data);
-	}
+  if (data) {
+    await addDataToHistoryElement(ctx, historyElement, data);
+  }
 
-    if (calls) {
-        await addCallsToHistoryElement(extrinsic, historyElement, calls);
-    }
+  if (calls) {
+    await addCallsToHistoryElement(extrinsic, historyElement, calls);
+  }
 
-    const accountsAddresses = getHistoryElementAccountAddresses(block, historyElement);
+  const accountsAddresses = getHistoryElementAccountAddresses(block, historyElement);
 
-    await historyElementsStorage.add(
-        block,
-        historyElement,
-        calls,
-        accountsAddresses
-    );
+  await historyElementsStorage.add(
+    block,
+    historyElement,
+    calls,
+    accountsAddresses
+  );
 
+  const { callNames, execution, data: details, ...logArguments } = historyElement;
+
+  getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element');
+
+  if (useStats) {
     await updateHistoryElementStats(block);
+  }
 
-    const { callNames, execution, data: details, ...logArguments } = historyElement
-	getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element')
-
-	return historyElement
+  return historyElement
 }
 
 const addDataToHistoryElement = async (ctx: SubstrateExtrinsic | SubstrateEvent, historyElement: HistoryElement, data: any) => {

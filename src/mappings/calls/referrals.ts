@@ -11,12 +11,19 @@ export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise
 
   const { extrinsic: { args: [referrer] } } = extrinsic;
 
+  const from = getExtrinsicSigner(extrinsic);
+  const to = referrer.toString();
+
   const details: any = {
-    from: getExtrinsicSigner(extrinsic),
-    to: referrer.toString()
+    from,
+    to,
   };
 
   await createHistoryElement(extrinsic, details);
+
+  if (from !== to) {
+    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  }
 }
 
 export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {

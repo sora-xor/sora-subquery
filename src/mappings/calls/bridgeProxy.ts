@@ -126,7 +126,7 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 
   await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(extrinsic.block);
 
-  await createHistoryElement(extrinsic, details, undefined, details.to);
+  await createHistoryElement(extrinsic, details, { address: details.to });
 }
 
 export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic): Promise<void> {

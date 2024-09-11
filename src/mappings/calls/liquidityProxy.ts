@@ -177,7 +177,7 @@ const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promi
     };
 
     // create history element for receiver
-    await createHistoryElement(assetTransferEvent as any, transfer, undefined, receiver);
+    await createHistoryElement(assetTransferEvent as any, transfer, { address: receiver, useStats: false });
   }
 
   await createHistoryElement(extrinsic, details);
