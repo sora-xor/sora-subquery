@@ -2,6 +2,7 @@ import { SubstrateExtrinsic } from "@subql/types";
 
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
+import { isEvent, getEventData } from "../../utils/events";
 import { getPoolAmountUSD } from '../../utils/pools';
 import { XOR } from '../../utils/consts';
 import { logStartProcessingCall } from "../../utils/logs";
@@ -25,7 +26,7 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
   // farming or staking
   details.isFarm = isFarm;
 
-  const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'Deposited');
+  const event = extrinsic.events.find(e => isEvent(e, 'demeterFarmingPlatform', 'Deposited'));
 
   if (event) {
     const [amountCodec] = event.event.data.slice().reverse();
@@ -59,10 +60,10 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
   // farming or staking
   details.isFarm = isFarm;
 
-  const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'Withdrawn');
+  const event = extrinsic.events.find(e => isEvent(e, 'demeterFarmingPlatform', 'Withdrawn'));
 
   if (event) {
-    const { event: { data: [who, amount] } } = event;
+    const [who, amount] = getEventData(event);
     // a little trick - we get decimals from pool asset, not lp token
     details.amount = formatU128ToBalance(amount.toString(), details.assetId);
   } else {
@@ -89,10 +90,10 @@ export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): P
   // reward for farming or staking
   details.isFarm = isFarm.toHuman();
 
-  const event = extrinsic.events.find(e => e.event.section === Section && e.event.method === 'RewardWithdrawn');
+  const event = extrinsic.events.find(e => isEvent(e, 'demeterFarmingPlatform', 'RewardWithdrawn'));
 
   if (event) {
-    const { event: { data: [who, amountCodec] } } = event;
+    const [who, amountCodec] = getEventData(event);
 
     const amount = formatU128ToBalance(amountCodec.toString(), assetId);
     const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);

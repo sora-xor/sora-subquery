@@ -1,16 +1,13 @@
 import { SubstrateEvent } from "@subql/types";
 import { ReferrerReward } from "../../types";
 import { formatDateTimestamp } from '../../utils';
+import { getEventData } from '../../utils/events';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
 export async function referrerRewardHandler(event: SubstrateEvent): Promise<void> {
     logStartProcessingEvent(event)
 
-	const {
-		event: {
-			data: [referral, referrer, amount],
-		},
-	} = event;
+	const [referral, referrer, amount] = getEventData(event);
 
 	const key = `${referral.toString()}-${referrer.toString()}`;
 

@@ -2,6 +2,7 @@
 import type { SubstrateEvent } from "@subql/types";
 
 import { accountMetaStorage } from '../../utils/account';
+import { isEvent, getEventData } from "../../utils/events";
 import { createHistoryElement } from "../../utils/history";
 import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
@@ -12,12 +13,12 @@ export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promis
     logStartProcessingEvent(event)
 
     const extrinsic = event.extrinsic
-    const registeredRequestEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered' && e.event.section === 'ethBridge')
+    const registeredRequestEvent = extrinsic.events.find(e => isEvent(e, 'ethBridge', 'RequestRegistered'));
     const currenciesEvent = extrinsic.events.find(e => isAssetDepositedEvent(e) || isAssetTransferEvent(e));
 
     if (!registeredRequestEvent || !currenciesEvent) return;
 
-    const {event: {data: [requestHash]}} = registeredRequestEvent
+    const [requestHash] = getEventData(registeredRequestEvent);
 
     const { assetId, amount: assetAmount, to } = isAssetDepositedEvent(currenciesEvent)
         ? getDepositedEventData(currenciesEvent)

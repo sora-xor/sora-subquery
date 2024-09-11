@@ -2,6 +2,7 @@ import { SubstrateEvent } from "@subql/types";
 import { getBlockNumber } from '../../utils';
 import { getAssetId, assetSnapshotsStorage } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
+import { getEventData } from '../../utils/events';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 import { initializedAtBlock } from '../models/initializePools'
 
@@ -12,7 +13,7 @@ export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
         return;
     }
 
-    const { event: { data: [ currencyId, who, balance ] } } = event;
+    const [ currencyId, who, balance ] = getEventData(event);
 
     const assetId = getAssetId(currencyId);
     const amount = BigInt(balance.toString());
@@ -26,8 +27,8 @@ export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
     if (initializedAtBlock === getBlockNumber(event.block)) {
         return;
     }
-    
-    const { event: { data: [ who, balance ] } } = event;
+
+    const [ who, balance ] = getEventData(event);
 
     const assetId = XOR;
     const amount = BigInt(balance.toString());
@@ -42,7 +43,7 @@ export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
         return;
     }
 
-    const { event: { data: [ currencyId, who, balance ] } } = event;
+    const [ currencyId, who, balance ] = getEventData(event);
 
     const assetId = getAssetId(currencyId);
     const amount = BigInt(balance.toString());
@@ -58,7 +59,7 @@ export async function handleXorMint(event: SubstrateEvent): Promise<void> {
         return;
     }
 
-    const { event: { data: [ who, balance ] } } = event;
+    const [ who, balance ] = getEventData(event);
 
     const assetId = XOR;
     const amount = BigInt(balance.toString());

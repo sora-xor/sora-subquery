@@ -4,32 +4,44 @@ import { Codec } from '@polkadot/types/types';
 import { getAssetId } from '../utils/assets';
 import { XOR } from './consts';
 
+export const isEvent = (e: TypedEventRecord<Codec[]>, section: string, method: string): boolean => {
+  return e.event.method === method && e.event.section === section;
+};
+
+export const getEventData = (e: TypedEventRecord<Codec[]>, reversedOrder = false) => {
+  const data = e.event.data.slice();
+
+  return reversedOrder ? data.reverse() : data;
+};
+
 export const isExchangeEvent = (e: TypedEventRecord<Codec[]>): boolean => {
-  return e.event.method === 'Exchange' && e.event.section === 'liquidityProxy';
+  return isEvent(e, 'liquidityProxy', 'Exchange');
 };
 
 export const isXorTransferEvent = (e: TypedEventRecord<Codec[]>) => {
-  return e.event.method === 'Transfer' && e.event.section === 'balances';
+  return isEvent(e, 'balances', 'Transfer');
 };
 
 export const isXorDepositedEvent = (e: TypedEventRecord<Codec[]>) => {
-  return e.event.method === 'Deposited' && e.event.section === 'balances';
+  return isEvent(e, 'balances', 'Deposited');
 };
 
 export const isTokenTransferEvent = (e: TypedEventRecord<Codec[]>) => {
-  return e.event.method === 'Transfer' && e.event.section === 'tokens';
+  return isEvent(e, 'tokens', 'Transfer');
 };
 
 export const isTokenDepositedEvent = (e: TypedEventRecord<Codec[]>) => {
-  return e.event.method === 'Deposited' && e.event.section === 'tokens';
+  return isEvent(e, 'tokens', 'Deposited');
 };
 
+// substrate 3
 export const isCurrencyDepositedEvent = (e: TypedEventRecord<Codec[]>) => {
-  return e.event.method === 'Deposited' && e.event.section === 'currencies';
+  return isEvent(e, 'currencies', 'Deposited');
 };
 
+// substrate 3
 export const isCurrencyTransferEvent = (e: TypedEventRecord<Codec[]>) => {
-  return e.event.method === 'Transferred' && e.event.section === 'currencies';
+  return isEvent(e, 'currencies', 'Transferred');
 };
 
 export const isAssetTransferEvent = (e: TypedEventRecord<Codec[]>): boolean => {
@@ -41,7 +53,7 @@ export const isAssetDepositedEvent = (e: TypedEventRecord<Codec[]>): boolean => 
 };
 
 export const getTransferEventData = (e: TypedEventRecord<Codec[]>) => {
-  const [amount, to, from, currencyId] = e.event.data.slice().reverse();
+  const [amount, to, from, currencyId] = getEventData(e, true);
   const assetId = isXorTransferEvent(e) ? XOR : getAssetId(currencyId);
 
   return {
@@ -53,7 +65,7 @@ export const getTransferEventData = (e: TypedEventRecord<Codec[]>) => {
 };
 
 export const getDepositedEventData = (e: TypedEventRecord<Codec[]>) => {
-  const [amount, to, currencyId] = e.event.data.slice().reverse();
+  const [amount, to, currencyId] = getEventData(e, true);
   const assetId = isXorDepositedEvent(e) ? XOR : getAssetId(currencyId);
 
   return {

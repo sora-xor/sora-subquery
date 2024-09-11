@@ -5,6 +5,7 @@ import { SubstrateEvent } from "@subql/types";
 import { XOR } from "../../utils/consts";
 import { accountMetaStorage } from '../../utils/account';
 import { getAmountUSD, formatU128ToBalance } from '../../utils/assets';
+import { getEventData } from "../../utils/events";
 import { logStartProcessingEvent } from "../../utils/logs";
 
 const getVoteConvictionRate = (voteCodec: any): number => {
@@ -52,7 +53,7 @@ const getVoteAmount = (voteAccountCodec: any): string => {
 export async function handleDemocracyVoted(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [ voter, _refIndexCodec, voteAccountCodec ] } } = event as any;
+  const [ voter, _refIndexCodec, voteAccountCodec ] = getEventData(event) as any;
 
   const accountId = voter.toString();
   const assetId = XOR;

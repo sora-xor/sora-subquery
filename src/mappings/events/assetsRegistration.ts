@@ -2,13 +2,14 @@ import { SubstrateEvent } from "@subql/types";
 
 import { assetPrecisions, getAssetId, assetStorage, tickerSyntheticAssetId } from '../../utils/assets';
 import { bytesToString } from '../../utils';
+import { getEventData } from '../../utils/events';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 import { assetRegistrationStream } from '../../utils/stream';
 
 export async function handleAssetRegistration(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [asset] } } = event;
+  const [asset] = getEventData(event);
 
   const assetId: string = getAssetId(asset);
   const [symbol, name, decimals, _isMintable, content, description] = (await api.query.assets.assetInfos(assetId)).toHuman() as any;
@@ -27,7 +28,7 @@ export async function handleAssetRegistration(event: SubstrateEvent): Promise<vo
 export async function handleSyntheticAssetEnabled(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [asset, ticker] } } = event;
+  const [asset, ticker] = getEventData(event);
 
   const assetId: string = getAssetId(asset);
   const referenceSymbol = bytesToString(ticker);

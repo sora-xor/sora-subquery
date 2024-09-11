@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateExtrinsic } from '@subql/types';
 
 import { bytesToString, getExtrinsicSigner } from "../../utils";
-import { isExchangeEvent } from '../../utils/events';
+import { isExchangeEvent, isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
@@ -45,10 +45,11 @@ export interface LiquiditySourceType extends Enum {
   readonly isMockPool4: boolean;
 }
 
-const getEventData = (extrinsic: SubstrateExtrinsic, method: string, section: string) => {
-  const event = extrinsic.events.find(e => e.event.method === method && e.event.section === section);
+const getExtrinsicEventData = (extrinsic: SubstrateExtrinsic, method: string, section: string) => {
+  const event = extrinsic.events.find(e => isEvent(e, section, method));
+
   return event?.event?.data;
-}
+};
 
 const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): string[] => {
   switch (swapAmount.isWithDesiredOutput) {
@@ -87,7 +88,7 @@ const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promis
   const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
 
   if (exchangeEvent) {
-    const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
+    const [, , , , baseAssetAmount, targetAssetAmount] = getEventData(exchangeEvent);
 
     details.baseAssetAmount = formatU128ToBalance(baseAssetAmount.toString(), baseAssetId);
     details.targetAssetAmount = formatU128ToBalance(targetAssetAmount.toString(), targetAssetId);
@@ -141,24 +142,26 @@ const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promi
     }
   }
 
-  const batchSwapExecutedEvent = getEventData(extrinsic, 'BatchSwapExecuted', 'liquidityProxy');
+  const batchSwapExecutedEvent = getExtrinsicEventData(extrinsic, 'BatchSwapExecuted', 'liquidityProxy');
+
   if (batchSwapExecutedEvent) {
     const [adarFee, inputAmount] = batchSwapExecutedEvent;
     details.adarFee = formatU128ToBalance(adarFee.toString(), inputAssetId);
     details.inputAmount = formatU128ToBalance(inputAmount.toString(), inputAssetId);
   }
 
-  const transactionFeePaidEvent = getEventData(extrinsic, 'TransactionFeePaid', 'transactionPayment');
+  const transactionFeePaidEvent = getExtrinsicEventData(extrinsic, 'TransactionFeePaid', 'transactionPayment');
+
   if (transactionFeePaidEvent) {
     const [, actualFee] = transactionFeePaidEvent;
     details.actualFee = formatU128ToBalance(actualFee.toString(), XOR);
   }
 
-  const assetTransferEvents = extrinsic.events.filter(e => e.event.method === 'Transfer' && e.event.section === 'assets');
+  const assetTransferEvents = extrinsic.events.filter(e => isEvent(e, 'assets', 'Transfer'));
   const receiverIds = details.receivers.map((receiver) => receiver.accountId);
 
   for (const assetTransferEvent of assetTransferEvents) {
-    const { event: { data: [from, to, asset, amountCodec] } } = assetTransferEvent;
+    const [from, to, asset, amountCodec] = getEventData(assetTransferEvent);
     const sender = from.toString();
     const receiver = to.toString();
     // if technical transfer, skip

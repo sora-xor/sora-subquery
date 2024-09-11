@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { getExtrinsicSigner } from '../../utils';
+import { isEvent } from "../../utils/events";
 import { createHistoryElement } from "../../utils/history";
 import { XOR } from "../../utils/consts";
 import { formatU128ToBalance, getAmountUSD } from "../../utils/assets";
@@ -404,7 +405,7 @@ export async function stakingWithdrawUnbondedCallHandler(extrinsic: SubstrateExt
         amount: undefined,
     };
 
-    const stakingWithdrawnEvent = extrinsic.events.find((e) => e.event.section === 'staking' && e.event.method === 'Withdrawn');
+    const stakingWithdrawnEvent = extrinsic.events.find((e) => isEvent(e, 'staking', 'Withdrawn'));
 
     if (stakingWithdrawnEvent) {
         const [stash, amountCodec] = stakingWithdrawnEvent.event.data;

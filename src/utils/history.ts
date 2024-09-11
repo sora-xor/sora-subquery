@@ -4,6 +4,7 @@ import { HistoryElement, HistoryElementCall, HistoryElementType } from "../types
 import { getAccountEntity } from './account';
 import { networkSnapshotsStorage } from './network';
 import { formatDateTimestamp, getEntityId, shouldUpdate, getBlockNumber, getExtrinsicSigner } from './index';
+import { isEvent, getEventData } from './events';
 import { getUtilsLog } from "./logs";
 
 const INCOMING_TRANSFER_METHODS = ['transfer', 'xorlessTransfer', 'swapTransfer', 'swapTransferBatch'];
@@ -89,16 +90,13 @@ class HistoryElementsStorage {
 export const historyElementsStorage = new HistoryElementsStorage();
 
 export const getExtrinsicNetworkFee = (extrinsic: SubstrateExtrinsic): string => {
-  const feeEvent = extrinsic.events.find(item => {
-      const { event: { method, section } } = item;
-      return method === 'FeeWithdrawn' && section === 'xorFee';
-  });
+  const feeEvent = extrinsic.events.find(e =>  isEvent(e, 'xorFee', 'FeeWithdrawn'));
 
   if (feeEvent) {
-      const { event: { data: [, feeAmount] } } = feeEvent;
-      return feeAmount.toString();
+    const [, feeAmount] = getEventData(feeEvent);
+    return feeAmount.toString();
   } else {
-      return "0";
+    return "0";
   }
 }
 
@@ -128,7 +126,7 @@ export const createHistoryElement = async (
   if (failedEvent) {
     historyExecution.success = false;
 
-    const { event: { data: [error] } } = failedEvent
+    const [error] = getEventData(failedEvent);
 
     if ((error as any).isModule) {
       historyExecution.error = {

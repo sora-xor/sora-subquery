@@ -6,6 +6,7 @@ import { OrderBookOrder, OrderType, OrderStatus } from '../../types'
 import { formatDateTimestamp, getEventId, getBlockNumber } from '../../utils';
 import { getAccountEntity, accountMetaStorage } from '../../utils/account';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
+import { getEventData } from '../../utils/events';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
 
@@ -28,7 +29,7 @@ const getOrderData = (orderBookCodec: any, orderId: string | number) => {
 export async function orderBookCreatedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec] } } = event as any;
+  const [orderBookCodec] = getEventData(event) as any;
   const { dexId, baseAssetId, quoteAssetId } = getBookData(orderBookCodec);
   const { id } = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
 
@@ -38,7 +39,7 @@ export async function orderBookCreatedEvent(event: SubstrateEvent): Promise<void
 export async function orderBookStatusChangedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, statusCodec] } } = event as any;
+  const [orderBookCodec, statusCodec] = getEventData(event) as any;
   const { dexId, baseAssetId, quoteAssetId } = getBookData(orderBookCodec);
   const orderBook = await orderBooksStorage.getOrderBook(event.block, dexId, baseAssetId, quoteAssetId);
   const status = statusCodec.toHuman();
@@ -53,7 +54,7 @@ export async function orderBookStatusChangedEvent(event: SubstrateEvent): Promis
 export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount, lifetime] } } = event as any;
+  const [orderBookCodec, orderIdCodec, ownerId, side, price, amount, lifetime] = getEventData(event) as any;
 
   const blockNumber = getBlockNumber(event.block);
   const timestamp = formatDateTimestamp(event.block.timestamp);
@@ -97,7 +98,7 @@ export async function limitOrderPlacedEvent(event: SubstrateEvent): Promise<void
 export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, orderIdCodec, ownerId, side, price, amount] } } = event as any;
+  const [orderBookCodec, orderIdCodec, ownerId, side, price, amount] = getEventData(event) as any;
   const { id, dexId, baseAssetId, quoteAssetId, orderId } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
 
   const accountId = ownerId.toString();
@@ -128,7 +129,7 @@ export async function limitOrderExecutedEvent(event: SubstrateEvent): Promise<vo
 export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, amount] } } = event as any;
+  const [orderBookCodec, orderIdCodec, _ownerId, amount] = getEventData(event) as any;
   const { id, baseAssetId } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
 
   const limitOrder = await OrderBookOrder.get(id);
@@ -151,7 +152,7 @@ export async function limitOrderUpdatedEvent(event: SubstrateEvent): Promise<voi
 export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, orderIdCodec, ownerIdCodec] } } = event as any;
+  const [orderBookCodec, orderIdCodec, ownerIdCodec] = getEventData(event) as any;
   const { id } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
 
   const accountId = ownerIdCodec.toString();
@@ -175,7 +176,7 @@ export async function limitOrderFilledEvent(event: SubstrateEvent): Promise<void
 export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, orderIdCodec, _ownerId, reasonCodec] } } = event as any;
+  const [orderBookCodec, orderIdCodec, _ownerId, reasonCodec] = getEventData(event) as any;
   const { id } = getOrderData(orderBookCodec, orderIdCodec.toNumber());
 
   const limitOrder = await OrderBookOrder.get(id);
@@ -198,7 +199,7 @@ export async function limitOrderCanceledEvent(event: SubstrateEvent): Promise<vo
 export async function marketOrderEvent(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const { event: { data: [orderBookCodec, ownerId, side, amountCodec, priceCodec] } } = event as any;
+  const [orderBookCodec, ownerId, side, amountCodec, priceCodec] = getEventData(event) as any;
 
   const blockNumber = getBlockNumber(event.block);
   const timestamp = formatDateTimestamp(event.block.timestamp);

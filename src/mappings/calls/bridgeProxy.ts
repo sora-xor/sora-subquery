@@ -3,6 +3,7 @@ import { u8aToHex } from '@polkadot/util';
 import { SubstrateExtrinsic } from "@subql/types";
 import { getExtrinsicSigner } from '../../utils';
 import { accountMetaStorage } from "../../utils/account";
+import { isEvent, getEventData } from "../../utils/events";
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
@@ -83,10 +84,10 @@ function getNetwork(data: any): number | null {
 }
 
 function getBridgeProxyHash(extrinsic: SubstrateExtrinsic): string | null {
-  const bridgeProxyUpdate = extrinsic.events.find((e) => e.event.section === 'bridgeProxy' && e.event.method === 'RequestStatusUpdate');
+  const bridgeProxyUpdate = extrinsic.events.find((e) => isEvent(e, 'bridgeProxy', 'RequestStatusUpdate'));
 
   if (bridgeProxyUpdate) {
-    const { event: { data: [hash] } } = bridgeProxyUpdate;
+    const [hash] = getEventData(bridgeProxyUpdate);
 
     return hash.toString();
   }
@@ -100,12 +101,12 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
   const details: any = {};
 
   const bridgeAppMinted = extrinsic.events.find((e) =>
-    ['parachainBridgeApp', 'substrateBridgeApp'].includes(e.event.section) &&
-    e.event.method === 'Minted'
+    isEvent(e, 'parachainBridgeApp', 'Minted') ||
+    isEvent(e, 'substrateBridgeApp', 'Minted')
   );
 
   if (bridgeAppMinted) {
-    const { event: { data: [subNetworkId, assetCodec, _sender, recipientCodec, amountCodec] } } = bridgeAppMinted;
+    const [subNetworkId, assetCodec, _sender, recipientCodec, amountCodec] = getEventData(bridgeAppMinted);
 
     const recipient = recipientCodec.toString();
     const assetId = getAssetId(assetCodec);

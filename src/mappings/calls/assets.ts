@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { SubstrateExtrinsic } from "@subql/types";
 import { bytesToString, getExtrinsicSigner } from "../../utils";
 import { XOR } from '../../utils/consts';
-import { isExchangeEvent } from "../../utils/events";
+import { isExchangeEvent, isEvent, getEventData } from "../../utils/events";
 import { createHistoryElement, getExtrinsicNetworkFee } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { accountMetaStorage } from '../../utils/account';
@@ -18,10 +18,10 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
     assetId: symbol.toHuman()
   };
 
-  const assetRegistrationEvent = extrinsic.events.find(e => e.event.method === 'AssetRegistered');
+  const assetRegistrationEvent = extrinsic.events.find(e => isEvent(e, 'assets', 'AssetRegistered'));
 
   if (assetRegistrationEvent) {
-    const { event: { data: [asset] } } = assetRegistrationEvent;
+    const [asset] = getEventData(assetRegistrationEvent);
 
     const assetId: string = getAssetId(asset);
 
@@ -139,7 +139,7 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
   const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
 
   if (exchangeEvent) {
-    const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
+    const [, , , , baseAssetAmount, targetAssetAmount] = getEventData(exchangeEvent);
     const assetSpended = formatU128ToBalance(baseAssetAmount.toString(), assetId); // formatted
     const xorReceived = formatU128ToBalance(targetAssetAmount.toString(), XOR); // formatted
     const xorSpended = new BigNumber(details.xorFee).minus(new BigNumber(xorReceived)).toString(); 

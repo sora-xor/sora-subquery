@@ -1,6 +1,7 @@
 import { SubstrateExtrinsic } from "@subql/types";
 import { getExtrinsicSigner } from "../../utils";
 import { accountMetaStorage } from "../../utils/account";
+import { isEvent, getEventData } from "../../utils/events";
 import { createHistoryElement } from "../../utils/history";
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
@@ -23,10 +24,10 @@ export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Pro
         sidechainAddress: sidechainAddress.toString(),
     };
 
-    const soraEthTransferEvent = extrinsic.events.find(e => e.event.method === 'RequestRegistered');
+    const soraEthTransferEvent = extrinsic.events.find(e => isEvent(e, 'ethBridge', 'RequestRegistered'));
 
     if (soraEthTransferEvent) {
-        const { event: { data: [requestHash] } } = soraEthTransferEvent;
+        const [requestHash] = getEventData(soraEthTransferEvent);
 
         details.requestHash = requestHash.toString();
     }
