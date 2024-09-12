@@ -1442,33 +1442,33 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@sora-substrate/type-definitions@1.40.0":
-  version "1.40.0"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.40.0.tgz#2c5de4053f2b0d590d39438e84e058eed3be9514"
-  integrity sha512-4CFR7ZCnnBSZUCl9jMYvd0khO9waIJkebngvmNJgyjr4VQmwjPaz86PJJw7NYTv33eZDlAbokvLhLqXr0MSmmw==
+"@sora-substrate/type-definitions@1.40.3":
+  version "1.40.3"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/type-definitions/-/type-definitions-1.40.3.tgz#7141f2fa250ff0e6fff8f2183c3627f13aa8ddd6"
+  integrity sha512-3k9S0ttr1WxZz4I7O6ybvju9ryQNib+JUNATraAoNsXgHVdEsELP5ZIsrTDITAPGRHP/V6XkXGeu5ywerlBguA==
   dependencies:
     "@open-web3/orml-type-definitions" "1.1.4"
 
-"@sora-substrate/types@1.40.0":
-  version "1.40.0"
-  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.40.0.tgz#00d5459c84da8ec2fe0a2d6bdad0bf506bf0e502"
-  integrity sha512-JdLexIOWyR9JBG7E56efNVi2lGT8I5PxWSefm/xUfENIhh50Atb09efUk7MM6uj0vnA1/WCeYGwzoMaAyUZvRA==
+"@sora-substrate/types@1.40.3":
+  version "1.40.3"
+  resolved "https://registry.yarnpkg.com/@sora-substrate/types/-/types-1.40.3.tgz#eca399374774db3af3612dbf6deabf16c487e3b6"
+  integrity sha512-pfpUfRlyCQSGW6UyJ/gkVdm6nNs4Suc/LM6lbJAzyoUMJD3JgxDj8UeP4VtxnTFYnWB0eL4iIIZUP9jcUF8sSg==
   dependencies:
     "@open-web3/api-mobx" "0.9.4-26"
     "@open-web3/orml-types" "1.1.4"
     "@polkadot/api" "9.14.2"
     "@polkadot/typegen" "9.14.2"
     "@polkadot/types" "9.14.2"
-    "@sora-substrate/type-definitions" "1.40.0"
+    "@sora-substrate/type-definitions" "1.40.3"
 
-"@subql/cli@5.2.4":
-  version "5.2.4"
-  resolved "https://registry.yarnpkg.com/@subql/cli/-/cli-5.2.4.tgz#d11b59195b8a3694805a1550ba39b30b7e3ddeec"
-  integrity sha512-/X3Fm01UqWJIhBu30wNDNxAVLlhHxwMPNVTYSIjYN3MIUeoVwQnDnsVBC5uzezy4nyarOa+b1mLl8bYXNrgMrA==
+"@subql/cli@5.2.6":
+  version "5.2.6"
+  resolved "https://registry.yarnpkg.com/@subql/cli/-/cli-5.2.6.tgz#2064b6849aa55946b3188fea3f1312009983c138"
+  integrity sha512-7AE/vWWZKFKXs1Gz7nqA6XAFAtALQdPW+xYFtboE7qYXcbrdIgeZvkvDBgxd3npRn6I6DRUvKWw7tj9MBkbGVA==
   dependencies:
     "@inquirer/prompts" "^5.3.6"
     "@oclif/core" "^2.16.0"
-    "@subql/common" "5.1.1"
+    "@subql/common" "5.1.2"
     "@subql/utils" "2.14.0"
     boxen "5.1.2"
     cli-ux "^6.0.9"
@@ -1487,7 +1487,7 @@
     tslib "^2.6.3"
     typescript "^5.5.4"
     update-notifier "^5.1.0"
-    webpack "^5.93.0"
+    webpack "^5.94.0"
     webpack-merge "^6.0.1"
     websocket "^1.0.35"
     yaml "^2.5.0"
@@ -1515,10 +1515,10 @@
     semver "^7.6.3"
     update-notifier "^5.1.0"
 
-"@subql/common@5.1.1":
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@subql/common/-/common-5.1.1.tgz#31205c5a8fc7ad69f5df444004e991efeb21210d"
-  integrity sha512-YXGoRHqKMTPTHwevShsj/YhnhZfHh25W2h+pIFIIQXjihh8UKvwslcce2FQ8hpGXbtTxHfKmKJUqoUBYsPSThA==
+"@subql/common@5.1.2":
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/@subql/common/-/common-5.1.2.tgz#87dcd4433a19b617128d71964d3b8ec9f6a692a3"
+  integrity sha512-sKCynPABgEY7O/cB4MNhA19djHITCK9aEpmU/hVp0MUWPz9FH1kVjB8fw1lqSyVkeSQWhRRKe7TFOZDl1NGEiA==
   dependencies:
     "@subql/types-core" "1.1.1"
     axios "^0.28.0"
@@ -1529,16 +1529,16 @@
     semver "^7.6.3"
     update-notifier "^5.1.0"
 
-"@subql/node-core@14.1.2":
-  version "14.1.2"
-  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-14.1.2.tgz#b9fb53aa9a2c8c2c0b53f2f176c4ac2ce35471ac"
-  integrity sha512-i3OWrsQGy8867RbZnZKb9z0ORSq69DOlB/rWANj9jVOwS7COIl73ue73cY6UgGSJYUoVHu+iQk5yXCmzNFioeg==
+"@subql/node-core@14.1.4":
+  version "14.1.4"
+  resolved "https://registry.yarnpkg.com/@subql/node-core/-/node-core-14.1.4.tgz#4fde0c70364b94b745e290c2190c815c52159850"
+  integrity sha512-QQ3ttHRYFO+/nm/WkjJTKHwNCwOc8UZO6nCwO6nw83iA4ug4ZtPPSijDJ2HSkugkUlflEkaJc69wNbdCUZkYhA==
   dependencies:
     "@apollo/client" "^3.11.2"
     "@nestjs/common" "^9.4.0"
     "@nestjs/event-emitter" "^2.0.0"
     "@nestjs/schedule" "^3.0.1"
-    "@subql/common" "5.1.1"
+    "@subql/common" "5.1.2"
     "@subql/testing" "2.2.1"
     "@subql/types" "3.11.2"
     "@subql/utils" "2.14.0"
@@ -1559,10 +1559,10 @@
     vm2 "^3.9.19"
     yargs "^16.2.0"
 
-"@subql/node@5.2.3":
-  version "5.2.3"
-  resolved "https://registry.yarnpkg.com/@subql/node/-/node-5.2.3.tgz#a3051e8bc6b703d40a4aba5e0a5c92aefa12b542"
-  integrity sha512-RyHHuf1oakhMWJtfValvdxepr2MVOCZ2+WtJnJN1OX+HqiBXDW7YV4s5WSIRoqWah/unOzas0w0eZT6liA5eHA==
+"@subql/node@5.2.5":
+  version "5.2.5"
+  resolved "https://registry.yarnpkg.com/@subql/node/-/node-5.2.5.tgz#94214d642adc3551a9b2a6b74bca72d3999689a0"
+  integrity sha512-HtWBVEtEmVmC4VTMFsvXbVFhcX2hJrKVuPsz7xsaDA4Jb2mp31xz5gNo8AufIoia0n1mjzSiOR5EseYPBqaxww==
   dependencies:
     "@nestjs/common" "^9.4.0"
     "@nestjs/core" "^9.4.0"
@@ -1570,9 +1570,9 @@
     "@nestjs/platform-express" "^9.4.0"
     "@nestjs/schedule" "^3.0.1"
     "@polkadot/api" "^12.3.1"
-    "@subql/common" "5.1.1"
+    "@subql/common" "5.1.2"
     "@subql/common-substrate" "4.3.0"
-    "@subql/node-core" "14.1.2"
+    "@subql/node-core" "14.1.4"
     "@subql/types" "3.11.2"
     "@subql/utils" "2.14.0"
     fetch-h2 "3.0.2"
@@ -5295,7 +5295,7 @@ webpack-sources@^3.2.3:
   resolved "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-3.2.3.tgz#2d4daab8451fd4b240cc27055ff6a0c2ccea0cde"
   integrity sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==
 
-webpack@^5.93.0:
+webpack@^5.94.0:
   version "5.94.0"
   resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.94.0.tgz#77a6089c716e7ab90c1c67574a28da518a20970f"
   integrity sha512-KcsGn50VT+06JH/iunZJedYGUJS5FGjow8wb9c0v5n1Om8O1g4L6LjtfxwlXIATopoQu+vOXXa7gYisWxCoPyg==
