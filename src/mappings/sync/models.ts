@@ -1,11 +1,13 @@
-import type { SubstrateBlock } from "@subql/types";
+import type { SubstrateBlock } from '@subql/types';
 
+import { accountMetaStorage } from '../../utils/account';
+import { accountLiquidityStorage, accountLiquiditySnapshotsStorage } from '../../utils/accountLiquidity';
 import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
-import { networkSnapshotsStorage } from '../../utils/network';
+import { networkSnapshotsStorage, networkStatsStorage } from '../../utils/network';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { poolsStorage, poolsSnapshotsStorage } from '../../utils/pools';
 import { shouldUpdate } from '../../utils';
-import { getSyncModelsLog } from "../../utils/logs";
+import { getSyncModelsLog } from '../../utils/logs';
 
 const STATS_UPDATE_DIFF = 60 * 60; // seconds
 
@@ -14,10 +16,17 @@ export async function syncModels(block: SubstrateBlock): Promise<void> {
 
   await poolsSnapshotsStorage.sync(block);
   await poolsStorage.sync(block);
+
   await assetSnapshotsStorage.sync(block);
   await assetStorage.sync(block);
+
   await orderBooksSnapshotsStorage.sync(block);
   await orderBooksStorage.sync(block);
+
+  await accountLiquidityStorage.sync(block);
+  await accountLiquiditySnapshotsStorage.sync(block);
+
+  await accountMetaStorage.sync(block);
 }
 
 export async function updateNetworkStats(block: SubstrateBlock): Promise<void> {
@@ -25,6 +34,7 @@ export async function updateNetworkStats(block: SubstrateBlock): Promise<void> {
 
   await networkSnapshotsStorage.updateLiquidityStats(block);
   await networkSnapshotsStorage.sync(block);
+  await networkStatsStorage.sync(block);
 }
 
 export async function updateDailyStats(block: SubstrateBlock): Promise<void> {

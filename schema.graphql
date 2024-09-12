@@ -102,6 +102,9 @@ type PoolXYK @entity {
   multiplier: Int!
   priceUSD: String
   strategicBonusApy: String
+  poolTokenSupply: BigInt
+  poolTokenPriceUSD: String
+  liquidityUSD: String
 }
 
 type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool", "type"]]) {
@@ -109,8 +112,6 @@ type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool
   pool: PoolXYK! @index #relation to PoolXYK
   timestamp: Int!
   type: SnapshotType!
-  poolTokenSupply: BigInt!
-  poolTokenPriceUSD: String!
   priceUSD: AssetPrice! # price of target asset
   baseAssetReserves: BigInt! # (base + chameleon) reserves
   targetAssetReserves: BigInt! # target reserves
@@ -118,8 +119,10 @@ type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool
   baseAssetVolume: String!
   targetAssetVolume: String!
   chameleonAssetVolume: String!
-  volumeUSD: String!
+  poolTokenSupply: BigInt!
+  poolTokenPriceUSD: String!
   liquidityUSD: String!
+  volumeUSD: String!
 }
 
 type AccountLiquidity @entity {
@@ -128,6 +131,7 @@ type AccountLiquidity @entity {
   pool: PoolXYK! @index #relation to PoolXYK
   data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
   poolTokens: BigInt! # pool tokens
+  liquidityUSD: String!
 }
 
 type AccountLiquiditySnapshot implements ISnapshot @entity {
@@ -136,11 +140,43 @@ type AccountLiquiditySnapshot implements ISnapshot @entity {
   type: SnapshotType!
   accountLiquidity: AccountLiquidity! @index #relation to AccountLiquidity
   poolTokens: BigInt! # pool tokens
+  liquidityUSD: String!
 }
 
 type Account @entity {
   id: ID!
   latestHistoryElement: HistoryElement
+}
+
+type AccountMeta @entity {
+  id: ID!
+  account: Account! @index #relation to Account
+  createdAtTimestamp: Int! # timestamp
+  createdAtBlock: Int! # block
+  xorFees: AssetVolume!
+  xorBurned: AssetVolume!
+  xorStakingValRewards: AssetVolume!
+  orderBook: AccountMetaEventCounter!
+  vault: AccountMetaEventCounter!
+  governance: AccountMetaGovernance!
+  deposit: AccountMetaDeposit!
+}
+
+type AccountMetaEventCounter @jsonField {
+  created: Int!
+  closed: Int!
+  amountUSD: String!
+}
+
+type AccountMetaGovernance @jsonField {
+  votes: Int!
+  amount: String!
+  amountUSD: String!
+}
+
+type AccountMetaDeposit @jsonField {
+  incomingUSD: String!
+  outgoingUSD: String!
 }
 
 type HistoryElement @entity {
@@ -197,16 +233,6 @@ type ReferrerReward @entity {
 	referrer: String!
 	updated: Int!
 	amount: BigInt!
-}
-
-# [TODO] Remove before full reindex prod
-type StakingReward @entity {
-	id: ID!
-	amount: String!
-	staker: StakingStaker!
-	payee: String @index
-	era: StakingEra!
-	timestamp: Int!
 }
 
 type StakingStaker @entity {

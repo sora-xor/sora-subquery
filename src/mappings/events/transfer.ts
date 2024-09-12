@@ -1,17 +1,18 @@
-import { SubstrateEvent } from "@subql/types";
+import { SubstrateEvent } from '@subql/types';
 
+import { getBlockNumber } from '../../utils';
 import { getTransferEventData } from '../../utils/events';
 import { poolAccounts, poolsSnapshotsStorage } from '../../utils/pools';
-import { orderBooksStorage } from "../../utils/orderBook";
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
-import { initializedAtBlock } from '../models/initializePools'
+import { orderBooksStorage } from '../../utils/orderBook';
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
+import { initializedAtBlock } from '../models/initializePools';
 
 export async function handleTransferEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event)
+  logStartProcessingEvent(event);
 
-  if (initializedAtBlock === event.block.block.header.number.toNumber()) {
-		return
-	}
+  if (initializedAtBlock === getBlockNumber(event.block)) {
+    return;
+  }
 
   const { assetId, from, to, amount } = getTransferEventData(event);
 
@@ -38,7 +39,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
   }
   // deposit token to order book
   if (orderBooksStorage.accountIds.has(to)) {
-    const book = await orderBooksStorage.getOrderBookByAccountId(event.block, to)
+    const book = await orderBooksStorage.getOrderBookByAccountId(event.block, to);
 
     if (book.baseAssetId === assetId) {
       book.baseAssetReserves = book.baseAssetReserves + BigInt(amount);
@@ -46,6 +47,6 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
       book.quoteAssetReserves = book.quoteAssetReserves + BigInt(amount);
     }
 
-    getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after deposit')
+    getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after deposit');
   }
 }

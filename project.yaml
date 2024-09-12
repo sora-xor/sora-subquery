@@ -315,6 +315,12 @@ dataSources:
           filter:
             module: staking
             method: StakersElected
+        # governance
+        - handler: handleDemocracyVoted
+          kind: substrate/EventHandler
+          filter:
+            module: democracy
+            method: Voted
         # order book
         - handler: orderBookCreatedEvent
           kind: substrate/EventHandler

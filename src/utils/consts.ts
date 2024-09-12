@@ -1,4 +1,4 @@
-import { SnapshotType } from "../types";
+import { SnapshotType } from '../types';
 
 export const DOT: string = '0x0003b1dbee890acfb1b3bc12d1bb3b4295f52755423f84d1751b2545cebf000b';
 export const KSM: string = '0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8';
@@ -18,22 +18,22 @@ export const KXOR: string = '0x02000e0000000000000000000000000000000000000000000
 export const KARMA: string = '0x02000f0000000000000000000000000000000000000000000000000000000000';
 
 export const predefinedAssets = {
-  'XOR': XOR,
-  'DOT': DOT,
-  'KSM': KSM,
-  'USDT': USDT,
-  'VAL': VAL,
-  'PSWAP': PSWAP,
-  'DAI': DAI,
-  'ETH': ETH,
-  'XSTUSD': XSTUSD,
-  'XST': XST,
-  'TBCD': TBCD,
-  'KEN': KEN,
-  'KUSD': KUSD,
-  'KGOLD': KGOLD,
-  'KXOR': KXOR,
-  'KARMA': KARMA,
+  XOR: XOR,
+  DOT: DOT,
+  KSM: KSM,
+  USDT: USDT,
+  VAL: VAL,
+  PSWAP: PSWAP,
+  DAI: DAI,
+  ETH: ETH,
+  XSTUSD: XSTUSD,
+  XST: XST,
+  TBCD: TBCD,
+  KEN: KEN,
+  KUSD: KUSD,
+  KGOLD: KGOLD,
+  KXOR: KXOR,
+  KARMA: KARMA,
 };
 
 export const BASE_ASSETS = [XOR, XSTUSD, KUSD];

@@ -1,10 +1,13 @@
 import { u8aToHex } from '@polkadot/util';
 
-import { SubstrateExtrinsic } from "@subql/types";
-import { createHistoryElement } from "../../utils/history";
+import { SubstrateExtrinsic } from '@subql/types';
+import { getExtrinsicSigner } from '../../utils';
+import { accountMetaStorage } from '../../utils/account';
+import { isEvent, getEventData } from '../../utils/events';
+import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
-import { logStartProcessingCall } from "../../utils/logs";
+import { logStartProcessingCall } from '../../utils/logs';
 
 function getEvmNetworkId(network: any): number {
   if (network.isEvmLegacy) return network.asEvmLegacy.toNumber();
@@ -81,10 +84,10 @@ function getNetwork(data: any): number | null {
 }
 
 function getBridgeProxyHash(extrinsic: SubstrateExtrinsic): string | null {
-  const bridgeProxyUpdate = extrinsic.events.find((e) => e.event.section === 'bridgeProxy' && e.event.method === 'RequestStatusUpdate');
+  const bridgeProxyUpdate = extrinsic.events.find((e) => isEvent(e, 'bridgeProxy', 'RequestStatusUpdate'));
 
   if (bridgeProxyUpdate) {
-    const { event: { data: [hash] } } = bridgeProxyUpdate;
+    const [hash] = getEventData(bridgeProxyUpdate);
 
     return hash.toString();
   }
@@ -97,14 +100,14 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 
   const details: any = {};
 
-  const bridgeAppMinted = extrinsic.events.find((e) =>
-    ['parachainBridgeApp', 'substrateBridgeApp'].includes(e.event.section) &&
-    e.event.method === 'Minted'
+  const bridgeAppMinted = extrinsic.events.find(
+    (e) => isEvent(e, 'parachainBridgeApp', 'Minted') || isEvent(e, 'substrateBridgeApp', 'Minted')
   );
 
   if (bridgeAppMinted) {
-    const { event: { data: [subNetworkId, assetCodec, _sender, recipient, amountCodec] } } = bridgeAppMinted;
+    const [subNetworkId, assetCodec, _sender, recipientCodec, amountCodec] = getEventData(bridgeAppMinted);
 
+    const recipient = recipientCodec.toString();
     const assetId = getAssetId(assetCodec);
     const amount = formatU128ToBalance(amountCodec.toString(), assetId);
     const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
@@ -114,22 +117,29 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
     details.assetId = assetId;
     details.amount = amount;
     details.amountUSD = amountUSD;
-    details.to = recipient.toString();
+    details.to = recipient;
+
+    await accountMetaStorage.updateIncomingDeposit(extrinsic.block, recipient, amountUSD);
   }
 
   details.hash = getBridgeProxyHash(extrinsic);
 
   await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(extrinsic.block);
 
-  await createHistoryElement(extrinsic, details, undefined, details.to);
+  await createHistoryElement(extrinsic, details, { address: details.to });
 }
 
 export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  const { extrinsic: { args: [subNetworkId, assetCodec, recipient, amountCodec] } } = extrinsic as any;
+  const {
+    extrinsic: {
+      args: [subNetworkId, assetCodec, recipient, amountCodec],
+    },
+  } = extrinsic as any;
 
   const networkType = getNetworkId(subNetworkId);
   const networkId = getNetwork(recipient);
 
+  const sender = getExtrinsicSigner(extrinsic);
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
   const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
@@ -149,4 +159,6 @@ export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic):
   await networkSnapshotsStorage.updateBridgeOutgoingTransactionsStats(extrinsic.block);
 
   await createHistoryElement(extrinsic, details);
+
+  await accountMetaStorage.updateOutgoingDeposit(extrinsic.block, sender, amountUSD);
 }

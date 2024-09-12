@@ -1,7 +1,12 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { isAssetDepositedEvent, getDepositedEventData, isAssetTransferEvent, getTransferEventData } from '../../utils/events';
-import { createHistoryElement } from "../../utils/history";
+import {
+  isAssetDepositedEvent,
+  getDepositedEventData,
+  isAssetTransferEvent,
+  getTransferEventData,
+} from '../../utils/events';
+import { createHistoryElement } from '../../utils/history';
 import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
 
@@ -10,10 +15,14 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
 
   const details: any = {};
 
-  const currenciesEvent = extrinsic.events.find(e => isAssetDepositedEvent(e) || isAssetTransferEvent(e));
+  const currenciesEvent = extrinsic.events.find((e) => isAssetDepositedEvent(e) || isAssetTransferEvent(e));
 
   if (currenciesEvent) {
-    const { assetId, amount: assetAmount, to } = isAssetDepositedEvent(currenciesEvent)
+    const {
+      assetId,
+      amount: assetAmount,
+      to,
+    } = isAssetDepositedEvent(currenciesEvent)
       ? getDepositedEventData(currenciesEvent)
       : getTransferEventData(currenciesEvent);
 
@@ -26,5 +35,5 @@ export async function handlerIrohaMigration(extrinsic: SubstrateExtrinsic): Prom
     details.to = to;
   }
 
-  await createHistoryElement(extrinsic, details)
+  await createHistoryElement(extrinsic, details);
 }

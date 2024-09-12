@@ -1,12 +1,17 @@
-import { SubstrateExtrinsic } from "@subql/types";
-import { createHistoryElement } from "../../utils/history";
+import { SubstrateExtrinsic } from '@subql/types';
+import { isEvent, getEventData } from '../../utils/events';
+import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
-import { logStartProcessingCall } from "../../utils/logs";
+import { logStartProcessingCall } from '../../utils/logs';
 
 export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [orderBookId, price, amountCodec, side, lifetimeOption] } } = extrinsic as any;
+  const {
+    extrinsic: {
+      args: [orderBookId, price, amountCodec, side, lifetimeOption],
+    },
+  } = extrinsic as any;
 
   const baseAssetId = getAssetId(orderBookId.base);
   const quoteAssetId = getAssetId(orderBookId.quote);
@@ -26,13 +31,10 @@ export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrin
     lifetime: !lifetimeOption.isEmpty ? Number(lifetimeOption.unwrap()) / 1000 : null,
   };
 
-  const limitOrderPlacedEvent = extrinsic.events.find(e =>
-    e.event.section === 'orderBook' &&
-    e.event.method === 'LimitOrderPlaced'
-  );
+  const limitOrderPlacedEvent = extrinsic.events.find((e) => isEvent(e, 'orderBook', 'LimitOrderPlaced'));
 
   if (limitOrderPlacedEvent) {
-    const { event: { data: [_orderBookId, orderId] } } = limitOrderPlacedEvent;
+    const [_orderBookId, orderId] = getEventData(limitOrderPlacedEvent);
     details.orderId = Number(orderId.toHuman());
   }
 
@@ -42,13 +44,10 @@ export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrin
 export async function orderBookCancelLimitOrderHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const cancelEvents = extrinsic.events.filter(e =>
-    e.event.section === 'orderBook' &&
-    e.event.method === 'LimitOrderCanceled'
-  ) as any[];
+  const cancelEvents = extrinsic.events.filter((e) => isEvent(e, 'orderBook', 'LimitOrderCanceled')) as any[];
 
   const details = cancelEvents.reduce((buffer, cancelEvent) => {
-    const { event: { data: [orderBookId, orderId] } } = cancelEvent;
+    const [orderBookId, orderId] = getEventData(cancelEvent) as any;
 
     buffer.push({
       dexId: orderBookId.dexId.toNumber(),

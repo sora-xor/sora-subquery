@@ -1,19 +1,19 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { bytesToString } from "../../utils";
-import { isExchangeEvent } from '../../utils/events';
-import { createHistoryElement } from "../../utils/history";
+import { bytesToString, getExtrinsicSigner } from '../../utils';
+import { isExchangeEvent, isEvent, getEventData } from '../../utils/events';
+import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
 import { poolsSnapshotsStorage } from '../../utils/pools';
 import { XOR } from '../../utils/consts';
 import { logStartProcessingCall } from '../../utils/logs';
 
-import type { Vec } from "@polkadot/types";
-import type { Enum, Struct } from "@polkadot/types/codec";
-import type { Balance } from "@polkadot/types/interfaces/runtime"
+import type { Vec } from '@polkadot/types';
+import type { Enum, Struct } from '@polkadot/types/codec';
+import type { Balance } from '@polkadot/types/interfaces/runtime';
 
 interface SwapAmount extends Enum {
   readonly isWithDesiredInput: boolean;
@@ -45,30 +45,33 @@ export interface LiquiditySourceType extends Enum {
   readonly isMockPool4: boolean;
 }
 
-const getEventData = (extrinsic: SubstrateExtrinsic, method: string, section: string) => {
-  const event = extrinsic.events.find(e => e.event.method === method && e.event.section === section);
+const getExtrinsicEventData = (extrinsic: SubstrateExtrinsic, method: string, section: string) => {
+  const event = extrinsic.events.find((e) => isEvent(e, section, method));
+
   return event?.event?.data;
-}
+};
 
 const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): string[] => {
   switch (swapAmount.isWithDesiredOutput) {
     case true: {
       return [
         formatU128ToBalance(swapAmount.asWithDesiredOutput.maxAmountIn.toString(), assetId),
-        formatU128ToBalance(swapAmount.asWithDesiredOutput.desiredAmountOut.toString(), assetId)
+        formatU128ToBalance(swapAmount.asWithDesiredOutput.desiredAmountOut.toString(), assetId),
       ];
     }
     case false: {
       return [
         formatU128ToBalance(swapAmount.asWithDesiredInput.desiredAmountIn.toString(), assetId),
-        formatU128ToBalance(swapAmount.asWithDesiredInput.minAmountOut.toString(), assetId)
+        formatU128ToBalance(swapAmount.asWithDesiredInput.minAmountOut.toString(), assetId),
       ];
     }
   }
-}
+};
 
 const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
-  const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = extrinsic.extrinsic.args.slice().reverse();
+  const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = extrinsic.extrinsic.args
+    .slice()
+    .reverse();
 
   const details: any = {};
   const baseAssetId = getAssetId(baseAsset);
@@ -76,18 +79,18 @@ const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promis
 
   details.baseAssetId = baseAssetId;
   details.targetAssetId = targetAssetId;
-  details.selectedMarket = (liquiditySources as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString();
+  details.selectedMarket = (liquiditySources as Vec<LiquiditySourceType>).map((lst) => lst.toString()).toString();
   details.baseAssetAmount = receiveExtrinsicSwapAmounts(swapAmount as SwapAmount, baseAssetId)[0];
   details.targetAssetAmount = receiveExtrinsicSwapAmounts(swapAmount as SwapAmount, targetAssetId)[1];
 
   if (to) {
-    details.to = to.toString()
+    details.to = to.toString();
   }
 
-  const exchangeEvent = extrinsic.events.find(e => isExchangeEvent(e));
+  const exchangeEvent = extrinsic.events.find((e) => isExchangeEvent(e));
 
   if (exchangeEvent) {
-    const { event: { data: [, , , , baseAssetAmount, targetAssetAmount] } } = exchangeEvent;
+    const [, , , , baseAssetAmount, targetAssetAmount] = getEventData(exchangeEvent);
 
     details.baseAssetAmount = formatU128ToBalance(baseAssetAmount.toString(), baseAssetId);
     details.targetAssetAmount = formatU128ToBalance(targetAssetAmount.toString(), targetAssetId);
@@ -99,7 +102,11 @@ const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promis
   if (exchangeEvent) {
     // update assets volume
     const aVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, baseAssetId, details.baseAssetAmount);
-    const bVolumeUSD = await assetSnapshotsStorage.updateVolume(extrinsic.block, targetAssetId, details.targetAssetAmount);
+    const bVolumeUSD = await assetSnapshotsStorage.updateVolume(
+      extrinsic.block,
+      targetAssetId,
+      details.targetAssetAmount
+    );
     // get the minimal volume (sell\buy)
     const volumeUSD = BigNumber.min(aVolumeUSD, bVolumeUSD);
 
@@ -107,25 +114,27 @@ const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promis
   }
 
   await createHistoryElement(extrinsic, details);
-}
+};
 
-const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise <void> => {
-  const [swapBatches, inputAsset, maxInputAmount, liquiditySources, filterMode, additionalData] = extrinsic.extrinsic.args.slice();
+const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
+  const [swapBatches, inputAsset, maxInputAmount, liquiditySources, filterMode, additionalData] =
+    extrinsic.extrinsic.args.slice();
 
   const inputAssetId = getAssetId(inputAsset);
-  const extrinsicSigner = extrinsic.extrinsic.signer.toString();
+  const extrinsicSigner = getExtrinsicSigner(extrinsic);
 
   const details: any = {};
 
   details.assetId = inputAssetId;
-  details.selectedMarket = (liquiditySources as Vec<LiquiditySourceType>).map(lst => lst.toString()).toString();
+  details.selectedMarket = (liquiditySources as Vec<LiquiditySourceType>).map((lst) => lst.toString()).toString();
   details.maxInputAmount = formatU128ToBalance(maxInputAmount.toString(), inputAssetId);
   details.from = extrinsicSigner;
   details.receivers = [];
-  details.comment = !!additionalData && !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null;
+  details.comment =
+    !!additionalData && !additionalData.isEmpty ? bytesToString((additionalData as any).unwrap()) : null;
 
   // fill receivers with assetId and amount
-  for (const swapBatchInfo of (swapBatches as any)) {
+  for (const swapBatchInfo of swapBatches as any) {
     const assetId = getAssetId(swapBatchInfo.outcomeAssetId);
 
     for (const receiverInfo of swapBatchInfo.receivers) {
@@ -141,30 +150,32 @@ const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promi
     }
   }
 
-  const batchSwapExecutedEvent = getEventData(extrinsic, 'BatchSwapExecuted', 'liquidityProxy');
+  const batchSwapExecutedEvent = getExtrinsicEventData(extrinsic, 'BatchSwapExecuted', 'liquidityProxy');
+
   if (batchSwapExecutedEvent) {
     const [adarFee, inputAmount] = batchSwapExecutedEvent;
     details.adarFee = formatU128ToBalance(adarFee.toString(), inputAssetId);
     details.inputAmount = formatU128ToBalance(inputAmount.toString(), inputAssetId);
   }
 
-  const transactionFeePaidEvent = getEventData(extrinsic, 'TransactionFeePaid', 'transactionPayment');
+  const transactionFeePaidEvent = getExtrinsicEventData(extrinsic, 'TransactionFeePaid', 'transactionPayment');
+
   if (transactionFeePaidEvent) {
     const [, actualFee] = transactionFeePaidEvent;
     details.actualFee = formatU128ToBalance(actualFee.toString(), XOR);
   }
 
-  const assetTransferEvents = extrinsic.events.filter(e => e.event.method === 'Transfer' && e.event.section === 'assets');
+  const assetTransferEvents = extrinsic.events.filter((e) => isEvent(e, 'assets', 'Transfer'));
   const receiverIds = details.receivers.map((receiver) => receiver.accountId);
 
   for (const assetTransferEvent of assetTransferEvents) {
-    const { event: { data: [from, to, asset, amountCodec] } } = assetTransferEvent;
+    const [from, to, asset, amountCodec] = getEventData(assetTransferEvent);
     const sender = from.toString();
     const receiver = to.toString();
     // if technical transfer, skip
     if (!(sender === extrinsicSigner && receiverIds.includes(receiver))) continue;
 
-    const assetId =  getAssetId(asset);
+    const assetId = getAssetId(asset);
     const amount = formatU128ToBalance(amountCodec.toString(), assetId);
     const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
@@ -177,11 +188,11 @@ const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promi
     };
 
     // create history element for receiver
-    await createHistoryElement(assetTransferEvent as any, transfer, undefined, receiver);
+    await createHistoryElement(assetTransferEvent as any, transfer, { address: receiver, useStats: false });
   }
 
   await createHistoryElement(extrinsic, details);
-}
+};
 
 export async function handleSwaps(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
@@ -197,7 +208,7 @@ export async function handleSwapTransfers(extrinsic: SubstrateExtrinsic): Promis
   await poolsSnapshotsStorage.processSwap(extrinsic);
 }
 
-export async function handleSwapTransferBatch(extrinsic: SubstrateExtrinsic): Promise <void> {
+export async function handleSwapTransferBatch(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
   await handleAndSaveBatchExtrinsic(extrinsic);

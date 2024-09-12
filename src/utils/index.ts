@@ -1,10 +1,10 @@
-import type { SubstrateBlock } from "@subql/types";
+import type { SubstrateBlock } from '@subql/types';
 
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
 import { TextDecoder } from 'util';
 
-import { SnapshotType } from "../types";
+import { SnapshotType } from '../types';
 
 import { SnapshotSecondsMap, SnapshotTimeDepthMap } from './consts';
 import { SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
@@ -17,14 +17,13 @@ export const last = <T>(snapshots: T[]) => {
 };
 
 export const prevSnapshotsIndexesRow = (index: number, count: number): number[] => {
-  return new Array(count).fill(index)
-    .reduce((buffer, item, idx) => {
-      const prevIndex = item - idx;
+  return new Array(count).fill(index).reduce((buffer, item, idx) => {
+    const prevIndex = item - idx;
 
-      if (prevIndex >= 0) buffer.push(prevIndex);
+    if (prevIndex >= 0) buffer.push(prevIndex);
 
-      return buffer;
-    }, []);
+    return buffer;
+  }, []);
 };
 
 export const calcPriceChange = (current: BigNumber, prev: BigNumber): number => {
@@ -33,6 +32,10 @@ export const calcPriceChange = (current: BigNumber, prev: BigNumber): number => 
   const change = current.minus(prev).div(prev).multipliedBy(new BigNumber(100));
 
   return toFloat(change);
+};
+
+export const getBlockNumber = (block: SubstrateBlock) => {
+  return block.block.header.number.toNumber();
 };
 
 export const formatDateTimestamp = (date: Date): number => parseInt((date.getTime() / 1000).toFixed(0));
@@ -56,7 +59,7 @@ export const getSnapshotTypes = (block: SubstrateBlock, types: SnapshotType[]) =
   });
 };
 
-export const getSnapshotIndex = (blockTimestamp: number, type: SnapshotType): { index: number, timestamp: number } => {
+export const getSnapshotIndex = (blockTimestamp: number, type: SnapshotType): { index: number; timestamp: number } => {
   const seconds = SnapshotSecondsMap[type];
   const index = Math.floor(blockTimestamp / seconds); // rounded snapshot index (from 0)
   const timestamp = seconds * index; // rounded snapshot timestamp
@@ -69,14 +72,17 @@ export const bytesToString = (ticker: any): string => {
 };
 
 export const getCallId = (call: SubstrateExtrinsic): string => {
-	return call.extrinsic.hash.toString()
-}
+  return call.extrinsic.hash.toString();
+};
 
 export const getEventId = (event: SubstrateEvent): string => {
-	return `${event.block.block.header.number.toString()}-${event.idx}`
-}
+  return `${getBlockNumber(event.block)}-${event.idx}`;
+};
 
 export const getEntityId = (entity: SubstrateExtrinsic | SubstrateEvent): string => {
-	return 'event' in entity ? getEventId(entity) : getCallId(entity)
-}
+  return 'event' in entity ? getEventId(entity) : getCallId(entity);
+};
 
+export const getExtrinsicSigner = (extrinsic: SubstrateExtrinsic): string => {
+  return extrinsic.extrinsic.signer.toString();
+};

@@ -1,16 +1,22 @@
-import { SnapshotType } from "../types";
-import type { AssetSnapshot, OrderBookSnapshot, PoolSnapshot, AccountLiquiditySnapshot, NetworkSnapshot } from '../types';
+import { SnapshotType } from '../types';
+import type {
+  AssetSnapshot,
+  OrderBookSnapshot,
+  PoolSnapshot,
+  AccountLiquiditySnapshot,
+  NetworkSnapshot,
+} from '../types';
 
 import { getStorageLog, type BlockContext } from './logs';
 import { shouldUpdate, formatDateTimestamp, getSnapshotIndex, getSnapshotTypeTimeDepth } from './index';
 
 import { SubstrateBlock } from '@subql/types';
-import type { Entity as BaseEntity } from "@subql/types-core";
+import type { Entity as BaseEntity } from '@subql/types-core';
 
 type Snapshot = AssetSnapshot | OrderBookSnapshot | PoolSnapshot | AccountLiquiditySnapshot | NetworkSnapshot;
 
 export class EntityStorage<Entity extends BaseEntity> {
-  protected entityName!: string;
+  public readonly entityName!: string;
 
   protected storage!: Map<string, Entity>;
 
@@ -23,7 +29,7 @@ export class EntityStorage<Entity extends BaseEntity> {
     return [...this.storage.keys()];
   }
 
-  get values(): Entity[] {
+  get entities(): Entity[] {
     return [...this.storage.values()];
   }
 
@@ -35,8 +41,8 @@ export class EntityStorage<Entity extends BaseEntity> {
     return id.split('-');
   }
 
-  protected async load(id: string): Promise<Entity> {
-    return await store.get(this.entityName, id) as Entity;
+  protected async load(id: string): Promise<Entity | undefined> {
+    return (await store.get(this.entityName, id)) as Entity | undefined;
   }
 
   protected async delete(...ids: string[]): Promise<void> {
@@ -51,25 +57,34 @@ export class EntityStorage<Entity extends BaseEntity> {
     }
   }
 
-  public async sync(block: SubstrateBlock): Promise<void> {
-    this.log(block).debug(`Sync ${this.storage.size} entities`);
-
-    await store.bulkUpdate(this.entityName, [...this.storage.values()]);
-  }
-
-  public async getEntity(block: SubstrateBlock, id: string, ...args: any[]): Promise<Entity> {
+  protected async get(block: SubstrateBlock, id: string): Promise<Entity | undefined> {
     if (this.storage.has(id)) {
       this.log(block, true).debug({ id }, `${this.entityName} found in storage`);
       return this.storage.get(id);
     }
 
-    let entity = await this.load(id);
+    const entity = await this.load(id);
+
+    if (entity) {
+      this.log(block, true).info({ id }, `${this.entityName} loaded`);
+    }
+
+    return entity;
+  }
+
+  public async sync(block: SubstrateBlock): Promise<void> {
+    this.log(block).debug(`Sync ${this.storage.size} entities`);
+
+    await store.bulkUpdate(this.entityName, this.entities);
+  }
+
+  public async getEntity(block: SubstrateBlock, id: string, ...args: any[]): Promise<Entity> {
+    let entity = await this.get(block, id);
 
     if (!entity) {
       entity = await this.createEntity(block, id, ...args);
 
       await this.save(block, entity, true);
-      this.log(block).debug({ id }, `${this.entityName} created and saved`);
     }
 
     this.storage.set(entity.id, entity);
@@ -89,7 +104,7 @@ export class EntityStorage<Entity extends BaseEntity> {
 export class EntitySnapshotsStorage<
   Entity extends BaseEntity,
   SnapshotEntity extends Snapshot,
-  StorageEntity extends  EntityStorage<Entity>,
+  StorageEntity extends EntityStorage<Entity>,
 > extends EntityStorage<SnapshotEntity> {
   protected entityStorage!: StorageEntity;
 
@@ -102,29 +117,22 @@ export class EntitySnapshotsStorage<
   }
 
   protected async getSnapshotsByIds(ids: string[]): Promise<SnapshotEntity[]> {
-    const snapshots = await Promise.all(ids.map(id => this.load(id)));
+    const snapshots = await Promise.all(ids.map((id) => this.load(id)));
 
     return snapshots.filter((item) => !!item);
-  };
+  }
 
   async getSnapshot(block: SubstrateBlock, entityId: string, type: SnapshotType): Promise<SnapshotEntity> {
     const blockTimestamp = formatDateTimestamp(block.timestamp);
     const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
     const snapshotId = this.getId(entityId, type, index);
 
-    if (this.storage.has(snapshotId)) {
-      this.log(block, true).debug({ id: snapshotId }, `${this.entityName} found in storage`);
-      return this.storage.get(snapshotId);
-    }
-
-    let snapshot = await this.load(snapshotId);
+    let snapshot = await this.get(block, snapshotId);
 
     if (!snapshot) {
       const entity = await this.entityStorage.getEntity(block, entityId);
 
       snapshot = await this.createEntity(block, snapshotId, timestamp, type, entity);
-
-      this.log(block).debug({ id: snapshotId }, `${this.entityName} created and saved`);
     }
 
     this.storage.set(snapshot.id, snapshot);
@@ -142,7 +150,7 @@ export class EntitySnapshotsStorage<
 
     const blockTimestamp = formatDateTimestamp(block.timestamp);
 
-    for (const snapshot of this.storage.values()) {
+    for (const snapshot of this.entities) {
       const { type, timestamp } = snapshot;
       const { timestamp: currentTimestamp } = getSnapshotIndex(blockTimestamp, type);
 

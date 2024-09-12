@@ -1,67 +1,69 @@
-import { SubstrateEvent } from "@subql/types";
+import { SubstrateEvent } from '@subql/types';
+import { getBlockNumber } from '../../utils';
 import { getAssetId, assetSnapshotsStorage } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
-import { initializedAtBlock } from '../models/initializePools'
+import { getEventData } from '../../utils/events';
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
+import { initializedAtBlock } from '../models/initializePools';
 
 export async function handleTokenBurn(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+  logStartProcessingEvent(event);
 
-    if (initializedAtBlock === event.block.block.header.number.toNumber()) {
-        return;
-    }
+  if (initializedAtBlock === getBlockNumber(event.block)) {
+    return;
+  }
 
-    const { event: { data: [ currencyId, who, balance ] } } = event;
+  const [currencyId, who, balance] = getEventData(event);
 
-    const assetId = getAssetId(currencyId);
-    const amount = BigInt(balance.toString());
+  const assetId = getAssetId(currencyId);
+  const amount = BigInt(balance.toString());
 
-    await assetSnapshotsStorage.updateBurned(event.block, assetId, amount);
+  await assetSnapshotsStorage.updateBurned(event.block, assetId, amount);
 }
 
 export async function handleXorBurn(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+  logStartProcessingEvent(event);
 
-    if (initializedAtBlock === event.block.block.header.number.toNumber()) {
-        return;
-    }
-    
-    const { event: { data: [ who, balance ] } } = event;
+  if (initializedAtBlock === getBlockNumber(event.block)) {
+    return;
+  }
 
-    const assetId = XOR;
-    const amount = BigInt(balance.toString());
+  const [who, balance] = getEventData(event);
 
-    await assetSnapshotsStorage.updateBurned(event.block, assetId, amount);
+  const assetId = XOR;
+  const amount = BigInt(balance.toString());
+
+  await assetSnapshotsStorage.updateBurned(event.block, assetId, amount);
 }
 
 export async function handleTokenMint(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+  logStartProcessingEvent(event);
 
-    if (initializedAtBlock === event.block.block.header.number.toNumber()) {
-        return;
-    }
+  if (initializedAtBlock === getBlockNumber(event.block)) {
+    return;
+  }
 
-    const { event: { data: [ currencyId, who, balance ] } } = event;
+  const [currencyId, who, balance] = getEventData(event);
 
-    const assetId = getAssetId(currencyId);
-    const amount = BigInt(balance.toString());
+  const assetId = getAssetId(currencyId);
+  const amount = BigInt(balance.toString());
 
-	getEventHandlerLog(event).debug(`1 Minting ${amount} of ${assetId}`)
-    await assetSnapshotsStorage.updateMinted(event.block, assetId, amount);
+  getEventHandlerLog(event).debug(`1 Minting ${amount} of ${assetId}`);
+  await assetSnapshotsStorage.updateMinted(event.block, assetId, amount);
 }
 
 export async function handleXorMint(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+  logStartProcessingEvent(event);
 
-    if (initializedAtBlock === event.block.block.header.number.toNumber()) {
-        return;
-    }
+  if (initializedAtBlock === getBlockNumber(event.block)) {
+    return;
+  }
 
-    const { event: { data: [ who, balance ] } } = event;
+  const [who, balance] = getEventData(event);
 
-    const assetId = XOR;
-    const amount = BigInt(balance.toString());
+  const assetId = XOR;
+  const amount = BigInt(balance.toString());
 
-	getEventHandlerLog(event).debug(`2 Minting ${amount} of ${assetId}`)
-    await assetSnapshotsStorage.updateMinted(event.block, assetId, amount);
+  getEventHandlerLog(event).debug(`2 Minting ${amount} of ${assetId}`);
+  await assetSnapshotsStorage.updateMinted(event.block, assetId, amount);
 }
