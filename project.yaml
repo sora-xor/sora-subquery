@@ -4,7 +4,7 @@ version: 1.0.0
 runner:
   node:
     name: '@subql/node'
-    version: 5.0.1
+    version: 5.2.5
   query:
     name: '@subql/query'
     version: 2.13.3
