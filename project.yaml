@@ -7,7 +7,7 @@ runner:
     version: 5.2.5
   query:
     name: '@subql/query'
-    version: 2.13.3
+    version: 2.15.1
 description: ''
 repository: https://github.com/sora-xor/sora-subquery
 schema:
@@ -26,6 +26,8 @@ dataSources:
         - handler: initializeAssets
           kind: substrate/BlockHandler
         - handler: initializePools
+          kind: substrate/BlockHandler
+        - handler: initializeAccountLiquidities
           kind: substrate/BlockHandler
         - handler: initializeOrderBooks
           kind: substrate/BlockHandler
@@ -109,6 +111,17 @@ dataSources:
           filter:
             module: ethBridge
             method: transferToSidechain
+        - handler: bridgeProxyOutgoingHandler
+          kind: substrate/CallHandler
+          filter:
+            module: bridgeProxy
+            method: burn
+        - handler: substrateBridgeIncomingHandler
+          kind: substrate/CallHandler
+          filter:
+            module: substrateBridgeInboundChannel
+            method: submit
+        # rewards
         - handler: rewardsHandler
           kind: substrate/CallHandler
           filter:
@@ -129,6 +142,7 @@ dataSources:
           filter:
             module: vestedRewards
             method: claimCrowdloanRewards
+        # referrals
         - handler: setReferralHandler
           kind: substrate/CallHandler
           filter:
@@ -139,11 +153,12 @@ dataSources:
           filter:
             module: referrals
             method: reserve
-        - handler: referralUnreserveHandler
+        - handler: referralReserveHandler
           kind: substrate/CallHandler
           filter:
             module: referrals
             method: unreserve
+        # demeterFarmingPlatform
         - handler: demeterDepositHandler
           kind: substrate/CallHandler
           filter:
@@ -159,6 +174,7 @@ dataSources:
           filter:
             module: demeterFarmingPlatform
             method: getRewards
+        # staking
         - handler: stakingBondCallHandler
           kind: substrate/CallHandler
           filter:
@@ -299,6 +315,13 @@ dataSources:
           filter:
             module: staking
             method: StakersElected
+        # governance
+        - handler: handleDemocracyVoted
+          kind: substrate/EventHandler
+          filter:
+            module: democracy
+            method: Voted
+        # order book
         - handler: orderBookCreatedEvent
           kind: substrate/EventHandler
           filter:
@@ -364,6 +387,27 @@ dataSources:
           filter:
             module: orderBook
             method: cancelLimitOrdersBatch
+        # defi-r calls
+        - handler: setSbtExpiratioCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: setSbtExpiration
+        - handler: regulateAssetCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: regulateAsset
+        - handler: bindRegulatedAssetToSbtCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: bindRegulatedAssetToSbt
+        - handler: registerRegulatedAssetCallHandler
+          kind: substrate/CallHandler
+          filter:
+            module: extendedAssets
+            method: registerRegulatedAsset
         # kensetsu calls start
         - handler: vaultCreateCallHandler
           kind: substrate/CallHandler

@@ -1,9 +1,10 @@
-import { SubstrateBlock } from "@subql/types";
+import { SubstrateBlock } from '@subql/types';
 
-import { OrderBookStatus } from '../../types'
+import { OrderBookStatus } from '../../types';
+import { getBlockNumber } from '../../utils';
 import { getAssetId, getAssetBalance } from '../../utils/assets';
-import { getAllOrderBooks, OrderBooksStorage, orderBooksStorage } from '../../utils/orderBook';
-import { getInitializeOrderBooksLog } from "../../utils/logs";
+import { getAllOrderBooks, orderBooksStorage } from '../../utils/orderBook';
+import { getInitializeOrderBooksLog } from '../../utils/logs';
 
 let isFirstBlockIndexed = false;
 
@@ -17,7 +18,7 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
   const orderBooks = await getAllOrderBooks(block);
 
   const buffer = new Map();
-  const updatedAtBlock = block.block.header.number.toNumber();
+  const updatedAtBlock = getBlockNumber(block);
 
   if (orderBooks) {
     for (const [key, value] of orderBooks) {
@@ -26,13 +27,13 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
       const dexId = Number(dex);
       const baseAssetId = getAssetId(base);
       const quoteAssetId = getAssetId(quote);
-      const id = OrderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
+      const id = orderBooksStorage.getId(dexId, baseAssetId, quoteAssetId);
       const status = statusCodec ? statusCodec.toHuman() : OrderBookStatus.Trade;
       const accountId = await orderBooksStorage.getAccountId(block, id);
 
       // We don't use Promise.all here because we need consistent order of requests in the log
-      const baseAssetReserves = await getAssetBalance(block, accountId, baseAssetId)
-      const quoteAssetReserves = await getAssetBalance(block, accountId, quoteAssetId)
+      const baseAssetReserves = await getAssetBalance(block, accountId, baseAssetId);
+      const quoteAssetReserves = await getAssetBalance(block, accountId, quoteAssetId);
 
       buffer.set(id, {
         id,
@@ -52,20 +53,16 @@ export async function initializeOrderBooks(block: SubstrateBlock): Promise<void>
   if (entities.length) {
     // get or create entities in DB & memory
     // We don't use Promise.all here because we need consistent order of requests in the log
-    const created = [];
-    for (const { dexId, baseAssetId, quoteAssetId } of entities) {
-        const orderBook = await orderBooksStorage.getOrderBook(block, dexId, baseAssetId, quoteAssetId);
-        created.push(orderBook);
+    for (const entity of entities) {
+      const orderBook = await orderBooksStorage.getEntity(block, entity.id);
+      // update data in memory storage
+      Object.assign(orderBook, entity);
     }
-    // update data in memory storage
-    created.forEach((entity) => {
-      Object.assign(entity, buffer.get(entity.id))
-    });
     // save in DB
-    await store.bulkUpdate('OrderBook', created);
-    getInitializeOrderBooksLog(block).debug(`${entities.length} Order Books initialized!`);
+    await orderBooksStorage.sync(block);
+    getInitializeOrderBooksLog(block).info(`${entities.length} Order Books initialized!`);
   } else {
-    getInitializeOrderBooksLog(block).debug('No Order Books to initialize!');
+    getInitializeOrderBooksLog(block).info('No Order Books to initialize!');
   }
 
   isFirstBlockIndexed = true;

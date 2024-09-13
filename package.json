@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -b",
+    "format": "prettier --write \"**/*.ts\"",
     "prepack": "rm -rf dist && npm build",
     "test": "jest --coverage",
     "codegen": "./node_modules/.bin/subql codegen --file=project-onfinality.yaml",
@@ -43,6 +44,7 @@
   "dependencies": {
     "bignumber.js": "^9.0.1",
     "dotenv": "^16.4.5",
+    "prettier": "^3.3.3",
     "yargs": "^17.7.2"
   },
   "exports": {
