@@ -1,6 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { getExtrinsicSigner } from '../../utils';
+import { getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { isAssetTransferEvent } from '../../utils/events';
@@ -10,11 +10,7 @@ import { logStartProcessingCall } from '../../utils/logs';
 export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [, assetAId, assetBId, assetADesired, assetBDesired],
-    },
-  } = extrinsic;
+  const [dexId, assetAId, assetBId, assetADesired, assetBDesired] = getExtrinsicArgs(extrinsic);
 
   const baseAssetId = getAssetId(assetAId);
   const targetAssetId = getAssetId(assetBId);
@@ -50,11 +46,7 @@ export async function handleLiquidityDeposit(extrinsic: SubstrateExtrinsic): Pro
 export async function handleLiquidityRemoval(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [dexId, assetAId, assetBId, poolTokensDesired, outputAMin, outputBMin],
-    },
-  } = extrinsic;
+  const [dexId, assetAId, assetBId, poolTokensDesired, outputAMin, outputBMin] = getExtrinsicArgs(extrinsic);
 
   const baseAssetId = getAssetId(assetAId);
   const targetAssetId = getAssetId(assetBId);

@@ -1,4 +1,5 @@
 import { SubstrateExtrinsic } from '@subql/types';
+import { getExtrinsicArgs } from '../../utils';
 import { isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
 import { KUSD } from '../../utils/consts';
@@ -8,11 +9,8 @@ import { logStartProcessingCall } from '../../utils/logs';
 export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [collateralAsset, collateralAmountCodec, stablecoinAsset, _borrowAmountMin, borrowAmountMax, _cdpType],
-    },
-  } = extrinsic as any;
+  const [collateralAsset, collateralAmountCodec, stablecoinAsset, _borrowAmountMin, borrowAmountMax, _cdpType] =
+    getExtrinsicArgs(extrinsic) as any;
 
   const collateralAssetId = getAssetId(collateralAsset);
   const collateralAmount = formatU128ToBalance(collateralAmountCodec.toString(), collateralAssetId);
@@ -57,11 +55,7 @@ export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Pro
 export async function vaultDepositCollateralCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [vaultId, collateralAmount],
-    },
-  } = extrinsic as any;
+  const [vaultId, collateralAmount] = getExtrinsicArgs(extrinsic) as any;
 
   const details: any = {
     id: vaultId.toString(),
@@ -90,11 +84,7 @@ export async function vaultDepositCollateralCallHandler(extrinsic: SubstrateExtr
 export async function vaultDecreaseDebtCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [vaultId, debtAmount],
-    },
-  } = extrinsic as any;
+  const [vaultId, debtAmount] = getExtrinsicArgs(extrinsic) as any;
 
   const details: any = {
     id: vaultId.toString(),
@@ -119,11 +109,7 @@ export async function vaultDecreaseDebtCallHandler(extrinsic: SubstrateExtrinsic
 export async function vaultIncreaseDeptCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [vaultId, _borrowAmountMin, borrowAmountMax],
-    },
-  } = extrinsic as any;
+  const [vaultId, _borrowAmountMin, borrowAmountMax] = getExtrinsicArgs(extrinsic) as any;
 
   const details: any = {
     id: vaultId.toString(),
@@ -148,11 +134,7 @@ export async function vaultIncreaseDeptCallHandler(extrinsic: SubstrateExtrinsic
 export async function vaultCloseCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [vaultId],
-    },
-  } = extrinsic as any;
+  const [vaultId] = getExtrinsicArgs(extrinsic) as any;
 
   const details: any = {
     id: vaultId.toString(),

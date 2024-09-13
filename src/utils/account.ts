@@ -42,13 +42,13 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
       account.id,
       formatDateTimestamp(block.timestamp),
       getBlockNumber(block),
-      assetVolumeData,
-      assetVolumeData,
-      assetVolumeData,
-      counterData,
-      counterData,
-      governanceData,
-      depositData
+      { ...assetVolumeData },
+      { ...assetVolumeData },
+      { ...assetVolumeData },
+      { ...counterData },
+      { ...counterData },
+      { ...governanceData },
+      { ...depositData }
     );
 
     return entity;

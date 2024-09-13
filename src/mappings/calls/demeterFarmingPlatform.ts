@@ -1,5 +1,6 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
+import { getExtrinsicArgs } from '../../utils';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { isEvent, getEventData } from '../../utils/events';
@@ -12,9 +13,7 @@ const Section = 'demeterFarmingPlatform';
 export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const [desiredAmount, isFarmCodec, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args
-    .slice()
-    .reverse();
+  const [desiredAmount, isFarmCodec, rewardAssetId, poolAssetId, baseAssetId] = getExtrinsicArgs(extrinsic, true);
 
   const details: any = {};
   const isFarm = isFarmCodec.toHuman() as boolean;
@@ -48,9 +47,7 @@ export async function demeterDepositHandler(extrinsic: SubstrateExtrinsic): Prom
 export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const [isFarmCodec, desiredAmount, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args
-    .slice()
-    .reverse();
+  const [isFarmCodec, desiredAmount, rewardAssetId, poolAssetId, baseAssetId] = getExtrinsicArgs(extrinsic, true);
 
   const details: any = {};
   const isFarm = isFarmCodec.toHuman() as boolean;
@@ -84,7 +81,7 @@ export async function demeterWithdrawHandler(extrinsic: SubstrateExtrinsic): Pro
 export async function demeterGetRewardsHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const [isFarm, rewardAssetId, poolAssetId, baseAssetId] = extrinsic.extrinsic.args.slice().reverse();
+  const [isFarm, rewardAssetId, poolAssetId, baseAssetId] = getExtrinsicArgs(extrinsic, true);
 
   const details: any = {};
   const assetId = getAssetId(rewardAssetId);

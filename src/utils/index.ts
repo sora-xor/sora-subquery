@@ -86,3 +86,9 @@ export const getEntityId = (entity: SubstrateExtrinsic | SubstrateEvent): string
 export const getExtrinsicSigner = (extrinsic: SubstrateExtrinsic): string => {
   return extrinsic.extrinsic.signer.toString();
 };
+
+export const getExtrinsicArgs = (extrinsic: SubstrateExtrinsic, reversedOrder = false) => {
+  const data = extrinsic.extrinsic.args.slice();
+
+  return reversedOrder ? data.reverse() : data;
+};

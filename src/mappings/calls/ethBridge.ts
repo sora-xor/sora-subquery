@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic } from '@subql/types';
-import { getExtrinsicSigner } from '../../utils';
+import { getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { accountMetaStorage } from '../../utils/account';
 import { isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
@@ -10,11 +10,7 @@ import { logStartProcessingCall } from '../../utils/logs';
 export async function soraEthTransferHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [asset, sidechainAddress, amountCodec],
-    },
-  } = extrinsic;
+  const [asset, sidechainAddress, amountCodec] = getExtrinsicArgs(extrinsic);
 
   const sender = getExtrinsicSigner(extrinsic);
   const assetId = getAssetId(asset);
