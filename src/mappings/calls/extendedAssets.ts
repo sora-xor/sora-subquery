@@ -1,15 +1,12 @@
 import { SubstrateExtrinsic } from '@subql/types';
+import { getExtrinsicArgs } from '../../utils';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
 
 export async function setSbtExpiratioCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
-  const {
-    extrinsic: {
-      args: [account, sbtAsset, newExpiresAt],
-    },
-  } = extrinsic as any;
+  const [account, sbtAsset, newExpiresAt] = getExtrinsicArgs(extrinsic) as any;
 
   const sbtAssetId = getAssetId(sbtAsset);
   const newExpiresAtTime = newExpiresAt.toString();
@@ -27,11 +24,7 @@ export async function setSbtExpiratioCallHandler(extrinsic: SubstrateExtrinsic):
 export async function regulateAssetCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [asset],
-    },
-  } = extrinsic as any;
+  const asset = getExtrinsicArgs(extrinsic) as any;
 
   const assetId = getAssetId(asset);
 
@@ -45,11 +38,7 @@ export async function regulateAssetCallHandler(extrinsic: SubstrateExtrinsic): P
 export async function bindRegulatedAssetToSbtCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [regulatedAsset, sbtAsset],
-    },
-  } = extrinsic as any;
+  const [regulatedAsset, sbtAsset] = getExtrinsicArgs(extrinsic) as any;
 
   const regulatedAssetId = getAssetId(regulatedAsset);
   const sbtAssetId = getAssetId(sbtAsset);
@@ -64,11 +53,7 @@ export async function bindRegulatedAssetToSbtCallHandler(extrinsic: SubstrateExt
 
 export async function registerRegulatedAssetCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
-  const {
-    extrinsic: {
-      args: [_symbol, _name, _supply, _mintable],
-    },
-  } = extrinsic as any;
+  const [_symbol, _name, _supply, _mintable] = getExtrinsicArgs(extrinsic) as any;
 
   const symbol = _symbol.toString();
   const name = _name.toString();

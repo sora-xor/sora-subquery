@@ -1,4 +1,5 @@
 import { SubstrateExtrinsic } from '@subql/types';
+import { getExtrinsicArgs } from '../../utils';
 import { isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
@@ -7,11 +8,7 @@ import { logStartProcessingCall } from '../../utils/logs';
 export async function orderBookPlaceLimitOrderHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [orderBookId, price, amountCodec, side, lifetimeOption],
-    },
-  } = extrinsic as any;
+  const [orderBookId, price, amountCodec, side, lifetimeOption] = getExtrinsicArgs(extrinsic) as any;
 
   const baseAssetId = getAssetId(orderBookId.base);
   const quoteAssetId = getAssetId(orderBookId.quote);

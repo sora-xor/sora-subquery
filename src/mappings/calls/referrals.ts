@@ -1,5 +1,5 @@
 import { SubstrateExtrinsic } from '@subql/types';
-import { getExtrinsicSigner } from '../../utils';
+import { getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { createHistoryElement } from '../../utils/history';
 import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
 import { isXorTransferEvent, getTransferEventData } from '../../utils/events';
@@ -9,11 +9,7 @@ import { logStartProcessingCall } from '../../utils/logs';
 export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [referrer],
-    },
-  } = extrinsic;
+  const [referrer] = getExtrinsicArgs(extrinsic);
 
   const from = getExtrinsicSigner(extrinsic);
   const to = referrer.toString();
@@ -33,11 +29,7 @@ export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise
 export async function referralReserveHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [amount],
-    },
-  } = extrinsic;
+  const [amount] = getExtrinsicArgs(extrinsic);
 
   const details: any = {
     amount: formatU128ToBalance(amount.toString(), XOR),

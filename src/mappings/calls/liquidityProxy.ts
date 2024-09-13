@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import { SubstrateExtrinsic } from '@subql/types';
 
-import { bytesToString, getExtrinsicSigner } from '../../utils';
+import { bytesToString, getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { isExchangeEvent, isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
@@ -69,9 +69,10 @@ const receiveExtrinsicSwapAmounts = (swapAmount: SwapAmount, assetId: string): s
 };
 
 const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
-  const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = extrinsic.extrinsic.args
-    .slice()
-    .reverse();
+  const [filterMode, liquiditySources, swapAmount, targetAsset, baseAsset, dexId, to] = getExtrinsicArgs(
+    extrinsic,
+    true
+  );
 
   const details: any = {};
   const baseAssetId = getAssetId(baseAsset);
@@ -118,7 +119,7 @@ const handleAndSaveSwapExtrinsic = async (extrinsic: SubstrateExtrinsic): Promis
 
 const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promise<void> => {
   const [swapBatches, inputAsset, maxInputAmount, liquiditySources, filterMode, additionalData] =
-    extrinsic.extrinsic.args.slice();
+    getExtrinsicArgs(extrinsic);
 
   const inputAssetId = getAssetId(inputAsset);
   const extrinsicSigner = getExtrinsicSigner(extrinsic);

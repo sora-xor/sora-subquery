@@ -1,17 +1,13 @@
 import { SubstrateExtrinsic } from '@subql/types';
 
 import { tickerSyntheticAssetId, assetSnapshotsStorage, formatU128ToBalance } from '../../utils/assets';
-import { bytesToString } from '../../utils';
+import { bytesToString, getExtrinsicArgs } from '../../utils';
 import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 
 export async function handleBandRateUpdate(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [rates],
-    },
-  } = extrinsic as any;
+  const [rates] = getExtrinsicArgs(extrinsic) as any;
 
   for (const [ticker, rate] of rates) {
     const referenceSymbol = bytesToString(ticker);

@@ -1,7 +1,7 @@
 import { u8aToHex } from '@polkadot/util';
 
 import { SubstrateExtrinsic } from '@subql/types';
-import { getExtrinsicSigner } from '../../utils';
+import { getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { accountMetaStorage } from '../../utils/account';
 import { isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
@@ -130,11 +130,7 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 }
 
 export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  const {
-    extrinsic: {
-      args: [subNetworkId, assetCodec, recipient, amountCodec],
-    },
-  } = extrinsic as any;
+  const [subNetworkId, assetCodec, recipient, amountCodec] = getExtrinsicArgs(extrinsic) as any;
 
   const networkType = getNetworkId(subNetworkId);
   const networkId = getNetwork(recipient);

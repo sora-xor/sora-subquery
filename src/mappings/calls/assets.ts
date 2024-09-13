@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
 import { SubstrateExtrinsic } from '@subql/types';
-import { bytesToString, getExtrinsicSigner } from '../../utils';
+import { bytesToString, getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { XOR } from '../../utils/consts';
 import { isExchangeEvent, isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement, getExtrinsicNetworkFee } from '../../utils/history';
@@ -12,11 +12,7 @@ import { logStartProcessingCall } from '../../utils/logs';
 export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [symbol],
-    },
-  } = extrinsic;
+  const [symbol] = getExtrinsicArgs(extrinsic);
 
   const details: any = {
     assetId: symbol.toHuman(),
@@ -38,11 +34,7 @@ export async function assetRegistrationHandler(extrinsic: SubstrateExtrinsic): P
 export async function assetBurnHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [assetCodec, amountCodec],
-    },
-  } = extrinsic;
+  const [assetCodec, amountCodec] = getExtrinsicArgs(extrinsic);
 
   const assetId = getAssetId(assetCodec);
   const amount = formatU128ToBalance(amountCodec.toString(), assetId);
@@ -64,11 +56,7 @@ export async function assetBurnHandler(extrinsic: SubstrateExtrinsic): Promise<v
 export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [assetCodec, receiver, amountCodec],
-    },
-  } = extrinsic;
+  const [assetCodec, receiver, amountCodec] = getExtrinsicArgs(extrinsic);
 
   const from = getExtrinsicSigner(extrinsic);
   const to = receiver.toString();
@@ -94,11 +82,7 @@ export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<v
 export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [assetCodec, receiver, amountCodec],
-    },
-  } = extrinsic;
+  const [assetCodec, receiver, amountCodec] = getExtrinsicArgs(extrinsic);
 
   const from = getExtrinsicSigner(extrinsic);
   const to = receiver.toString();
@@ -124,21 +108,17 @@ export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promis
 export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
 
-  const {
-    extrinsic: {
-      args: [
-        dexId,
-        assetCodec,
-        receiver,
-        amountCodec,
-        desiredXorAmount,
-        maxAmountIn,
-        selectedSources,
-        filterMode,
-        additionalData,
-      ],
-    },
-  } = extrinsic;
+  const [
+    dexId,
+    assetCodec,
+    receiver,
+    amountCodec,
+    desiredXorAmount,
+    maxAmountIn,
+    selectedSources,
+    filterMode,
+    additionalData,
+  ] = getExtrinsicArgs(extrinsic);
 
   const from = getExtrinsicSigner(extrinsic);
   const to = receiver.toString();
