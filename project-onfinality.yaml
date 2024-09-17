@@ -479,9 +479,14 @@ dataSources:
         - handler: handleTokenBurn
           kind: substrate/EventHandler
           filter:
+            module: currencies
+            method: Withdrawn
+        - handler: handleTokenBurn
+          kind: substrate/EventHandler
+          filter:
             module: tokens
             method: Withdrawn
-        - handler: handleXorBurn
+        - handler: handleTokenBurn
           kind: substrate/EventHandler
           filter:
             module: balances
@@ -489,9 +494,14 @@ dataSources:
         - handler: handleTokenMint
           kind: substrate/EventHandler
           filter:
+            module: currencies
+            method: Deposited
+        - handler: handleTokenMint
+          kind: substrate/EventHandler
+          filter:
             module: tokens
             method: Deposited
-        - handler: handleXorMint
+        - handler: handleTokenMint
           kind: substrate/EventHandler
           filter:
             module: balances
