@@ -193,6 +193,7 @@ type HistoryElement @entity {
   data: HistoryElementDetails
 	dataTo: String @index
 	dataFrom: String @index
+  dataAssets: [String]
 	calls: [HistoryElementCall!]! @derivedFrom(field: "historyElement")
 	callNames: [String]!
 	updatedAtBlock: Int!
@@ -236,12 +237,12 @@ type ReferrerReward @entity {
 }
 
 type StakingStaker @entity {
-	id: ID!
-	eraValidators: [StakingEraValidator!]! @derivedFrom(field: "staker")
-	eraNominators: [StakingEraNominator!]! @derivedFrom(field: "staker")
-	payeeType: PayeeType!
-	payee: String
-	controller: String
+  id: ID!
+  eraValidators: [StakingEraValidator!]! @derivedFrom(field: "staker")
+  eraNominators: [StakingEraNominator!]! @derivedFrom(field: "staker")
+  payeeType: PayeeType!
+  payee: String
+  controller: String
 }
 
 type StakingValidator @entity {
@@ -250,7 +251,7 @@ type StakingValidator @entity {
 }
 
 type StakingEraNominator @entity {
-	id: ID!
+  id: ID!
   era: StakingEra!
   bond: BigInt!
   staker: StakingStaker!
@@ -258,7 +259,7 @@ type StakingEraNominator @entity {
 }
 
 type StakingEraNomination @entity {
-	id: ID!
+  id: ID!
   era: StakingEra!
   amount: BigInt!
   validator: StakingEraValidator!
@@ -266,22 +267,22 @@ type StakingEraNomination @entity {
 }
 
 type StakingEraValidator @entity {
-	id: ID!
+  id: ID!
   era: StakingEra!
   validator: StakingValidator!
   nominations: [StakingEraNomination!]! @derivedFrom(field: "validator")
   ownBond: BigInt!
   totalBond: BigInt!
   rewardAmount: BigInt!
-	staker: StakingStaker!
+  staker: StakingStaker!
 }
 
 type StakingEra @entity {
-	id: ID!
-	index: Int! @index
-	start: BigInt! @index
+  id: ID!
+  index: Int! @index
+  start: BigInt! @index
   validators: [StakingEraValidator!]! @derivedFrom(field: "era")
-	nominators: [StakingEraNominator!]! @derivedFrom(field: "era")
+  nominators: [StakingEraNominator!]! @derivedFrom(field: "era")
   nominations: [StakingEraNomination!]! @derivedFrom(field: "era")
 }
 
