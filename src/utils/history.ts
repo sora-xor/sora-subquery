@@ -174,7 +174,7 @@ export const createHistoryElement = async (
 
   await historyElementsStorage.add(block, historyElement, calls, accountsAddresses);
 
-  const { callNames, execution, data: details, ...logArguments } = historyElement;
+  const { callNames, dataAssets, execution, data: details, ...logArguments } = historyElement;
 
   getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element');
 
