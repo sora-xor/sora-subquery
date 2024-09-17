@@ -54,7 +54,7 @@ export const isAssetDepositedEvent = (e: TypedEventRecord<Codec[]>): boolean => 
 
 export const getTransferEventData = (e: TypedEventRecord<Codec[]>) => {
   const [amount, to, from, currencyId] = getEventData(e, true);
-  const assetId = isXorTransferEvent(e) ? XOR : getAssetId(currencyId);
+  const assetId = currencyId ? getAssetId(currencyId) : XOR;
 
   return {
     assetId,
@@ -66,7 +66,7 @@ export const getTransferEventData = (e: TypedEventRecord<Codec[]>) => {
 
 export const getDepositedEventData = (e: TypedEventRecord<Codec[]>) => {
   const [amount, to, currencyId] = getEventData(e, true);
-  const assetId = isXorDepositedEvent(e) ? XOR : getAssetId(currencyId);
+  const assetId = currencyId ? getAssetId(currencyId) : XOR;
 
   return {
     assetId,

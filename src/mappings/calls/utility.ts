@@ -16,35 +16,29 @@ function formatSpecificCalls(call: CallBase<AnyTuple>): Object {
       const [dex_id, input_asset_a, input_asset_b, input_a_desired, input_b_desired, input_a_min, input_b_min] = args;
       // TODO move args to common function here and in other cases
       return {
-        args: {
-          dex_id: dex_id.toHuman(),
-          input_asset_a: getAssetId(input_asset_a),
-          input_asset_b: getAssetId(input_asset_b),
-          input_a_min: formatU128ToBalance(input_a_min.toString(), getAssetId(input_asset_a)),
-          input_b_min: formatU128ToBalance(input_b_min.toString(), getAssetId(input_asset_b)),
-          input_a_desired: formatU128ToBalance(input_a_desired.toString(), getAssetId(input_asset_a)),
-          input_b_desired: formatU128ToBalance(input_b_desired.toString(), getAssetId(input_asset_b)),
-        },
+        dexId: dex_id.toHuman(),
+        baseAssetId: getAssetId(input_asset_a),
+        targetAssetId: getAssetId(input_asset_b),
+        baseAssetMin: formatU128ToBalance(input_a_min.toString(), getAssetId(input_asset_a)),
+        targetAssetMin: formatU128ToBalance(input_b_min.toString(), getAssetId(input_asset_b)),
+        baseAssetDesired: formatU128ToBalance(input_a_desired.toString(), getAssetId(input_asset_a)),
+        targetAssetDesired: formatU128ToBalance(input_b_desired.toString(), getAssetId(input_asset_b)),
       };
     }
     case 'initializePool': {
       const [dex_id, asset_a, asset_b] = args;
       return {
-        args: {
-          dex_id: dex_id.toHuman(),
-          asset_a: getAssetId(asset_a),
-          asset_b: getAssetId(asset_b),
-        },
+        dexId: dex_id.toHuman(),
+        baseAssetId: getAssetId(asset_a),
+        targetAssetId: getAssetId(asset_b),
       };
     }
     case 'register': {
       const [dex_id, base_asset_id, target_asset_id] = args;
       return {
-        args: {
-          dex_id: dex_id.toHuman(),
-          base_asset_id: getAssetId(base_asset_id),
-          target_asset_id: getAssetId(target_asset_id),
-        },
+        dexId: dex_id.toHuman(),
+        baseAssetId: getAssetId(base_asset_id),
+        targetAssetId: getAssetId(target_asset_id),
       };
     }
     default: {
@@ -82,8 +76,7 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
   const initializePool: any = entities.find((entity: any) => entity.method === 'initializePool');
 
   if (initializePool) {
-    const baseAssetId = initializePool.data.args.asset_a;
-    const targetAssetId = initializePool.data.args.asset_b;
+    const { baseAssetId, targetAssetId } = initializePool.data;
 
     await updatePoolLiquidity(extrinsic.block, baseAssetId, targetAssetId, getExtrinsicSigner(extrinsic));
   }

@@ -174,7 +174,7 @@ export const createHistoryElement = async (
 
   await historyElementsStorage.add(block, historyElement, calls, accountsAddresses);
 
-  const { callNames, execution, data: details, ...logArguments } = historyElement;
+  const { callNames, dataAssets, execution, data: details, ...logArguments } = historyElement;
 
   getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element');
 
@@ -200,6 +200,8 @@ const addDataToHistoryElement = async (
     historyElement.dataFrom = data.from;
   }
 
+  addAssetsDataToHistoryElement(historyElement, data);
+
   historyElement.updatedAtBlock = getBlockNumber(extrinsic.block);
 
   getUtilsLog(ctx).debug(
@@ -211,11 +213,29 @@ const addDataToHistoryElement = async (
   );
 };
 
+const addAssetsDataToHistoryElement = (historyElement: HistoryElement, data: any) => {
+  if (!data) return;
+
+  const assets = historyElement.dataAssets ?? [];
+
+  ['assetId', 'baseAssetId', 'targetAssetId', 'quoteAssetId', 'collateralAssetId', 'debtAssetId'].forEach((attr) => {
+    if (attr in data && typeof data[attr] === 'string') {
+      assets.push(data[attr]);
+    }
+  });
+
+  const uniqueAssets = [...new Set(assets)];
+
+  historyElement.dataAssets = uniqueAssets;
+};
+
 const addCallsToHistoryElement = async (
   extrinsic: SubstrateExtrinsic,
   historyElement: HistoryElement,
   calls: HistoryElementCall[]
 ) => {
+  calls.forEach((call) => addAssetsDataToHistoryElement(historyElement, call.data));
+
   historyElement.callNames = calls.map((call) => call.module + '.' + call.method);
   historyElement.updatedAtBlock = getBlockNumber(extrinsic.block);
 };
