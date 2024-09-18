@@ -41,8 +41,20 @@ export class EntityStorage<Entity extends BaseEntity> {
     return id.split('-');
   }
 
-  protected async load(id: string): Promise<Entity | undefined> {
-    return (await store.get(this.entityName, id)) as Entity | undefined;
+  protected async loadEntity(id: string): Promise<Entity | undefined> {
+    throw new Error(`[${this.constructor.name}] "loadEntity" is not implemented`);
+  }
+
+  protected async load(block: SubstrateBlock, id: string): Promise<Entity | undefined> {
+    const entity = await this.loadEntity(id);
+
+    if (entity) {
+      this.log(block, true).debug({ id }, `${this.entityName}:"${id}" loaded`);
+    } else {
+      this.log(block, true).debug({ id }, `${this.entityName}:"${id}" not found in DB!`);
+    }
+
+    return entity;
   }
 
   protected async delete(...ids: string[]): Promise<void> {
@@ -53,33 +65,46 @@ export class EntityStorage<Entity extends BaseEntity> {
     if (force || shouldUpdate(block, 60)) {
       await entity.save();
 
-      this.log(block).debug({ id: entity.id }, `${this.entityName} saved`);
+      this.log(block).debug({ id: entity.id }, `${this.entityName}: "${entity.id}" saved`);
     }
   }
 
-  protected async get(block: SubstrateBlock, id: string): Promise<Entity | undefined> {
+  protected async getOrLoad(block: SubstrateBlock, id: string): Promise<Entity | undefined> {
     if (this.storage.has(id)) {
-      this.log(block, true).debug({ id }, `${this.entityName} found in storage`);
+      this.log(block, true).debug({ id }, `${this.entityName}: "${id}" found in storage`);
       return this.storage.get(id);
     }
 
-    const entity = await this.load(id);
-
-    if (entity) {
-      this.log(block, true).info({ id }, `${this.entityName} loaded`);
-    }
+    const entity = await this.load(block, id);
 
     return entity;
   }
 
   public async sync(block: SubstrateBlock): Promise<void> {
-    this.log(block).debug(`Sync ${this.storage.size} entities`);
+    const entities = this.entities;
 
-    await store.bulkUpdate(this.entityName, this.entities);
+    this.log(block).info(`Sync ${entities.length} entities`);
+
+    await store.bulkUpdate(this.entityName, entities);
+
+    // this.clean(block);
+  }
+
+  public async cleanStorage(block: SubstrateBlock): Promise<void> {
+    this.storage.clear();
+    this.storage = new Map();
+
+    this.log(block).info(`Storage clean. ${this.storage.size} entities after clean.`);
+  }
+
+  public async cleanStorageEntity(block: SubstrateBlock, id: string): Promise<void> {
+    this.storage.delete(id);
+
+    this.log(block).info(`Entity ${id} removed from storage`);
   }
 
   public async getEntity(block: SubstrateBlock, id: string, ...args: any[]): Promise<Entity> {
-    let entity = await this.get(block, id);
+    let entity = await this.getOrLoad(block, id);
 
     if (!entity) {
       entity = await this.createEntity(block, id, ...args);
@@ -116,8 +141,8 @@ export class EntitySnapshotsStorage<
     this.entityStorage = entityStorage;
   }
 
-  protected async getSnapshotsByIds(ids: string[]): Promise<SnapshotEntity[]> {
-    const snapshots = await Promise.all(ids.map((id) => this.load(id)));
+  protected async getSnapshotsByIds(block: SubstrateBlock, ids: string[]): Promise<SnapshotEntity[]> {
+    const snapshots = await Promise.all(ids.map((id) => this.load(block, id)));
 
     return snapshots.filter((item) => !!item);
   }
@@ -127,7 +152,7 @@ export class EntitySnapshotsStorage<
     const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
     const snapshotId = this.getId(entityId, type, index);
 
-    let snapshot = await this.get(block, snapshotId);
+    let snapshot = await this.getOrLoad(block, snapshotId);
 
     if (!snapshot) {
       const entity = await this.entityStorage.getEntity(block, entityId);

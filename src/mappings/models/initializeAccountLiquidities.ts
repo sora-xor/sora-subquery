@@ -11,27 +11,28 @@ let isFirstBlockIndexed = false;
 export async function initializeAccountLiquidities(block: SubstrateBlock): Promise<void> {
   if (isFirstBlockIndexed) return;
 
-  getInitializeAccountLiquiditiesLog(block).info('Initialize AccountLiquidity entities');
+  getInitializeAccountLiquiditiesLog(block).debug('Initialize AccountLiquidity entities');
 
   const accountLiquidities: Map<string, Partial<AccountLiquidity>> = new Map();
+  const poolsIds = poolAccounts.accounts;
 
-  for (const poolId of poolAccounts.accounts) {
-    const pool = await poolsStorage.getEntity(block, poolId);
+  for (const poolId of poolsIds) {
+    const pool = await poolsStorage.getPool(block, poolId);
+    const supply = pool.poolTokenSupply;
 
-    // if no pool tokens - no providers
-    if (!pool.poolTokenSupply) {
-      continue;
-    }
+    if (supply) {
+      const providersBalances = await getAllPoolProviders(block, poolId);
 
-    const providersBalances = await getAllPoolProviders(block, poolId);
+      for (const [provider, balance] of Object.entries(providersBalances)) {
+        const accountLiquidityId = accountLiquidityStorage.getId(provider, poolId);
 
-    for (const [provider, balance] of Object.entries(providersBalances)) {
-      const accountLiquidityId = accountLiquidityStorage.getId(provider, poolId);
-
-      accountLiquidities.set(accountLiquidityId, {
-        id: accountLiquidityId,
-        poolTokens: BigInt(balance),
-      });
+        accountLiquidities.set(accountLiquidityId, {
+          id: accountLiquidityId,
+          accountId: provider,
+          poolId: poolId,
+          poolTokens: BigInt(balance),
+        });
+      }
     }
   }
 
@@ -41,9 +42,10 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
     // get or create entities in DB & memory
     // We don't use Promise.all here because we need consistent order of requests in the log
     for (const entity of entities) {
-      const liquidity = await accountLiquidityStorage.getEntity(block, entity.id);
+      const item = await accountLiquidityStorage.getEntity(block, entity.id);
       // update data in memory storage
-      Object.assign(liquidity, entity);
+      Object.assign(item, entity);
+      // await item.save();
     }
     // save in DB
     await accountLiquidityStorage.sync(block);
