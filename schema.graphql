@@ -105,7 +105,7 @@ type PoolXYK @entity {
   poolTokenSupply: BigInt
   poolTokenPriceUSD: String
   liquidityUSD: String
-  accountLiquidities: [AccountLiquidity] @derivedFrom(field: "pool")
+  # accountLiquidities: [AccountLiquidity] @derivedFrom(field: "pool")
 }
 
 type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool", "type"]]) {
@@ -128,8 +128,10 @@ type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool
 
 type AccountLiquidity @entity {
   id: ID! # account id - pool id
-  account: Account! @index #relation to Account
-  pool: PoolXYK! @index #relation to PoolXYK
+  accountId: String!
+  poolId: String!
+  # account: Account! @index #relation to Account
+  # pool: PoolXYK! @index #relation to PoolXYK
   poolTokens: BigInt! # pool tokens
   liquidityUSD: String!
   data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
@@ -148,7 +150,7 @@ type Account @entity {
   id: ID!
   latestHistoryElement: HistoryElement # for subscription support
   lastLiquidation: VaultEvent # for subscription support
-  liquidities: [AccountLiquidity] @derivedFrom(field: "account")
+  # liquidities: [AccountLiquidity] @derivedFrom(field: "account")
 }
 
 type AccountMeta @entity {

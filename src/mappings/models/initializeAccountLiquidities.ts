@@ -28,6 +28,8 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
 
         accountLiquidities.set(accountLiquidityId, {
           id: accountLiquidityId,
+          accountId: provider,
+          poolId: poolId,
           poolTokens: BigInt(balance),
         });
       }
@@ -40,9 +42,10 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
     // get or create entities in DB & memory
     // We don't use Promise.all here because we need consistent order of requests in the log
     for (const entity of entities) {
-      const liquidity = await accountLiquidityStorage.getEntity(block, entity.id);
+      const item = await accountLiquidityStorage.getEntity(block, entity.id);
       // update data in memory storage
-      Object.assign(liquidity, entity);
+      Object.assign(item, entity);
+      // await item.save();
     }
     // save in DB
     await accountLiquidityStorage.sync(block);

@@ -50,11 +50,11 @@ export class EntityStorage<Entity extends BaseEntity> {
 
     if (entity) {
       this.log(block, true).debug({ id }, `${this.entityName}:"${id}" loaded`);
-      return { ...entity };
     } else {
       this.log(block, true).debug({ id }, `${this.entityName}:"${id}" not found in DB!`);
-      return undefined;
     }
+
+    return entity;
   }
 
   protected async delete(...ids: string[]): Promise<void> {
@@ -90,11 +90,17 @@ export class EntityStorage<Entity extends BaseEntity> {
     // this.clean(block);
   }
 
-  public async clean(block: SubstrateBlock): Promise<void> {
+  public async cleanStorage(block: SubstrateBlock): Promise<void> {
     this.storage.clear();
     this.storage = new Map();
 
     this.log(block).info(`Storage clean. ${this.storage.size} entities after clean.`);
+  }
+
+  public async cleanStorageEntity(block: SubstrateBlock, id: string): Promise<void> {
+    this.storage.delete(id);
+
+    this.log(block).info(`Entity ${id} removed from storage`);
   }
 
   public async getEntity(block: SubstrateBlock, id: string, ...args: any[]): Promise<Entity> {

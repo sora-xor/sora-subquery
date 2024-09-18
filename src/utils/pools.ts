@@ -260,6 +260,14 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     return await PoolXYK.get(id);
   }
 
+  protected override async save(block: SubstrateBlock, entity: PoolXYK, force = false): Promise<void> {
+    await super.save(block, entity, force);
+
+    if (!entity.poolTokenSupply) {
+      this.cleanStorageEntity(block, entity.id);
+    }
+  }
+
   public override async createEntity(
     block: SubstrateBlock,
     id: string,
@@ -268,7 +276,10 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   ): Promise<PoolXYK> {
     const multiplier = baseAssetId === XOR && DOUBLE_PRICE_POOL.includes(targetAssetId) ? 2 : 1;
 
-    const pool = new PoolXYK(id, baseAssetId, targetAssetId, BigInt(0), BigInt(0), multiplier);
+    const baseAsset = await assetStorage.getEntity(block, baseAssetId);
+    const targetAsset = await assetStorage.getEntity(block, targetAssetId);
+
+    const pool = new PoolXYK(id, baseAsset.id, targetAsset.id, BigInt(0), BigInt(0), multiplier);
     pool.priceUSD = '0';
     pool.strategicBonusApy = '0';
     pool.poolTokenSupply = BigInt(0);
