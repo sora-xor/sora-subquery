@@ -89,6 +89,10 @@ class AssetStorage extends EntityStorage<Asset> {
     super('Asset');
   }
 
+  protected override async loadEntity(id: string): Promise<Asset> {
+    return await Asset.get(id);
+  }
+
   public override async createEntity(block: SubstrateBlock, id: string): Promise<Asset> {
     return new Asset(id, '0', BigInt(0));
   }
@@ -131,6 +135,10 @@ class AssetStorage extends EntityStorage<Asset> {
 class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot, AssetStorage> {
   constructor(assetStorage: AssetStorage) {
     super('AssetSnapshot', assetStorage);
+  }
+
+  protected override async loadEntity(id: string): Promise<AssetSnapshot> {
+    return await AssetSnapshot.get(id);
   }
 
   public override async createEntity(
@@ -250,7 +258,7 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
     const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
 
     const ids = indexes.map((idx) => this.getId(id, type, idx));
-    const snapshots = await this.getSnapshotsByIds(ids);
+    const snapshots = await this.getSnapshotsByIds(block, ids);
 
     const currentPriceUSD = new BigNumber(priceUSD);
     const startPriceUSD = new BigNumber(last(snapshots)?.priceUSD?.open ?? '0');

@@ -11,27 +11,26 @@ let isFirstBlockIndexed = false;
 export async function initializeAccountLiquidities(block: SubstrateBlock): Promise<void> {
   if (isFirstBlockIndexed) return;
 
-  getInitializeAccountLiquiditiesLog(block).info('Initialize AccountLiquidity entities');
+  getInitializeAccountLiquiditiesLog(block).debug('Initialize AccountLiquidity entities');
 
   const accountLiquidities: Map<string, Partial<AccountLiquidity>> = new Map();
+  const poolsIds = poolAccounts.accounts;
 
-  for (const poolId of poolAccounts.accounts) {
-    const pool = await poolsStorage.getEntity(block, poolId);
+  for (const poolId of poolsIds) {
+    const pool = await poolsStorage.getPool(block, poolId);
+    const supply = pool.poolTokenSupply;
 
-    // if no pool tokens - no providers
-    if (!pool.poolTokenSupply) {
-      continue;
-    }
+    if (supply) {
+      const providersBalances = await getAllPoolProviders(block, poolId);
 
-    const providersBalances = await getAllPoolProviders(block, poolId);
+      for (const [provider, balance] of Object.entries(providersBalances)) {
+        const accountLiquidityId = accountLiquidityStorage.getId(provider, poolId);
 
-    for (const [provider, balance] of Object.entries(providersBalances)) {
-      const accountLiquidityId = accountLiquidityStorage.getId(provider, poolId);
-
-      accountLiquidities.set(accountLiquidityId, {
-        id: accountLiquidityId,
-        poolTokens: BigInt(balance),
-      });
+        accountLiquidities.set(accountLiquidityId, {
+          id: accountLiquidityId,
+          poolTokens: BigInt(balance),
+        });
+      }
     }
   }
 

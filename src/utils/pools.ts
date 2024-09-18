@@ -163,7 +163,7 @@ const getPoolByAssets = async (
 
   if (!poolId) return null;
 
-  const pool = await poolsStorage.getEntity(block, poolId);
+  const pool = await poolsStorage.getPool(block, poolId);
 
   return pool;
 };
@@ -256,6 +256,10 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     super('PoolXYK');
   }
 
+  protected override async loadEntity(id: string): Promise<PoolXYK> {
+    return await PoolXYK.get(id);
+  }
+
   public override async createEntity(
     block: SubstrateBlock,
     id: string,
@@ -274,12 +278,17 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     return pool;
   }
 
-  public override async getEntity(block: SubstrateBlock, poolId: string): Promise<PoolXYK | null> {
+  public async getPool(block: SubstrateBlock, poolId: string): Promise<PoolXYK | null> {
     const addresses = poolAccounts.getById(poolId);
 
-    if (!addresses) return null;
+    if (!addresses) {
+      this.log(block).debug({ poolId }, `PoolId ${poolId} NOT FOUND!`);
+      return null;
+    } else {
+      this.log(block).debug({ poolId }, `PoolId ${poolId} found in pool accounts storage`);
+    }
 
-    return await super.getEntity(block, poolId, ...addresses);
+    return await this.getEntity(block, poolId, ...addresses);
   }
 
   getPoolAssets(pool: PoolXYK) {
@@ -330,7 +339,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   }
 
   async updateApy(block: SubstrateBlock, id: string, strategicBonusApy: string): Promise<PoolXYK> {
-    const pool = await this.getEntity(block, id);
+    const pool = await this.getPool(block, id);
 
     if (pool.strategicBonusApy !== strategicBonusApy) {
       pool.strategicBonusApy = strategicBonusApy;
@@ -344,7 +353,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   }
 
   async updatePrice(block: SubstrateBlock, id: string, targetAssetPrice: string): Promise<PoolXYK> {
-    const pool = await this.getEntity(block, id);
+    const pool = await this.getPool(block, id);
 
     if (pool.priceUSD !== targetAssetPrice) {
       pool.priceUSD = targetAssetPrice;
@@ -358,7 +367,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   }
 
   public async updatePoolTokensSupply(block: SubstrateBlock, id: string): Promise<PoolXYK> {
-    const pool = await this.getEntity(block, id);
+    const pool = await this.getPool(block, id);
     const balance = await getPoolBalance(block, id);
 
     pool.poolTokenSupply = BigInt(balance);
@@ -369,7 +378,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   }
 
   async updateLiquidityUSD(block: SubstrateBlock, id: string): Promise<PoolXYK> {
-    const pool = await this.getEntity(block, id);
+    const pool = await this.getPool(block, id);
 
     const { base: baseAssetId, target: targetAssetId, chameleon: chameleonAssetId } = this.getPoolAssets(pool);
     const { base: baseReserves, target: targetReserves, chameleon: chameleonReserves } = this.getPoolReserves(pool);
@@ -394,7 +403,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   }
 
   async updatePoolTokenPrice(block: SubstrateBlock, id: string): Promise<PoolXYK> {
-    const pool = await this.getEntity(block, id);
+    const pool = await this.getPool(block, id);
 
     const supply = pool.poolTokenSupply ?? BigInt(0);
     const poolTokens = new BigNumber(supply.toString()).dividedBy(Math.pow(10, 18));
@@ -414,7 +423,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   }
 
   async processDeposit(block: SubstrateBlock, id: string, assetId: string, amount: string): Promise<PoolXYK> {
-    const pool = await this.getEntity(block, id);
+    const pool = await this.getPool(block, id);
     const { base, target, chameleon } = this.getPoolAssets(pool);
 
     if (chameleon === assetId) {
@@ -435,7 +444,7 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   }
 
   async processWithdraw(block: SubstrateBlock, id: string, assetId: string, amount: string): Promise<PoolXYK> {
-    const pool = await this.getEntity(block, id);
+    const pool = await this.getPool(block, id);
     const { base, target, chameleon } = this.getPoolAssets(pool);
 
     if (chameleon === assetId) {
@@ -463,6 +472,10 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 
   public readonly updateTypes = [SnapshotType.HOUR, SnapshotType.DAY];
   public readonly removeTypes = [SnapshotType.HOUR];
+
+  protected override async loadEntity(id: string): Promise<PoolSnapshot> {
+    return await PoolSnapshot.get(id);
+  }
 
   public override async createEntity(
     block: SubstrateBlock,

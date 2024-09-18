@@ -55,8 +55,6 @@ type UpdatesStream @entity {
 
 type Asset @entity {
   id: ID!
-  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
-  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
   priceUSD: String!
   supply: BigInt!
   liquidity: BigInt # locked in pools (in tokens)
@@ -66,6 +64,8 @@ type Asset @entity {
   volumeDayUSD: Float
   volumeWeekUSD: Float
   velocity: Float # calculated in week
+  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
+  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
 }
 
 type AssetPrice @jsonField {
@@ -105,6 +105,7 @@ type PoolXYK @entity {
   poolTokenSupply: BigInt
   poolTokenPriceUSD: String
   liquidityUSD: String
+  accountLiquidities: [AccountLiquidity] @derivedFrom(field: "pool")
 }
 
 type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool", "type"]]) {
@@ -129,9 +130,9 @@ type AccountLiquidity @entity {
   id: ID! # account id - pool id
   account: Account! @index #relation to Account
   pool: PoolXYK! @index #relation to PoolXYK
-  data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
   poolTokens: BigInt! # pool tokens
   liquidityUSD: String!
+  data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
 }
 
 type AccountLiquiditySnapshot implements ISnapshot @entity {
@@ -145,7 +146,9 @@ type AccountLiquiditySnapshot implements ISnapshot @entity {
 
 type Account @entity {
   id: ID!
-  latestHistoryElement: HistoryElement
+  latestHistoryElement: HistoryElement # for subscription support
+  lastLiquidation: VaultEvent # for subscription support
+  liquidities: [AccountLiquidity] @derivedFrom(field: "account")
 }
 
 type AccountMeta @entity {
@@ -332,10 +335,10 @@ type OrderBook @entity {
   price: String
   priceChangeDay: Float
   volumeDayUSD: String
-  orders: [OrderBookOrder!]! @derivedFrom(field: "orderBook")
-  data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
   lastDeals: String
   updatedAtBlock: Int!
+  data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
+  orders: [OrderBookOrder!]! @derivedFrom(field: "orderBook")
 }
 
 type OrderBookSnapshot @entity @compositeIndexes(fields: [["orderBook", "type"]]) {
@@ -382,16 +385,11 @@ enum VaultStatus {
   Liquidated, # returned collateral amount === 0
 }
 
-type VaultAccount @entity {
-  id: ID! # account address
-  lastLiquidation: VaultEvent # for subscription support
-}
-
 type Vault @entity {
   id: ID!
   type: VaultType!
   status: VaultStatus!
-  owner: VaultAccount! @index
+  owner: Account! @index
   collateralAsset: Asset! @index
   debtAsset: Asset! @index
   collateralAmountReturned: String

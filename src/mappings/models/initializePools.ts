@@ -90,7 +90,7 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     // get or create entities in DB & memory
     // We don't use Promise.all here because we need consistent order of requests in the log
     for (const entity of entities) {
-      const pool = await poolsStorage.getEntity(block, entity.id);
+      const pool = await poolsStorage.getPool(block, entity.id);
       // update data in memory storage
       Object.assign(pool, entity);
     }

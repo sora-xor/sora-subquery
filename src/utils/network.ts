@@ -20,6 +20,10 @@ class NetworkStatsStorage extends EntityStorage<NetworkStats> {
     this.id = id;
   }
 
+  protected override async loadEntity(id: string): Promise<NetworkStats> {
+    return await NetworkStats.get(id);
+  }
+
   public override async createEntity(block: SubstrateBlock, id: string): Promise<NetworkStats> {
     const stats = new NetworkStats(id, BigInt(0), 0, 0, 0, 0);
 
@@ -38,6 +42,10 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
 
   public readonly updateTypes = [SnapshotType.HOUR, SnapshotType.DAY, SnapshotType.MONTH];
   public readonly removeTypes = [SnapshotType.HOUR];
+
+  protected override async loadEntity(id: string): Promise<NetworkSnapshot> {
+    return await NetworkSnapshot.get(id);
+  }
 
   public override async createEntity(
     block: SubstrateBlock,

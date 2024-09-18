@@ -28,7 +28,6 @@ services:
       - ./:/app
     command:
       - -f=/app
-      - --log-level=debug
       - --disable-historical=true
       - --subscription
       - --allow-schema-migration=true
