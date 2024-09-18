@@ -69,7 +69,7 @@ export class EntityStorage<Entity extends BaseEntity> {
     }
   }
 
-  protected async get(block: SubstrateBlock, id: string): Promise<Entity | undefined> {
+  protected async getOrLoad(block: SubstrateBlock, id: string): Promise<Entity | undefined> {
     if (this.storage.has(id)) {
       this.log(block, true).debug({ id }, `${this.entityName}: "${id}" found in storage`);
       return this.storage.get(id);
@@ -104,7 +104,7 @@ export class EntityStorage<Entity extends BaseEntity> {
   }
 
   public async getEntity(block: SubstrateBlock, id: string, ...args: any[]): Promise<Entity> {
-    let entity = await this.get(block, id);
+    let entity = await this.getOrLoad(block, id);
 
     if (!entity) {
       entity = await this.createEntity(block, id, ...args);
@@ -152,7 +152,7 @@ export class EntitySnapshotsStorage<
     const { index, timestamp } = getSnapshotIndex(blockTimestamp, type);
     const snapshotId = this.getId(entityId, type, index);
 
-    let snapshot = await this.get(block, snapshotId);
+    let snapshot = await this.getOrLoad(block, snapshotId);
 
     if (!snapshot) {
       const entity = await this.entityStorage.getEntity(block, entityId);
