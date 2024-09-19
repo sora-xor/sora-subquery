@@ -37,14 +37,6 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     return await AccountLiquidity.get(id);
   }
 
-  protected override async save(block: SubstrateBlock, entity: AccountLiquidity, force = false): Promise<void> {
-    await super.save(block, entity, force);
-
-    if (!entity.poolTokens) {
-      this.cleanStorageEntity(block, entity.id);
-    }
-  }
-
   public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountLiquidity> {
     const [accountId, poolId] = this.parseId(id);
 

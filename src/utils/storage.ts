@@ -81,11 +81,9 @@ export class EntityStorage<Entity extends BaseEntity> {
   }
 
   public async sync(block: SubstrateBlock): Promise<void> {
-    const entities = this.entities;
+    this.log(block).info(`Sync ${this.entities.length} entities`);
 
-    this.log(block).info(`Sync ${entities.length} entities`);
-
-    await store.bulkUpdate(this.entityName, entities);
+    await store.bulkUpdate(this.entityName, this.entities);
 
     // this.clean(block);
   }

@@ -260,14 +260,6 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     return await PoolXYK.get(id);
   }
 
-  protected override async save(block: SubstrateBlock, entity: PoolXYK, force = false): Promise<void> {
-    await super.save(block, entity, force);
-
-    if (!entity.poolTokenSupply) {
-      this.cleanStorageEntity(block, entity.id);
-    }
-  }
-
   public override async createEntity(
     block: SubstrateBlock,
     id: string,
