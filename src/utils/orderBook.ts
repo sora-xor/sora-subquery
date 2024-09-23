@@ -135,11 +135,14 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
   public override async createEntity(block: SubstrateBlock, id: string): Promise<OrderBook> {
     const [dexId, baseAssetId, quoteAssetId] = this.parseId(id);
 
+    const baseAsset = await assetStorage.getEntity(block, baseAssetId);
+    const quoteAsset = await assetStorage.getEntity(block, quoteAssetId);
+
     return new OrderBook(
       id,
       Number(dexId),
-      baseAssetId,
-      quoteAssetId,
+      baseAsset.id,
+      quoteAsset.id,
       BigInt(0),
       BigInt(0),
       OrderBookStatus.Trade,
@@ -208,6 +211,9 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<
   constructor(orderBooksStorage: OrderBooksStorage) {
     super('OrderBookSnapshot', orderBooksStorage);
   }
+
+  public readonly updateTypes = [SnapshotType.HOUR, SnapshotType.DAY];
+  public readonly removeTypes = [SnapshotType.HOUR];
 
   protected override async loadEntity(id: string): Promise<OrderBookSnapshot> {
     return await OrderBookSnapshot.get(id);

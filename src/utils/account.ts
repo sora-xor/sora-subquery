@@ -43,7 +43,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
 
     const entity = new AccountMeta(
       id,
-      account.id,
+      // account.id,
       formatDateTimestamp(block.timestamp),
       getBlockNumber(block),
       { ...assetVolumeData },

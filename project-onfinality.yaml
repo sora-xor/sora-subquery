@@ -542,7 +542,23 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 2400
-        - handler: syncModels
+        - handler: syncAssets
           kind: substrate/BlockHandler
           filter:
             modulo: 50
+        - handler: syncOrderBooks
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 600
+        - handler: syncPools
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 600
+        - handler: syncAccountLiquidities
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 600
+        - handler: syncAccountMeta
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 2400

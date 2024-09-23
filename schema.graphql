@@ -53,6 +53,18 @@ type UpdatesStream @entity {
   data: String! # stringified JSON
 }
 
+type AssetPrice @jsonField {
+  open: String!
+  close: String!
+  high: String!
+  low: String!
+}
+
+type AssetVolume @jsonField {
+  amount: String!
+  amountUSD: String!
+}
+
 type Asset @entity {
   id: ID!
   priceUSD: String!
@@ -65,19 +77,7 @@ type Asset @entity {
   volumeWeekUSD: Float
   velocity: Float # calculated in week
   data: [AssetSnapshot!]! @derivedFrom(field: "asset")
-  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
-}
-
-type AssetPrice @jsonField {
-  open: String!
-  close: String!
-  high: String!
-  low: String!
-}
-
-type AssetVolume @jsonField {
-  amount: String!
-  amountUSD: String!
+  # poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
 }
 
 type AssetSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
@@ -94,8 +94,10 @@ type AssetSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["ass
 
 type PoolXYK @entity {
   id: ID!
-  baseAsset: Asset! @index
-  targetAsset: Asset! @index
+  baseAssetId: String!
+  targetAssetId: String!
+  # baseAsset: Asset! @index
+  # targetAsset: Asset! @index
   baseAssetReserves: BigInt! # (base + chameleon) reserves
   targetAssetReserves: BigInt! # target reserves
   chameleonAssetReserves: BigInt # chameleon reserves only
@@ -105,6 +107,7 @@ type PoolXYK @entity {
   poolTokenSupply: BigInt
   poolTokenPriceUSD: String
   liquidityUSD: String
+  data: [PoolSnapshot!]! @derivedFrom(field: "pool")
   # accountLiquidities: [AccountLiquidity] @derivedFrom(field: "pool")
 }
 
@@ -155,7 +158,7 @@ type Account @entity {
 
 type AccountMeta @entity {
   id: ID!
-  account: Account! @index #relation to Account
+  # account: Account! @index #relation to Account
   createdAtTimestamp: Int! # timestamp
   createdAtBlock: Int! # block
   xorFees: AssetVolume!
@@ -329,8 +332,10 @@ type OrderBookDeal implements IOrderBookDeal @jsonField {
 type OrderBook @entity {
   id: ID!
   dexId: Int! @index
-  baseAsset: Asset! @index
-  quoteAsset: Asset! @index
+  baseAssetId: String!
+  quoteAssetId: String!
+  # baseAsset: Asset! @index
+  # quoteAsset: Asset! @index
   baseAssetReserves: BigInt!
   quoteAssetReserves: BigInt!
   status: OrderBookStatus!

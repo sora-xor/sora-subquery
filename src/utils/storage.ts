@@ -80,14 +80,15 @@ export class EntityStorage<Entity extends BaseEntity> {
     return entity;
   }
 
-  public async sync(block: SubstrateBlock): Promise<void> {
+  public async sync(block: SubstrateBlock, clean = true): Promise<void> {
     this.log(block).info(`Sync ${this.entities.length} entities`);
 
-    await Promise.allSettled(this.entities.map((entity) => entity.save()));
+    await Promise.allSettled(this.entities.map((entity) => this.save(block, entity, true)));
 
     // await store.bulkUpdate(this.entityName, this.entities);
-
-    // this.clean(block);
+    if (clean) {
+      this.cleanStorage(block);
+    }
   }
 
   public async cleanStorage(block: SubstrateBlock): Promise<void> {

@@ -2,7 +2,7 @@ import { SubstrateBlock } from '@subql/types';
 import { AccountLiquidity } from '../../types';
 
 import { accountLiquidityStorage } from '../../utils/accountLiquidity';
-import { getAllPoolProviders, poolsStorage } from '../../utils/pools';
+import { getAllPoolProviders, poolsStorage, poolAccounts } from '../../utils/pools';
 import { getInitializeAccountLiquiditiesLog } from '../../utils/logs';
 
 let isFirstBlockIndexed = false;
@@ -15,8 +15,8 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
 
   const accountLiquidities: Map<string, Partial<AccountLiquidity>> = new Map();
 
-  for (const pool of poolsStorage.entities) {
-    const poolId = pool.id;
+  for (const poolId of poolAccounts.accounts) {
+    const pool = await poolsStorage.getPool(block, poolId);
     const supply = pool.poolTokenSupply;
 
     if (supply) {
