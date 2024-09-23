@@ -28,7 +28,7 @@ export async function syncPools(block: SubstrateBlock): Promise<void> {
 
 export async function syncAccountLiquidities(block: SubstrateBlock): Promise<void> {
   await accountLiquiditySnapshotsStorage.sync(block, true);
-  await accountLiquidityStorage.sync(block);
+  await accountLiquidityStorage.sync(block, true);
 }
 
 export async function syncAccountMeta(block: SubstrateBlock): Promise<void> {
