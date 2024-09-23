@@ -45,7 +45,7 @@ export class EntityStorage<Entity extends BaseEntity> {
     throw new Error(`[${this.constructor.name}] "loadEntity" is not implemented`);
   }
 
-  protected async load(block: SubstrateBlock, id: string): Promise<Entity | undefined> {
+  protected async load(block: SubstrateBlock, id: string): Promise<Entity | null> {
     const entity = await this.loadEntity(id);
 
     if (entity) {
@@ -54,7 +54,7 @@ export class EntityStorage<Entity extends BaseEntity> {
       this.log(block, true).debug({ id }, `${this.entityName}:"${id}" not found in DB!`);
     }
 
-    return entity;
+    return entity ?? null;
   }
 
   protected async delete(...ids: string[]): Promise<void> {
@@ -69,7 +69,7 @@ export class EntityStorage<Entity extends BaseEntity> {
     }
   }
 
-  protected async getOrLoad(block: SubstrateBlock, id: string): Promise<Entity | undefined> {
+  protected async getOrLoad(block: SubstrateBlock, id: string): Promise<Entity | null> {
     if (this.storage.has(id)) {
       this.log(block, true).debug({ id }, `${this.entityName}: "${id}" found in storage`);
       return this.storage.get(id);
@@ -83,7 +83,9 @@ export class EntityStorage<Entity extends BaseEntity> {
   public async sync(block: SubstrateBlock): Promise<void> {
     this.log(block).info(`Sync ${this.entities.length} entities`);
 
-    await store.bulkUpdate(this.entityName, this.entities);
+    await Promise.allSettled(this.entities.map((entity) => entity.save()));
+
+    // await store.bulkUpdate(this.entityName, this.entities);
 
     // this.clean(block);
   }

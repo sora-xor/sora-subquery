@@ -106,6 +106,10 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
       },
       value,
     ] of assetInfos) {
+      const symbol = value[0].toHuman();
+
+      if (symbol === 'XYKPool') continue;
+
       const assetId = getAssetId(assetCodec);
 
       assetPrecisions.set(assetId, value[2].toNumber());

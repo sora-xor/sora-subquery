@@ -2,7 +2,7 @@ import { SubstrateBlock } from '@subql/types';
 import { AccountLiquidity } from '../../types';
 
 import { accountLiquidityStorage } from '../../utils/accountLiquidity';
-import { poolAccounts, getAllPoolProviders, poolsStorage } from '../../utils/pools';
+import { getAllPoolProviders, poolsStorage } from '../../utils/pools';
 import { getInitializeAccountLiquiditiesLog } from '../../utils/logs';
 
 let isFirstBlockIndexed = false;
@@ -14,10 +14,9 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
   getInitializeAccountLiquiditiesLog(block).debug('Initialize AccountLiquidity entities');
 
   const accountLiquidities: Map<string, Partial<AccountLiquidity>> = new Map();
-  const poolsIds = poolAccounts.accounts;
 
-  for (const poolId of poolsIds) {
-    const pool = await poolsStorage.getPool(block, poolId);
+  for (const pool of poolsStorage.entities) {
+    const poolId = pool.id;
     const supply = pool.poolTokenSupply;
 
     if (supply) {
@@ -25,12 +24,18 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
 
       for (const [provider, balance] of Object.entries(providersBalances)) {
         const accountLiquidityId = accountLiquidityStorage.getId(provider, poolId);
+        const accountPoolTokens = BigInt(balance);
+
+        if (!accountPoolTokens) {
+          // skip empty account liquidity
+          continue;
+        }
 
         accountLiquidities.set(accountLiquidityId, {
           id: accountLiquidityId,
           accountId: provider,
           poolId: poolId,
-          poolTokens: BigInt(balance),
+          poolTokens: accountPoolTokens,
         });
       }
     }

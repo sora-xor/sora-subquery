@@ -14,17 +14,17 @@ const STATS_UPDATE_DIFF = 60 * 60; // seconds
 export async function syncModels(block: SubstrateBlock): Promise<void> {
   getSyncModelsLog(block).debug('Sync models');
 
-  await poolsSnapshotsStorage.sync(block);
-  await poolsStorage.sync(block);
-
   await assetSnapshotsStorage.sync(block);
   await assetStorage.sync(block);
 
   await orderBooksSnapshotsStorage.sync(block);
   await orderBooksStorage.sync(block);
 
-  await accountLiquidityStorage.sync(block);
+  await poolsSnapshotsStorage.sync(block);
+  await poolsStorage.sync(block);
+
   await accountLiquiditySnapshotsStorage.sync(block);
+  await accountLiquidityStorage.sync(block);
 
   await accountMetaStorage.sync(block);
 }
