@@ -109,7 +109,7 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
       // await item.save();
     }
     // save in DB
-    await poolsStorage.sync(block, false);
+    await poolsStorage.sync(block);
     getInitializePoolsLog(block).info(`${entities.length} Pool XYKs initialized!`);
   } else {
     getInitializePoolsLog(block).info('No Pool XYKs to initialize!');

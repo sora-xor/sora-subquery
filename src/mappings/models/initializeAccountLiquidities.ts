@@ -53,7 +53,7 @@ export async function initializeAccountLiquidities(block: SubstrateBlock): Promi
       // await item.save();
     }
     // save in DB
-    await accountLiquidityStorage.sync(block);
+    await accountLiquidityStorage.sync(block, true);
     getInitializeAccountLiquiditiesLog(block).info({}, `${entities.length} Account Liquidities initialized!`);
   } else {
     getInitializeAccountLiquiditiesLog(block).info({}, 'No Account Liquidities to initialize!');

@@ -80,12 +80,11 @@ export class EntityStorage<Entity extends BaseEntity> {
     return entity;
   }
 
-  public async sync(block: SubstrateBlock, clean = true): Promise<void> {
+  public async sync(block: SubstrateBlock, clean = false): Promise<void> {
     this.log(block).info(`Sync ${this.entities.length} entities`);
 
-    await Promise.allSettled(this.entities.map((entity) => this.save(block, entity, true)));
+    await store.bulkUpdate(this.entityName, this.entities);
 
-    // await store.bulkUpdate(this.entityName, this.entities);
     if (clean) {
       this.cleanStorage(block);
     }
@@ -95,13 +94,13 @@ export class EntityStorage<Entity extends BaseEntity> {
     this.storage.clear();
     this.storage = new Map();
 
-    this.log(block).info(`Storage clean. ${this.storage.size} entities after clean.`);
+    this.log(block).debug(`Storage clean. ${this.storage.size} entities after clean.`);
   }
 
   public async cleanStorageEntity(block: SubstrateBlock, id: string): Promise<void> {
     this.storage.delete(id);
 
-    this.log(block).info(`Entity ${id} removed from storage`);
+    this.log(block).debug(`Entity ${id} removed from storage`);
   }
 
   public async getEntity(block: SubstrateBlock, id: string, ...args: any[]): Promise<Entity> {
@@ -166,13 +165,13 @@ export class EntitySnapshotsStorage<
     return snapshot;
   }
 
-  public override async sync(block: SubstrateBlock): Promise<void> {
-    await this.syncSnapshots(block);
+  public override async sync(block: SubstrateBlock, clean = false): Promise<void> {
+    await this.syncSnapshots(block, clean);
     await this.removeOutdatedSnapshots(block);
   }
 
-  protected async syncSnapshots(block: SubstrateBlock): Promise<void> {
-    await super.sync(block);
+  protected async syncSnapshots(block: SubstrateBlock, clean = false): Promise<void> {
+    await super.sync(block, clean);
 
     const blockTimestamp = formatDateTimestamp(block.timestamp);
 

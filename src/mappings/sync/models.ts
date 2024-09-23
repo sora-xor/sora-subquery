@@ -12,27 +12,27 @@ import { getSyncModelsLog } from '../../utils/logs';
 const STATS_UPDATE_DIFF = 60 * 60; // seconds
 
 export async function syncAssets(block: SubstrateBlock): Promise<void> {
-  await assetSnapshotsStorage.sync(block);
+  await assetSnapshotsStorage.sync(block, true);
   await assetStorage.sync(block);
 }
 
 export async function syncOrderBooks(block: SubstrateBlock): Promise<void> {
-  await orderBooksSnapshotsStorage.sync(block);
+  await orderBooksSnapshotsStorage.sync(block, true);
   await orderBooksStorage.sync(block);
 }
 
 export async function syncPools(block: SubstrateBlock): Promise<void> {
-  await poolsSnapshotsStorage.sync(block);
+  await poolsSnapshotsStorage.sync(block, true);
   await poolsStorage.sync(block);
 }
 
 export async function syncAccountLiquidities(block: SubstrateBlock): Promise<void> {
-  await accountLiquiditySnapshotsStorage.sync(block);
+  await accountLiquiditySnapshotsStorage.sync(block, true);
   await accountLiquidityStorage.sync(block);
 }
 
 export async function syncAccountMeta(block: SubstrateBlock): Promise<void> {
-  await accountMetaStorage.sync(block);
+  await accountMetaStorage.sync(block, true);
 }
 
 export async function updateNetworkStats(block: SubstrateBlock): Promise<void> {
