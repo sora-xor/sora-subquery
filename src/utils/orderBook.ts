@@ -128,14 +128,21 @@ export class OrderBooksStorage extends EntityStorage<OrderBook> {
     return [orderBookId, orderId].join('_');
   }
 
+  protected override async loadEntity(id: string): Promise<OrderBook> {
+    return await OrderBook.get(id);
+  }
+
   public override async createEntity(block: SubstrateBlock, id: string): Promise<OrderBook> {
     const [dexId, baseAssetId, quoteAssetId] = this.parseId(id);
+
+    const baseAsset = await assetStorage.getEntity(block, baseAssetId);
+    const quoteAsset = await assetStorage.getEntity(block, quoteAssetId);
 
     return new OrderBook(
       id,
       Number(dexId),
-      baseAssetId,
-      quoteAssetId,
+      baseAsset.id,
+      quoteAsset.id,
       BigInt(0),
       BigInt(0),
       OrderBookStatus.Trade,
@@ -203,6 +210,13 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<
 > {
   constructor(orderBooksStorage: OrderBooksStorage) {
     super('OrderBookSnapshot', orderBooksStorage);
+  }
+
+  public readonly updateTypes = [SnapshotType.HOUR, SnapshotType.DAY];
+  public readonly removeTypes = [SnapshotType.HOUR];
+
+  protected override async loadEntity(id: string): Promise<OrderBookSnapshot> {
+    return await OrderBookSnapshot.get(id);
   }
 
   public override async createEntity(
@@ -353,7 +367,7 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<
     const indexes = prevSnapshotsIndexesRow(index, snapshotsCount);
 
     const ids = indexes.map((idx) => this.getId(id, type, idx));
-    const snapshots = await this.getSnapshotsByIds(ids);
+    const snapshots = await this.getSnapshotsByIds(block, ids);
 
     const currentPrice = new BigNumber(price ?? 0);
     const startPrice = new BigNumber(last(snapshots)?.price?.open ?? '0');

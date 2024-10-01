@@ -57,12 +57,18 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     ] of reserves) {
       const targetAssetId = getAssetId(targetAsset);
       const poolAccountId = poolAccounts.get(baseAssetId, targetAssetId);
+      const baseAssetReserves = BigInt(value[0].toString());
+      const targetAssetReserves = BigInt(value[1].toString());
+
+      if (!baseAssetReserves || !targetAssetReserves) {
+        // remove empty pool from initialization
+        poolsBuffer.delete(poolAccountId);
+        continue;
+      }
+
       const pool = poolsBuffer.get(poolAccountId);
 
       if (!pool) continue;
-
-      const baseAssetReserves = BigInt(value[0].toString());
-      const targetAssetReserves = BigInt(value[1].toString());
 
       pool.baseAssetReserves = baseAssetReserves;
       pool.targetAssetReserves = targetAssetReserves;
@@ -80,6 +86,13 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
 
   for (const [poolId, balance] of Object.entries(poolsTokens)) {
     const pool = poolsBuffer.get(poolId);
+    const supply = BigInt(balance);
+
+    if (!pool || !supply) {
+      // remove empty pool from initialization
+      poolsBuffer.delete(poolId);
+      continue;
+    }
 
     pool.poolTokenSupply = BigInt(balance);
   }
@@ -90,9 +103,10 @@ export async function initializePools(block: SubstrateBlock): Promise<void> {
     // get or create entities in DB & memory
     // We don't use Promise.all here because we need consistent order of requests in the log
     for (const entity of entities) {
-      const pool = await poolsStorage.getEntity(block, entity.id);
+      const item = await poolsStorage.getPool(block, entity.id);
       // update data in memory storage
-      Object.assign(pool, entity);
+      Object.assign(item, entity);
+      // await item.save();
     }
     // save in DB
     await poolsStorage.sync(block);

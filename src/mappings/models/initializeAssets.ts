@@ -106,6 +106,10 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
       },
       value,
     ] of assetInfos) {
+      const symbol = value[0].toHuman();
+
+      if (symbol === 'XYKPool') continue;
+
       const assetId = getAssetId(assetCodec);
 
       assetPrecisions.set(assetId, value[2].toNumber());
@@ -185,9 +189,10 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
     // get or create entities in DB & memory
     // We don't use Promise.all here because we need consistent order of requests in the log
     for (const entity of entities) {
-      const asset = await assetStorage.getEntity(block, entity.id);
+      const item = await assetStorage.getEntity(block, entity.id);
       // update data in memory storage
-      Object.assign(asset, entity);
+      Object.assign(item, entity);
+      // await item.save();
     }
     // save in DB
     await assetStorage.sync(block);
