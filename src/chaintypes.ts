@@ -1,3 +1,24 @@
-import { typesBundle } from '@sora-substrate/type-definitions';
+import { objectSpread } from '@polkadot/util';
 
-export default { typesBundle };
+import typesBundleJson from './typesBundle.json';
+
+const sharedTypes = typesBundleJson.types;
+const typesAlias = typesBundleJson.typesAlias;
+
+const typesBundle = {
+  spec: {
+    sora: {
+      alias: typesBundleJson.typesAlias,
+      types: typesBundleJson.versions.map((version) => ({
+        minmax: version.minmax,
+        types: objectSpread({}, sharedTypes, version.types),
+      })),
+    },
+  },
+};
+
+export default {
+  types: sharedTypes,
+  typesAlias,
+  typesBundle,
+};

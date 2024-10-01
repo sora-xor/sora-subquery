@@ -16,7 +16,7 @@ network:
   chainId: '0'
   endpoint: wss://ws.framenode-2.r0.dev.sora2.soramitsu.co.jp
   chaintypes:
-    file: ./dist/chaintypes.js
+    file: ./types.json
 dataSources:
   - kind: substrate/Runtime
     startBlock: 1
@@ -542,7 +542,23 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 2400
-        - handler: syncModels
+        - handler: syncAssets
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 50
+        - handler: syncOrderBooks
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 600
+        - handler: syncPools
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 600
+        - handler: syncAccountLiquidities
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 600
+        - handler: syncAccountMeta
           kind: substrate/BlockHandler
           filter:
             modulo: 50

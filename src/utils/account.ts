@@ -30,6 +30,10 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
     super('AccountMeta');
   }
 
+  protected override async loadEntity(id: string): Promise<AccountMeta> {
+    return await AccountMeta.get(id);
+  }
+
   public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountMeta> {
     const account = await getAccountEntity(block, id);
     const assetVolumeData = { amount: '0', amountUSD: '0' };
@@ -39,7 +43,7 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
 
     const entity = new AccountMeta(
       id,
-      account.id,
+      // account.id,
       formatDateTimestamp(block.timestamp),
       getBlockNumber(block),
       { ...assetVolumeData },

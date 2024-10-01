@@ -33,11 +33,15 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     super('AccountLiquidity');
   }
 
+  protected override async loadEntity(id: string): Promise<AccountLiquidity> {
+    return await AccountLiquidity.get(id);
+  }
+
   public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountLiquidity> {
     const [accountId, poolId] = this.parseId(id);
 
     const account = await getAccountEntity(block, accountId);
-    const pool = await poolsStorage.getEntity(block, poolId);
+    const pool = await poolsStorage.getPool(block, poolId);
 
     const accountLiquidity = new AccountLiquidity(id, account.id, pool.id, BigInt(0), '0');
 
@@ -53,7 +57,7 @@ class AccountLiquidityStorage extends EntityStorage<AccountLiquidity> {
     const accountLiquidity = await this.getEntity(block, id);
     const accountLiquidityBalance = await getPoolProviderBalance(block, poolId, accountId);
 
-    const pool = await poolsStorage.getEntity(block, poolId);
+    const pool = await poolsStorage.getPool(block, poolId);
     const poolTokens = new BigNumber(accountLiquidityBalance).dividedBy(Math.pow(10, 18));
     const liquidityUSD = new BigNumber(pool.poolTokenPriceUSD).multipliedBy(poolTokens);
 
@@ -76,6 +80,10 @@ class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<
 
   constructor(accountLiquidityStorage: AccountLiquidityStorage) {
     super('AccountLiquiditySnapshot', accountLiquidityStorage);
+  }
+
+  protected override async loadEntity(id: string): Promise<AccountLiquiditySnapshot> {
+    return await AccountLiquiditySnapshot.get(id);
   }
 
   public override async createEntity(

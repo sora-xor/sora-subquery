@@ -53,21 +53,6 @@ type UpdatesStream @entity {
   data: String! # stringified JSON
 }
 
-type Asset @entity {
-  id: ID!
-  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
-  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
-  priceUSD: String!
-  supply: BigInt!
-  liquidity: BigInt # locked in pools (in tokens)
-  liquidityBooks: BigInt # locked in order books (in tokens)
-  priceChangeDay: Float
-  priceChangeWeek: Float
-  volumeDayUSD: Float
-  volumeWeekUSD: Float
-  velocity: Float # calculated in week
-}
-
 type AssetPrice @jsonField {
   open: String!
   close: String!
@@ -78,6 +63,21 @@ type AssetPrice @jsonField {
 type AssetVolume @jsonField {
   amount: String!
   amountUSD: String!
+}
+
+type Asset @entity {
+  id: ID!
+  priceUSD: String!
+  supply: BigInt!
+  liquidity: BigInt # locked in pools (in tokens)
+  liquidityBooks: BigInt # locked in order books (in tokens)
+  priceChangeDay: Float
+  priceChangeWeek: Float
+  volumeDayUSD: Float
+  volumeWeekUSD: Float
+  velocity: Float # calculated in week
+  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
+  # poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
 }
 
 type AssetSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
@@ -94,8 +94,10 @@ type AssetSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["ass
 
 type PoolXYK @entity {
   id: ID!
-  baseAsset: Asset! @index
-  targetAsset: Asset! @index
+  baseAssetId: String!
+  targetAssetId: String!
+  # baseAsset: Asset! @index
+  # targetAsset: Asset! @index
   baseAssetReserves: BigInt! # (base + chameleon) reserves
   targetAssetReserves: BigInt! # target reserves
   chameleonAssetReserves: BigInt # chameleon reserves only
@@ -105,6 +107,8 @@ type PoolXYK @entity {
   poolTokenSupply: BigInt
   poolTokenPriceUSD: String
   liquidityUSD: String
+  data: [PoolSnapshot!]! @derivedFrom(field: "pool")
+  # accountLiquidities: [AccountLiquidity] @derivedFrom(field: "pool")
 }
 
 type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool", "type"]]) {
@@ -127,11 +131,13 @@ type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool
 
 type AccountLiquidity @entity {
   id: ID! # account id - pool id
-  account: Account! @index #relation to Account
-  pool: PoolXYK! @index #relation to PoolXYK
-  data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
+  accountId: String!
+  poolId: String!
+  # account: Account! @index #relation to Account
+  # pool: PoolXYK! @index #relation to PoolXYK
   poolTokens: BigInt! # pool tokens
   liquidityUSD: String!
+  data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
 }
 
 type AccountLiquiditySnapshot implements ISnapshot @entity {
@@ -145,12 +151,14 @@ type AccountLiquiditySnapshot implements ISnapshot @entity {
 
 type Account @entity {
   id: ID!
-  latestHistoryElement: HistoryElement
+  latestHistoryElement: HistoryElement # for subscription support
+  lastLiquidation: VaultEvent # for subscription support
+  # liquidities: [AccountLiquidity] @derivedFrom(field: "account")
 }
 
 type AccountMeta @entity {
   id: ID!
-  account: Account! @index #relation to Account
+  # account: Account! @index #relation to Account
   createdAtTimestamp: Int! # timestamp
   createdAtBlock: Int! # block
   xorFees: AssetVolume!
@@ -324,18 +332,20 @@ type OrderBookDeal implements IOrderBookDeal @jsonField {
 type OrderBook @entity {
   id: ID!
   dexId: Int! @index
-  baseAsset: Asset! @index
-  quoteAsset: Asset! @index
+  baseAssetId: String!
+  quoteAssetId: String!
+  # baseAsset: Asset! @index
+  # quoteAsset: Asset! @index
   baseAssetReserves: BigInt!
   quoteAssetReserves: BigInt!
   status: OrderBookStatus!
   price: String
   priceChangeDay: Float
   volumeDayUSD: String
-  orders: [OrderBookOrder!]! @derivedFrom(field: "orderBook")
-  data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
   lastDeals: String
   updatedAtBlock: Int!
+  data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
+  orders: [OrderBookOrder!]! @derivedFrom(field: "orderBook")
 }
 
 type OrderBookSnapshot @entity @compositeIndexes(fields: [["orderBook", "type"]]) {
@@ -382,16 +392,11 @@ enum VaultStatus {
   Liquidated, # returned collateral amount === 0
 }
 
-type VaultAccount @entity {
-  id: ID! # account address
-  lastLiquidation: VaultEvent # for subscription support
-}
-
 type Vault @entity {
   id: ID!
   type: VaultType!
   status: VaultStatus!
-  owner: VaultAccount! @index
+  owner: Account! @index
   collateralAsset: Asset! @index
   debtAsset: Asset! @index
   collateralAmountReturned: String

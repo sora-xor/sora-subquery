@@ -1,9 +1,8 @@
 import { SubstrateEvent } from '@subql/types';
-import { Vault, VaultAccount, VaultStatus, VaultEvent, VaultEventType } from '../../types';
+import { Account, Vault, VaultStatus, VaultEvent, VaultEventType } from '../../types';
 
 import { formatDateTimestamp, getEventId, getBlockNumber } from '../../utils';
-import { accountMetaStorage } from '../../utils/account';
-import { getVaultAccountEntity } from '../../utils/kensetsu';
+import { accountMetaStorage, getAccountEntity } from '../../utils/account';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 
@@ -11,7 +10,7 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   logStartProcessingEvent(event);
 
   let vault!: Vault;
-  let account!: VaultAccount;
+  let account!: Account;
   let vaultIdCodec!: any;
   let ownerCodec!: any;
   let assetCodec!: any;
@@ -39,7 +38,7 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   const timestamp = formatDateTimestamp(event.block.timestamp);
 
   if (eventType === VaultEventType.Created) {
-    account = await getVaultAccountEntity(event.block, ownerCodec.toString());
+    account = await getAccountEntity(event.block, ownerCodec.toString());
 
     vault = new Vault(
       vauldId,
@@ -83,7 +82,7 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
       break;
     }
     case VaultEventType.Liquidated: {
-      account = await getVaultAccountEntity(event.block, vault.ownerId);
+      account = await getAccountEntity(event.block, vault.ownerId);
       account.lastLiquidationId = vaultEvent.id;
 
       await accountMetaStorage.updateVaultExecuted(event.block, vault.ownerId, vault.collateralAssetId, amount, true);

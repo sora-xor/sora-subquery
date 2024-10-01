@@ -16,6 +16,8 @@ export async function handleAssetRegistration(event: SubstrateEvent): Promise<vo
     await api.query.assets.assetInfos(assetId)
   ).toHuman() as any;
 
+  if (symbol === 'XYKPOOL') return;
+
   if (!assetPrecisions.has(assetId)) {
     assetPrecisions.set(assetId, Number(decimals));
   }
