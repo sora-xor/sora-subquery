@@ -17,6 +17,8 @@ export const KGOLD: string = '0x02000d000000000000000000000000000000000000000000
 export const KXOR: string = '0x02000e0000000000000000000000000000000000000000000000000000000000';
 export const KARMA: string = '0x02000f0000000000000000000000000000000000000000000000000000000000';
 
+export const VXOR: string = '0x006a271832f44c93bd8692584d85415f0f3dccef9748fecd129442c8edcb4361';
+
 export const predefinedAssets = {
   'XOR': XOR,
   'DOT': DOT,
@@ -36,7 +38,7 @@ export const predefinedAssets = {
   'KARMA': KARMA,
 };
 
-export const BASE_ASSETS = [XOR, XSTUSD, KUSD];
+export const BASE_ASSETS = [XOR, XSTUSD, KUSD, VXOR];
 
 export const DOUBLE_PRICE_POOL = [VAL, PSWAP, DAI, ETH, XST, TBCD, DOT];
 
