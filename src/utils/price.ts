@@ -7,11 +7,11 @@ enum PriceVersion {
   V2 = 'V2'
 }
 
-const ITERATION_STEP = new BigNumber(0.005); // 0.5%
-const ITERATIONS = 10;
-
 const XYK_FEE = new BigNumber(0.003);
 const ONE = new BigNumber(1);
+const TEN = new BigNumber(10);
+const ZERO = new BigNumber(0);
+const MIN = new BigNumber(1).dividedBy(Math.pow(10, 18));
 
 const safeDivide = (nominator: BigNumber, denominator: BigNumber): BigNumber => {
   return !denominator.isZero()
@@ -60,27 +60,80 @@ const xykQuoteB = (
   return yOut;
 };
 
-// ideal price
-const priceV1 = (baseReserves: BigNumber, targetReserves: BigNumber): BigNumber => {
-  return safeDivide(baseReserves, targetReserves);
-};
-
-// close to market price with price impact
-const priceV2 = (baseReserves: BigNumber, targetReserves: BigNumber, isReversed = false): BigNumber => {
-  const quote = isReversed ? xykQuoteA : xykQuoteB;
-
-  let total = new BigNumber(0);
-
-  for (let i = 1; i <= ITERATIONS; i++) {
-    const coef = new BigNumber(i).multipliedBy(ITERATION_STEP);
-    const sellAmount = targetReserves.multipliedBy(coef);
-    const swapResultAmount = quote(targetReserves, baseReserves, sellAmount, true);
-    const result = safeDivide(swapResultAmount, sellAmount);
-
-    total = total.plus(result);
+/**
+ * Input token is dex base asset, user indicates desired output amount
+ * @param x - base asset reserve
+ * @param y - other token reserve
+ * @param yOut - desired output amount (other token)
+ * @returns QuoteResult
+ */
+const xykQuoteC = (
+  x: BigNumber,
+  y: BigNumber,
+  yOut: BigNumber,
+  deduceFee: boolean
+): BigNumber => {
+  if (yOut.isGreaterThanOrEqualTo(y)) {
+    return ZERO;
   }
 
-  return total.dividedBy(ITERATIONS);
+  const fxwYout = yOut.plus(MIN); // by 1 correction to overestimate required input
+  const nominator = x.multipliedBy(fxwYout);
+  const denominator = y.minus(fxwYout);
+  const xInWithoutFee = safeDivide(nominator, denominator);
+  const xIn = deduceFee ? safeDivide(xInWithoutFee, ONE.minus(XYK_FEE)) : xInWithoutFee;
+
+  return xIn;
+};
+
+/**
+ * Output token is dex base asset, user indicates desired output amount
+ * @param x - other token reserve
+ * @param y - base asset reserve
+ * @param yOut - desired output amount (base asset)
+ * @returns QuoteResult
+ */
+const xykQuoteD = (
+  x: BigNumber,
+  y: BigNumber,
+  yOut: BigNumber,
+  deduceFee: boolean
+): BigNumber => {
+  const fxwYout = yOut.plus(MIN); // by 1 correction to overestimate required input
+  const yOutWithFee = deduceFee ? safeDivide(fxwYout, ONE.minus(XYK_FEE)) : fxwYout;
+
+  if (yOutWithFee.isGreaterThanOrEqualTo(y)) {
+    return ZERO;
+  }
+
+  const nominator = x.multipliedBy(yOutWithFee);
+  const denominator = y.minus(yOutWithFee);
+  const xIn = safeDivide(nominator, denominator);
+
+  return xIn;
+};
+
+
+// ideal price
+const idealPrice = (baseReserves: BigNumber, targetReserves: BigNumber, isDai = false): BigNumber => {
+  return isDai
+    ? safeDivide(targetReserves, baseReserves)
+    : safeDivide(baseReserves, targetReserves);
+};
+
+const swapPrice = (baseReserves: BigNumber, targetReserves: BigNumber, isDai = false, baseAssetPriceInDAI?: BigNumber): BigNumber => {
+  if (baseAssetPriceInDAI && baseAssetPriceInDAI.isZero()) return ZERO;
+
+  const baseAmount = TEN; // DAI
+
+  const quote = isDai ? xykQuoteC : xykQuoteD;
+  const [x, y] = isDai ? [baseReserves, targetReserves] : [targetReserves, baseReserves];
+  const yOut = isDai ? baseAmount : baseAmount.dividedBy(baseAssetPriceInDAI);
+  const xIn = quote(x, y, yOut, true);
+
+  if (xIn.isGreaterThanOrEqualTo(x)) return ZERO;
+
+  return safeDivide(yOut, xIn);
 };
 
 const getVersion = (blockNumber: number): PriceVersion => {
@@ -96,16 +149,17 @@ export const isPriceV2 = (blockNumber: number): boolean => {
 
 export const calcPriceInReference = (
   blockNumber: number,
-  nominator: BigNumber,
-  denominator: BigNumber,
-  isReversed = false
+  baseReserves: BigNumber,
+  targetReserves: BigNumber,
+  baseAssetPriceInDAI?: BigNumber,
 ): BigNumber => {
   const version = getVersion(blockNumber);
+  const isDai = !baseAssetPriceInDAI;
 
   switch (version) {
     case PriceVersion.V2:
-      return priceV2(nominator, denominator, isReversed);
+      return swapPrice(baseReserves, targetReserves, isDai, baseAssetPriceInDAI);
     default:
-      return priceV1(nominator, denominator);
+      return idealPrice(baseReserves, targetReserves, isDai);
   }
 };

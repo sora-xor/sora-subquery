@@ -35,6 +35,9 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
     for (const baseAssetId of [...BASE_ASSETS].reverse()) {
         const poolsMap = poolAccounts.getMap(baseAssetId);
+        const daiPoolAcc = poolsMap.get(DAI);
+        const poolAccs = [...poolsMap.values()];
+        const poolIds = daiPoolAcc ? [...new Set([daiPoolAcc, ...poolAccs])] : poolAccs;
 
         if (!poolsMap) continue;
 
@@ -49,7 +52,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
         getSyncPricesLog(block).debug({ baseAssetId }, `Update ${poolsMap.size} pools`);
 
-        for (const poolId of poolsMap.values()) {
+        for (const poolId of poolIds) {
             const pool = await poolsStorage.getPoolById(block, poolId);
 
             if (!pool) continue;
@@ -61,10 +64,10 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReservesBN.multipliedBy(new BigNumber(pool.multiplier)));
 
             if (pool.targetAssetId === DAI) {
-                baseAssetPriceInDAI = calcPriceInReference(blockNumber, targetAssetReservesBN, baseAssetReservesBN, true);
+                baseAssetPriceInDAI = calcPriceInReference(blockNumber, baseAssetReservesBN, targetAssetReservesBN);
                 daiReserves[baseAssetId] = targetAssetReservesBN
             } else if (pool.targetAssetId === chameleonAsset) {
-                chameleonAssetPriceInBaseAsset = calcPriceInReference(blockNumber, baseAssetReservesBN, targetAssetReservesBN);
+                chameleonAssetPriceInBaseAsset = calcPriceInReference(blockNumber, baseAssetReservesBN, targetAssetReservesBN, baseAssetPriceInDAI);
             }
 
             pools[baseAssetId].push(pool);
@@ -95,6 +98,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                         blockNumber,
                         baseAssetVolume.plus(chameleonAssetVolume),
                         targetAssetReserves,
+                        baseAssetPriceInDAI,
                     );
 
                     daiPrice = targetAssetPriceInBaseAsset.multipliedBy(baseAssetPriceInDAI);
