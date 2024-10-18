@@ -1,5 +1,5 @@
 specVersion: 1.0.0
-name: sora-prod
+name: sora-qa
 version: 1.0.0
 runner:
   node:
@@ -13,13 +13,13 @@ repository: https://github.com/sora-xor/sora-subquery
 schema:
   file: ./schema.graphql
 network:
-  chainId: '0x7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5'
+  chainId: '0'
   endpoint: wss://mof3.sora.org
   chaintypes:
     file: ./dist/chaintypes.js
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 17972500
+    startBlock: 1
     mapping:
       file: ./dist/index.js
       handlers:
