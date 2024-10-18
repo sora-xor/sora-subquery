@@ -29,7 +29,7 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@sora-substrate/types": "1.40.3",
+    "@sora-substrate/types": "latest",
     "@subql/cli": "5.2.6",
     "@subql/node": "5.2.5",
     "@subql/types": "3.11.2",
