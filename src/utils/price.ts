@@ -11,7 +11,7 @@ const XYK_FEE = new BigNumber(0.003);
 const ONE = new BigNumber(1);
 const TEN = new BigNumber(10);
 const ZERO = new BigNumber(0);
-const MIN = new BigNumber(1).dividedBy(Math.pow(10, 18));
+const MIN = new BigNumber(1);
 
 const safeDivide = (nominator: BigNumber, denominator: BigNumber): BigNumber => {
   return !denominator.isZero()
@@ -124,7 +124,7 @@ const idealPrice = (baseReserves: BigNumber, targetReserves: BigNumber, isDai = 
 const swapPrice = (baseReserves: BigNumber, targetReserves: BigNumber, isDai = false, baseAssetPriceInDAI?: BigNumber): BigNumber => {
   if (baseAssetPriceInDAI && baseAssetPriceInDAI.isZero()) return ZERO;
 
-  const baseAmount = TEN; // DAI
+  const baseAmount = TEN.multipliedBy(Math.pow(10, 18)); // DAI
 
   const quote = isDai ? xykQuoteC : xykQuoteD;
   const [x, y] = isDai ? [baseReserves, targetReserves] : [targetReserves, baseReserves];
