@@ -7,6 +7,7 @@ import { assetSnapshotsStorage, tickerSyntheticAssetId } from '../../utils/asset
 import { poolAccounts, PoolsPrices, poolsStorage, getChameleonPoolBaseAssetId } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
 import { getPoolsStorageLog, getSyncPricesLog } from "../../utils/logs";
+import { calcPriceInReference, isPriceV2 } from '../../utils/price';
 
 const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiReserves: BigNumber) => {
     // theoretical asset capitalization in DAI inside DEX
@@ -17,16 +18,12 @@ const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiRese
     return assetDexCap;
 };
 
-const divideReserves = (baseAssetReservesBN: BigNumber, targetAssetReservesBN: BigNumber): BigNumber => {
-    return !baseAssetReservesBN.isZero()
-        ? targetAssetReservesBN.dividedBy(baseAssetReservesBN)
-        : new BigNumber(0);
-};
-
 export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
     if (!PoolsPrices.get()) return;
 
     getSyncPricesLog(block).debug('Sync PoolXYK prices')
+
+    const blockNumber = block.block.header.number.toNumber();
 
     let pswapPriceInDAI = new BigNumber(0);
     let baseAssetWithDoublePoolsPrice = new BigNumber(0);
@@ -38,6 +35,9 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
     for (const baseAssetId of [...BASE_ASSETS].reverse()) {
         const poolsMap = poolAccounts.getMap(baseAssetId);
+        const daiPoolAcc = poolsMap.get(DAI);
+        const poolAccs = [...poolsMap.values()];
+        const poolIds = daiPoolAcc ? [...new Set([daiPoolAcc, ...poolAccs])] : poolAccs;
 
         if (!poolsMap) continue;
 
@@ -52,7 +52,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
         getSyncPricesLog(block).debug({ baseAssetId }, `Update ${poolsMap.size} pools`);
 
-        for (const poolId of poolsMap.values()) {
+        for (const poolId of poolIds) {
             const pool = await poolsStorage.getPoolById(block, poolId);
 
             if (!pool) continue;
@@ -64,10 +64,10 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
             baseAssetWithDoublePools = baseAssetWithDoublePools.plus(baseAssetReservesBN.multipliedBy(new BigNumber(pool.multiplier)));
 
             if (pool.targetAssetId === DAI) {
-                baseAssetPriceInDAI = divideReserves(baseAssetReservesBN, targetAssetReservesBN);
+                baseAssetPriceInDAI = calcPriceInReference(blockNumber, baseAssetReservesBN, targetAssetReservesBN);
                 daiReserves[baseAssetId] = targetAssetReservesBN
             } else if (pool.targetAssetId === chameleonAsset) {
-                chameleonAssetPriceInBaseAsset = divideReserves(targetAssetReservesBN, baseAssetReservesBN);
+                chameleonAssetPriceInBaseAsset = calcPriceInReference(blockNumber, baseAssetReservesBN, targetAssetReservesBN, baseAssetPriceInDAI);
             }
 
             pools[baseAssetId].push(pool);
@@ -79,7 +79,12 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         // If base asset has price in DAI
         if (!baseAssetPriceInDAI.isZero()) {
             // update pools prices
-            pools[baseAssetId].forEach(p => {
+            for (const p of pools[baseAssetId]) {
+                if (p.targetAssetId === DAI) {
+                    p.priceUSD = '1';
+                    continue;
+                };
+
                 const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
                 const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
                 const chameleonAssetReserves = new BigNumber((p.chameleonAssetReserves ?? BigInt(0)).toString());
@@ -87,13 +92,16 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                 let daiPrice = new BigNumber(0);
 
                 if (!targetAssetReserves.isZero()) {
-                    const baseAssetVolume = baseAssetReserves.minus(chameleonAssetReserves)
-                        .multipliedBy(baseAssetPriceInDAI);
-                    const chameleonAssetVolume = chameleonAssetReserves
-                        .multipliedBy(chameleonAssetPriceInBaseAsset)
-                        .multipliedBy(baseAssetPriceInDAI);
+                    const baseAssetVolume = baseAssetReserves.minus(chameleonAssetReserves);
+                    const chameleonAssetVolume = chameleonAssetReserves.multipliedBy(chameleonAssetPriceInBaseAsset);
+                    const targetAssetPriceInBaseAsset = calcPriceInReference(
+                        blockNumber,
+                        baseAssetVolume.plus(chameleonAssetVolume),
+                        targetAssetReserves,
+                        baseAssetPriceInDAI,
+                    );
 
-                    daiPrice = baseAssetVolume.plus(chameleonAssetVolume).dividedBy(targetAssetReserves);
+                    daiPrice = targetAssetPriceInBaseAsset.multipliedBy(baseAssetPriceInDAI);
                 }
 
                 p.priceUSD = daiPrice.toFixed(18);
@@ -102,7 +110,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
                 if (p.targetAssetId === PSWAP && p.baseAssetId === XOR) {
                     pswapPriceInDAI = daiPrice;
                 }
-            });
+            }
         }
 
         // update price samples
@@ -154,8 +162,9 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
     // update assets prices
     for (const [assetId, { price }] of Object.entries(assetsPrices)) {
-        // do not update price from XYK pool for synthetic assets
-        if (!syntheticAssetsIds.includes(assetId)) {
+        // [v1] do not update price from XYK pool for synthetic 
+        // [v2] update price from XYK pool for synthetic
+        if (isPriceV2(blockNumber) || !syntheticAssetsIds.includes(assetId)) {
             await assetSnapshotsStorage.updatePrice(block, assetId, price);
         }
     }
