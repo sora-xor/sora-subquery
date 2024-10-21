@@ -1,5 +1,5 @@
 specVersion: 1.0.0
-name: sora-prod-qa
+name: sora-prod
 version: 1.0.0
 runner:
   node:
