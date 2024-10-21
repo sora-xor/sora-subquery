@@ -6,24 +6,30 @@ import { KUSD } from '../../utils/consts';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
 
-export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
-  logStartProcessingCall(extrinsic);
+const getCreateCdpArgs = (extrinsic: SubstrateExtrinsic) => {
+  const args = getExtrinsicArgs(extrinsic) as any;
+  const isV1 = args.length === 4;
 
-  const [collateralAsset, collateralAmountCodec, stablecoinAsset, _borrowAmountMin, borrowAmountMax, _cdpType] =
-    getExtrinsicArgs(extrinsic) as any;
+  const collateralAssetId = getAssetId(args[0]);
+  const collateralAmount = formatU128ToBalance(args[1].toString(), collateralAssetId);
+  const debtAssetId = isV1 ? KUSD : getAssetId(args[2]);
+  const debtAmountCodec = isV1 ? args[3] : args[4];
+  const debtAmount = formatU128ToBalance(debtAmountCodec.toString(), debtAssetId);
 
-  const collateralAssetId = getAssetId(collateralAsset);
-  const collateralAmount = formatU128ToBalance(collateralAmountCodec.toString(), collateralAssetId);
-
-  const debtAssetId = getAssetId(stablecoinAsset);
-  const debtAmount = formatU128ToBalance(borrowAmountMax.toString(), debtAssetId);
-
-  const details: any = {
-    id: undefined,
+  return {
     collateralAssetId,
     collateralAmount,
     debtAssetId,
     debtAmount,
+  };
+}
+
+export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
+  logStartProcessingCall(extrinsic);
+
+  const details: any = {
+    id: undefined,
+    ...getCreateCdpArgs(extrinsic),
   };
 
   const vaultCreatedEvent = extrinsic.events.find((e) => isEvent(e, 'kensetsu', 'CDPCreated'));

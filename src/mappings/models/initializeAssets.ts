@@ -8,7 +8,8 @@ import {
   tickerSyntheticAssetId,
 } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
-import { getInitializeAssetsLog } from '../../utils/logs';
+import { getInitializeAssetsLog } from "../../utils/logs";
+import { isPriceV2 } from '../../utils/price';
 
 let isFirstBlockIndexed = false;
 
@@ -82,6 +83,8 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
   getInitializeAssetsLog(block).debug('Initialize Asset entities');
 
+  const blockNumber = block.block.header.number.toNumber();
+
   // We don't use Promise.all here because we need consistent order of requests in the log
   const assetInfos = await getAssetInfos(block);
   const syntheticAssets = await getSyntheticAssets(block);
@@ -153,10 +156,14 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
 
       create(assetId);
 
-      const price = (data as any).value.value.toString();
-      const priceUSD = formatU128ToBalance(price, assetId);
+      let priceUSD = '0';
 
-      getInitializeAssetsLog(block).debug(`'${referenceSymbol}' ticker price: ${priceUSD}`);
+      if (!isPriceV2(blockNumber)) {
+        const price = (data as any).value.value.toString();
+        const priceUSD = formatU128ToBalance(price, assetId);
+
+        getInitializeAssetsLog(block).debug(`'${referenceSymbol}' ticker price: ${priceUSD}`)
+      }
 
       assets.get(assetId).priceUSD = priceUSD;
     }
