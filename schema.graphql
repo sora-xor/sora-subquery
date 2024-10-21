@@ -3,6 +3,7 @@ enum SnapshotType {
   HOUR
   DAY
   MONTH
+  BLOCK
 }
 
 enum PayeeType {
@@ -18,6 +19,12 @@ enum HistoryElementType {
 	EVENT
 }
 
+interface ISnapshot {
+  id: ID!
+  timestamp: Int!
+  type: SnapshotType!
+}
+
 type NetworkStats @entity {
   id: ID!
   totalFees: BigInt!
@@ -27,7 +34,7 @@ type NetworkStats @entity {
   totalBridgeOutgoingTransactions: Int!
 }
 
-type NetworkSnapshot @entity {
+type NetworkSnapshot implements ISnapshot @entity {
   id: ID!
   type: SnapshotType!
   timestamp: Int!
@@ -46,21 +53,6 @@ type UpdatesStream @entity {
   data: String! # stringified JSON
 }
 
-type Asset @entity {
-  id: ID!
-  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
-  poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
-  priceUSD: String!
-  supply: BigInt!
-  liquidity: BigInt # locked in pools (in tokens)
-  liquidityBooks: BigInt # locked in order books (in tokens)
-  priceChangeDay: Float
-  priceChangeWeek: Float
-  volumeDayUSD: Float
-  volumeWeekUSD: Float
-  velocity: Float # calculated in week
-}
-
 type AssetPrice @jsonField {
   open: String!
   close: String!
@@ -73,7 +65,22 @@ type AssetVolume @jsonField {
   amountUSD: String!
 }
 
-type AssetSnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
+type Asset @entity {
+  id: ID!
+  priceUSD: String!
+  supply: BigInt!
+  liquidity: BigInt # locked in pools (in tokens)
+  liquidityBooks: BigInt # locked in order books (in tokens)
+  priceChangeDay: Float
+  priceChangeWeek: Float
+  volumeDayUSD: Float
+  volumeWeekUSD: Float
+  velocity: Float # calculated in week
+  data: [AssetSnapshot!]! @derivedFrom(field: "asset")
+  # poolXYK: [PoolXYK] @derivedFrom(field: "targetAsset")
+}
+
+type AssetSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
   id: ID!
   asset: Asset! @index #relation to Asset
   timestamp: Int!
@@ -87,19 +94,97 @@ type AssetSnapshot @entity @compositeIndexes(fields: [["asset", "type"]]) {
 
 type PoolXYK @entity {
   id: ID!
-  baseAsset: Asset! @index
-  targetAsset: Asset! @index
+  baseAssetId: String!
+  targetAssetId: String!
+  # baseAsset: Asset! @index
+  # targetAsset: Asset! @index
   baseAssetReserves: BigInt! # (base + chameleon) reserves
   targetAssetReserves: BigInt! # target reserves
   chameleonAssetReserves: BigInt # chameleon reserves only
   multiplier: Int!
   priceUSD: String
   strategicBonusApy: String
+  poolTokenSupply: BigInt
+  poolTokenPriceUSD: String
+  liquidityUSD: String
+  data: [PoolSnapshot!]! @derivedFrom(field: "pool")
+  # accountLiquidities: [AccountLiquidity] @derivedFrom(field: "pool")
+}
+
+type PoolSnapshot implements ISnapshot @entity @compositeIndexes(fields: [["pool", "type"]]) {
+  id: ID!
+  pool: PoolXYK! @index #relation to PoolXYK
+  timestamp: Int!
+  type: SnapshotType!
+  priceUSD: AssetPrice! # price of target asset
+  baseAssetReserves: BigInt! # (base + chameleon) reserves
+  targetAssetReserves: BigInt! # target reserves
+  chameleonAssetReserves: BigInt! # chameleon reserves only
+  baseAssetVolume: String!
+  targetAssetVolume: String!
+  chameleonAssetVolume: String!
+  poolTokenSupply: BigInt!
+  poolTokenPriceUSD: String!
+  liquidityUSD: String!
+  volumeUSD: String!
+}
+
+type AccountLiquidity @entity {
+  id: ID! # account id - pool id
+  accountId: String!
+  poolId: String!
+  # account: Account! @index #relation to Account
+  # pool: PoolXYK! @index #relation to PoolXYK
+  poolTokens: BigInt! # pool tokens
+  liquidityUSD: String!
+  data: [AccountLiquiditySnapshot!]! @derivedFrom(field: "accountLiquidity")
+}
+
+type AccountLiquiditySnapshot implements ISnapshot @entity {
+  id: ID!
+  timestamp: Int!
+  type: SnapshotType!
+  accountLiquidity: AccountLiquidity! @index #relation to AccountLiquidity
+  poolTokens: BigInt! # pool tokens
+  liquidityUSD: String!
 }
 
 type Account @entity {
   id: ID!
-  latestHistoryElement: HistoryElement
+  latestHistoryElement: HistoryElement # for subscription support
+  lastLiquidation: VaultEvent # for subscription support
+  # liquidities: [AccountLiquidity] @derivedFrom(field: "account")
+}
+
+type AccountMeta @entity {
+  id: ID!
+  # account: Account! @index #relation to Account
+  createdAtTimestamp: Int! # timestamp
+  createdAtBlock: Int! # block
+  xorFees: AssetVolume!
+  xorBurned: AssetVolume!
+  xorStakingValRewards: AssetVolume!
+  orderBook: AccountMetaEventCounter!
+  vault: AccountMetaEventCounter!
+  governance: AccountMetaGovernance!
+  deposit: AccountMetaDeposit!
+}
+
+type AccountMetaEventCounter @jsonField {
+  created: Int!
+  closed: Int!
+  amountUSD: String!
+}
+
+type AccountMetaGovernance @jsonField {
+  votes: Int!
+  amount: String!
+  amountUSD: String!
+}
+
+type AccountMetaDeposit @jsonField {
+  incomingUSD: String!
+  outgoingUSD: String!
 }
 
 type HistoryElement @entity {
@@ -116,6 +201,7 @@ type HistoryElement @entity {
   data: HistoryElementDetails
 	dataTo: String @index
 	dataFrom: String @index
+  dataAssets: [String]
 	calls: [HistoryElementCall!]! @derivedFrom(field: "historyElement")
 	callNames: [String]!
 	updatedAtBlock: Int!
@@ -158,23 +244,13 @@ type ReferrerReward @entity {
 	amount: BigInt!
 }
 
-# [TODO] Remove before full reindex prod
-type StakingReward @entity {
-	id: ID!
-	amount: String!
-	staker: StakingStaker!
-	payee: String @index
-	era: StakingEra!
-	timestamp: Int!
-}
-
 type StakingStaker @entity {
-	id: ID!
-	eraValidators: [StakingEraValidator!]! @derivedFrom(field: "staker")
-	eraNominators: [StakingEraNominator!]! @derivedFrom(field: "staker")
-	payeeType: PayeeType!
-	payee: String
-	controller: String
+  id: ID!
+  eraValidators: [StakingEraValidator!]! @derivedFrom(field: "staker")
+  eraNominators: [StakingEraNominator!]! @derivedFrom(field: "staker")
+  payeeType: PayeeType!
+  payee: String
+  controller: String
 }
 
 type StakingValidator @entity {
@@ -183,7 +259,7 @@ type StakingValidator @entity {
 }
 
 type StakingEraNominator @entity {
-	id: ID!
+  id: ID!
   era: StakingEra!
   bond: BigInt!
   staker: StakingStaker!
@@ -191,7 +267,7 @@ type StakingEraNominator @entity {
 }
 
 type StakingEraNomination @entity {
-	id: ID!
+  id: ID!
   era: StakingEra!
   amount: BigInt!
   validator: StakingEraValidator!
@@ -199,22 +275,22 @@ type StakingEraNomination @entity {
 }
 
 type StakingEraValidator @entity {
-	id: ID!
+  id: ID!
   era: StakingEra!
   validator: StakingValidator!
   nominations: [StakingEraNomination!]! @derivedFrom(field: "validator")
   ownBond: BigInt!
   totalBond: BigInt!
   rewardAmount: BigInt!
-	staker: StakingStaker!
+  staker: StakingStaker!
 }
 
 type StakingEra @entity {
-	id: ID!
-	index: Int! @index
-	start: BigInt! @index
+  id: ID!
+  index: Int! @index
+  start: BigInt! @index
   validators: [StakingEraValidator!]! @derivedFrom(field: "era")
-	nominators: [StakingEraNominator!]! @derivedFrom(field: "era")
+  nominators: [StakingEraNominator!]! @derivedFrom(field: "era")
   nominations: [StakingEraNomination!]! @derivedFrom(field: "era")
 }
 
@@ -256,18 +332,20 @@ type OrderBookDeal implements IOrderBookDeal @jsonField {
 type OrderBook @entity {
   id: ID!
   dexId: Int! @index
-  baseAsset: Asset! @index
-  quoteAsset: Asset! @index
+  baseAssetId: String!
+  quoteAssetId: String!
+  # baseAsset: Asset! @index
+  # quoteAsset: Asset! @index
   baseAssetReserves: BigInt!
   quoteAssetReserves: BigInt!
   status: OrderBookStatus!
   price: String
   priceChangeDay: Float
   volumeDayUSD: String
-  orders: [OrderBookOrder!]! @derivedFrom(field: "orderBook")
-  data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
   lastDeals: String
   updatedAtBlock: Int!
+  data: [OrderBookSnapshot!]! @derivedFrom(field: "orderBook")
+  orders: [OrderBookOrder!]! @derivedFrom(field: "orderBook")
 }
 
 type OrderBookSnapshot @entity @compositeIndexes(fields: [["orderBook", "type"]]) {
@@ -314,16 +392,11 @@ enum VaultStatus {
   Liquidated, # returned collateral amount === 0
 }
 
-type VaultAccount @entity {
-  id: ID! # account address
-  lastLiquidation: VaultEvent # for subscription support
-}
-
 type Vault @entity {
   id: ID!
   type: VaultType!
   status: VaultStatus!
-  owner: VaultAccount! @index
+  owner: Account! @index
   collateralAsset: Asset! @index
   debtAsset: Asset! @index
   collateralAmountReturned: String

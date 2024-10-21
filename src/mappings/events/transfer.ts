@@ -1,57 +1,28 @@
-import { SubstrateEvent } from "@subql/types";
+import { SubstrateEvent } from '@subql/types';
 
+import { getBlockNumber } from '../../utils';
 import { getTransferEventData } from '../../utils/events';
-import { poolAccounts, poolsStorage, PoolsPrices, getChameleonPool, getChameleonPoolBaseAssetId } from '../../utils/pools';
-import { orderBooksStorage } from "../../utils/orderBook";
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
-import { initializedAtBlock } from '../models/initializePools'
+import { poolAccounts, poolsSnapshotsStorage } from '../../utils/pools';
+import { orderBooksStorage } from '../../utils/orderBook';
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
+import { initializedAtBlock } from '../models/initializePools';
 
 export async function handleTransferEvent(event: SubstrateEvent): Promise<void> {
-  logStartProcessingEvent(event)
+  logStartProcessingEvent(event);
 
-  if (initializedAtBlock === event.block.block.header.number.toNumber()) {
-		return
-	}
+  if (initializedAtBlock === getBlockNumber(event.block)) {
+    return;
+  }
 
   const { assetId, from, to, amount } = getTransferEventData(event);
 
   // withdraw token from pool
   if (poolAccounts.has(from)) {
-    const pool = await poolsStorage.getPoolById(event.block, from);
-    const isChameleonPool = getChameleonPool(pool);
-    const chameleonAssetId = isChameleonPool ? getChameleonPoolBaseAssetId(pool.baseAssetId) : null;
-
-    if (chameleonAssetId === assetId) {
-      pool.chameleonAssetReserves = (pool.chameleonAssetReserves ?? BigInt(0)) - BigInt(amount);
-    }
-
-    if (pool.baseAssetId === assetId || chameleonAssetId === assetId) {
-      pool.baseAssetReserves = pool.baseAssetReserves - BigInt(amount);
-    } else if (pool.targetAssetId === assetId) {
-      pool.targetAssetReserves = pool.targetAssetReserves - BigInt(amount);
-    }
-
-    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after withdrawal')
-    PoolsPrices.set(true);
+    await poolsSnapshotsStorage.processWithdraw(event.block, from, assetId, amount);
   }
   // deposit token to pool
   if (poolAccounts.has(to)) {
-    const pool = await poolsStorage.getPoolById(event.block, to);
-    const isChameleonPool = getChameleonPool(pool);
-    const chameleonAssetId = isChameleonPool ? getChameleonPoolBaseAssetId(pool.baseAssetId) : null;
-
-    if (chameleonAssetId === assetId) {
-      pool.chameleonAssetReserves = (pool.chameleonAssetReserves ?? BigInt(0)) + BigInt(amount);
-    }
-
-    if (pool.baseAssetId === assetId || chameleonAssetId === assetId) {
-      pool.baseAssetReserves = pool.baseAssetReserves + BigInt(amount);
-    } else if (pool.targetAssetId === assetId) {
-      pool.targetAssetReserves = pool.targetAssetReserves + BigInt(amount);
-    }
-
-    getEventHandlerLog(event).debug({ poolId: pool.id }, 'Pool information saved after deposit')
-    PoolsPrices.set(true);
+    await poolsSnapshotsStorage.processDeposit(event.block, to, assetId, amount);
   }
 
   // withdraw token from order book
@@ -68,7 +39,7 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
   }
   // deposit token to order book
   if (orderBooksStorage.accountIds.has(to)) {
-    const book = await orderBooksStorage.getOrderBookByAccountId(event.block, to)
+    const book = await orderBooksStorage.getOrderBookByAccountId(event.block, to);
 
     if (book.baseAssetId === assetId) {
       book.baseAssetReserves = book.baseAssetReserves + BigInt(amount);
@@ -76,6 +47,6 @@ export async function handleTransferEvent(event: SubstrateEvent): Promise<void> 
       book.quoteAssetReserves = book.quoteAssetReserves + BigInt(amount);
     }
 
-    getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after deposit')
+    getEventHandlerLog(event).debug({ id: book.id }, 'Order Book information saved after deposit');
   }
 }

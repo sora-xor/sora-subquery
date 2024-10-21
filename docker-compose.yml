@@ -34,7 +34,7 @@ services:
       - --allow-schema-migration=true
 
   graphql-engine:
-    image: onfinality/subql-query:v2.13.3
+    image: onfinality/subql-query:v2.15.1
     ports:
       - 3000:3000
     depends_on:

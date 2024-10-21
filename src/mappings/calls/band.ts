@@ -1,7 +1,7 @@
-import { SubstrateExtrinsic } from "@subql/types";
+import { SubstrateExtrinsic } from '@subql/types';
 
 import { tickerSyntheticAssetId, assetSnapshotsStorage, formatU128ToBalance } from '../../utils/assets';
-import { bytesToString } from '../../utils';
+import { bytesToString, getExtrinsicArgs } from '../../utils';
 import { BASE_ASSETS } from '../../utils/consts';
 import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
 import { poolAccounts } from '../../utils/pools';
@@ -12,7 +12,7 @@ export async function handleBandRateUpdate(extrinsic: SubstrateExtrinsic): Promi
 
   logStartProcessingCall(extrinsic);
 
-  const { extrinsic: { args: [rates] } } = extrinsic as any;
+  const [rates] = getExtrinsicArgs(extrinsic) as any;
 
   for (const [ticker, rate] of rates) {
     const referenceSymbol = bytesToString(ticker);

@@ -1,8 +1,8 @@
-import { SubstrateBlock } from "@subql/types";
+import { SubstrateBlock } from '@subql/types';
 
 import { assetRegistrationStream, priceUpdatesStream, poolXykApyUpdatesStream } from '../../utils/stream';
 import { getStreamLog } from '../../utils/logs';
-import { shouldUpdate } from "../../utils";
+import { shouldUpdate } from '../../utils';
 
 const streams = [assetRegistrationStream, priceUpdatesStream, poolXykApyUpdatesStream];
 
