@@ -1,7 +1,7 @@
 @Library('jenkins-library')
 
 def jobParams  = [
-    string(defaultValue: '17972500', name: 'startBlock', trim: true),
+    string(defaultValue: '18015500', name: 'startBlock', trim: true),
     string(defaultValue: '1', name: 'startBlockStg', trim: true),
     string(defaultValue: '20000', name: 'queryTimeout', trim: true),
     string(defaultValue: '100', name: 'batchSize', trim: true),
