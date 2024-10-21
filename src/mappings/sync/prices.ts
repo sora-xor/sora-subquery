@@ -89,59 +89,37 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
     // If base asset has price in DAI
     if (!baseAssetPriceInDAI.isZero()) {
+      // update pools prices
       for (const p of pools[baseAssetId]) {
+        if (p.targetAssetId === DAI) {
+          p.priceUSD = '1';
+          continue;
+        };
+
         const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
         const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
         const chameleonAssetReserves = new BigNumber((p.chameleonAssetReserves ?? BigInt(0)).toString());
 
-        let targetAssetPrice = new BigNumber(0);
+        let daiPrice = new BigNumber(0);
 
         if (!targetAssetReserves.isZero()) {
-          const baseAssetVolume = baseAssetReserves.minus(chameleonAssetReserves).multipliedBy(baseAssetPriceInDAI);
-          const chameleonAssetVolume = chameleonAssetReserves
-            .multipliedBy(chameleonAssetPriceInBaseAsset)
-            .multipliedBy(baseAssetPriceInDAI);
+          const baseAssetVolume = baseAssetReserves.minus(chameleonAssetReserves);
+          const chameleonAssetVolume = chameleonAssetReserves.multipliedBy(chameleonAssetPriceInBaseAsset);
+          const targetAssetPriceInBaseAsset = calcPriceInReference(
+              blockNumber,
+              baseAssetVolume.plus(chameleonAssetVolume),
+              targetAssetReserves,
+              baseAssetPriceInDAI,
+          );
 
-          targetAssetPrice = baseAssetVolume.plus(chameleonAssetVolume).dividedBy(targetAssetReserves);
+          daiPrice = targetAssetPriceInBaseAsset.multipliedBy(baseAssetPriceInDAI);
         }
 
-        p.priceUSD = targetAssetPrice.toFixed(18);
+        p.priceUSD = daiPrice.toFixed(18);
 
-        // If base asset has price in DAI
-        if (!baseAssetPriceInDAI.isZero()) {
-          // update pools prices
-          for (const p of pools[baseAssetId]) {
-            if (p.targetAssetId === DAI) {
-              p.priceUSD = '1';
-              continue;
-            };
-
-            const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
-            const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
-            const chameleonAssetReserves = new BigNumber((p.chameleonAssetReserves ?? BigInt(0)).toString());
-
-            let daiPrice = new BigNumber(0);
-
-            if (!targetAssetReserves.isZero()) {
-              const baseAssetVolume = baseAssetReserves.minus(chameleonAssetReserves);
-              const chameleonAssetVolume = chameleonAssetReserves.multipliedBy(chameleonAssetPriceInBaseAsset);
-              const targetAssetPriceInBaseAsset = calcPriceInReference(
-                  blockNumber,
-                  baseAssetVolume.plus(chameleonAssetVolume),
-                  targetAssetReserves,
-                  baseAssetPriceInDAI,
-              );
-
-              daiPrice = targetAssetPriceInBaseAsset.multipliedBy(baseAssetPriceInDAI);
-            }
-
-            p.priceUSD = daiPrice.toFixed(18);
-
-            // update PSWAP price (price from pair with XOR)
-            if (p.targetAssetId === PSWAP && p.baseAssetId === XOR) {
-              pswapPriceInDAI = daiPrice;
-            }
-          }
+        // update PSWAP price (price from pair with XOR)
+        if (p.targetAssetId === PSWAP && p.baseAssetId === XOR) {
+          pswapPriceInDAI = daiPrice;
         }
       }
     }
