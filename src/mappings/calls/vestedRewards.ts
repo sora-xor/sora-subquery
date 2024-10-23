@@ -19,8 +19,8 @@ export async function vestedTransferHandler(extrinsic: SubstrateExtrinsic): Prom
 
   const period = args.period.toNumber();
   const periodCount = args.periodCount.toNumber();
-  const perPeriod = args.perPeriod.unwrapOr('0').toString();
-  const remainderAmount = args.remainderAmount.unwrapOr('0').toString();
+  const perPeriod = formatU128ToBalance(args.perPeriod.unwrap().toString(), assetId);
+  const remainderAmount = formatU128ToBalance(args.remainderAmount.unwrap().toString(), assetId);
 
   const perPeriodBn = new BigNumber(perPeriod);
   const remainderAmountBn = new BigNumber(remainderAmount);
@@ -30,7 +30,7 @@ export async function vestedTransferHandler(extrinsic: SubstrateExtrinsic): Prom
 
   const percent = toFloat(perPeriodBn.multipliedBy(100).dividedBy(amountBn));
 
-  const amount = formatU128ToBalance(amountBn.toString(), assetId);
+  const amount = amountBn.toString();
   const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
   const details: any = {
