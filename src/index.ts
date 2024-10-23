@@ -18,6 +18,7 @@ export * from './mappings/calls/poolXYK';
 export * from './mappings/calls/rewards';
 export * from './mappings/calls/referrals';
 export * from './mappings/calls/staking';
+export * from './mappings/calls/vestedRewards';
 export * from './mappings/calls/utility';
 
 export * from './mappings/events/ethSoraTransfer';

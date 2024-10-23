@@ -142,6 +142,12 @@ dataSources:
           filter:
             module: vestedRewards
             method: claimCrowdloanRewards
+        # vestedRewards
+        - handler: vestedTransferHandler
+          kind: substrate/CallHandler
+          filter:
+            module: vestedRewards
+            method: vestedTransfer
         # referrals
         - handler: setReferralHandler
           kind: substrate/CallHandler
