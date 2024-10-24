@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import { SubstrateBlock } from '@subql/types';
 import { Account, AccountMeta, AccountPointSystem } from '../types';
-import { PointSystemV2StartBlock } from '../config';
+import { PointSystemStartBlockV1, PointSystemStartBlockV2 } from '../config';
 
 import { KXOR } from './consts';
 import { EntityStorage } from './storage';
@@ -27,24 +27,33 @@ export const getAccountEntity = async (block: SubstrateBlock, accountAddress: st
 };
 
 const getPointSystemVersion = (block: SubstrateBlock): number => {
-  const v2 = Number.isFinite(PointSystemV2StartBlock) ? PointSystemV2StartBlock : null;
+  const getStartBlock = (start?: number) => Number.isFinite(start) ? start : null;
+
   const blockNumber = getBlockNumber(block);
+  const v2 = getStartBlock(PointSystemStartBlockV2);
+  const v1 = getStartBlock(PointSystemStartBlockV1);
 
   if (v2 && blockNumber >= v2) {
     return 2;
   }
+  if (v1 && blockNumber >= v1) {
+    return 1;
+  }
 
-  return 1;
+  return 0;
 };
 
 const getPointSystemStartBlock = (block: SubstrateBlock): number => {
   const version = getPointSystemVersion(block);
 
-  if (version === 2) {
-    return PointSystemV2StartBlock;
+  switch (version) {
+    case 2:
+      return PointSystemStartBlockV2;
+    case 1:
+      return PointSystemStartBlockV1;
+    default:
+      return 1;
   }
-
-  return 1;
 };
 
 const assetVolumeData = { amount: '0', amountUSD: '0' };
