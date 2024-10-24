@@ -146,9 +146,10 @@ export const createHistoryElement = async (
   const section = isEvent ? ctx.event.section : extrinsic.extrinsic.method.section;
   const method = isEvent ? ctx.event.method : extrinsic.extrinsic.method.method;
   const owner = address ?? getExtrinsicSigner(extrinsic);
+  const id = getEntityId(ctx);
 
   const historyElement = new HistoryElement(
-    getEntityId(ctx),
+    id,
     type,
     blockNumber,
     block.block.header.hash.toString(),

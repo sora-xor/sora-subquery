@@ -2,6 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import { SubstrateExtrinsic } from '@subql/types';
 import { getExtrinsicSigner, getExtrinsicArgs, toFloat } from '../../utils';
+import { isAssetTransferEvent } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
@@ -45,7 +46,9 @@ export async function vestedTransferHandler(extrinsic: SubstrateExtrinsic): Prom
 
   await createHistoryElement(extrinsic, details, { address: from });
 
-  if (from !== to) {
-    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  const assetTransfer = extrinsic.events.find((e) => isAssetTransferEvent(e));
+
+  if (assetTransfer && from !== to) {
+    await createHistoryElement(assetTransfer as any, details, { address: to, useStats: false });
   }
 }

@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import { SubstrateExtrinsic } from '@subql/types';
 
 import { bytesToString, getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
-import { isExchangeEvent, isEvent, getEventData } from '../../utils/events';
+import { isAssetsTransferEvent, isExchangeEvent, isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance, assetSnapshotsStorage } from '../../utils/assets';
 import { networkSnapshotsStorage } from '../../utils/network';
@@ -166,7 +166,7 @@ const handleAndSaveBatchExtrinsic = async (extrinsic: SubstrateExtrinsic): Promi
     details.actualFee = formatU128ToBalance(actualFee.toString(), XOR);
   }
 
-  const assetTransferEvents = extrinsic.events.filter((e) => isEvent(e, 'assets', 'Transfer'));
+  const assetTransferEvents = extrinsic.events.filter((e) => isAssetsTransferEvent(e));
   const receiverIds = details.receivers.map((receiver) => receiver.accountId);
 
   for (const assetTransferEvent of assetTransferEvents) {

@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import { SubstrateExtrinsic } from '@subql/types';
 import { bytesToString, getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { XOR } from '../../utils/consts';
-import { isExchangeEvent, isEvent, getEventData } from '../../utils/events';
+import { isAssetTransferEvent, isAssetDepositedEvent, isExchangeEvent, isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement, getExtrinsicNetworkFee } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { accountMetaStorage } from '../../utils/account';
@@ -74,8 +74,10 @@ export async function assetMintHandler(extrinsic: SubstrateExtrinsic): Promise<v
 
   await createHistoryElement(extrinsic, details, { address: from });
 
-  if (from !== to) {
-    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  const assetDeposit = extrinsic.events.find((e) => isAssetDepositedEvent(e));
+
+  if (assetDeposit && from !== to) {
+    await createHistoryElement(assetDeposit as any, details, { address: to, useStats: false });
   }
 }
 
@@ -100,8 +102,10 @@ export async function handleAssetTransfer(extrinsic: SubstrateExtrinsic): Promis
 
   await createHistoryElement(extrinsic, details, { address: from });
 
-  if (from !== to) {
-    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  const assetTransfer = extrinsic.events.find((e) => isAssetTransferEvent(e));
+
+  if (assetTransfer && from !== to) {
+    await createHistoryElement(assetTransfer as any, details, { address: to, useStats: false });
   }
 }
 
@@ -151,7 +155,9 @@ export async function handleXorlessTransfer(extrinsic: SubstrateExtrinsic): Prom
 
   await createHistoryElement(extrinsic, details, { address: from });
 
-  if (from !== to) {
-    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  const assetTransfer = extrinsic.events.find((e) => isAssetTransferEvent(e));
+
+  if (assetTransfer && from !== to) {
+    await createHistoryElement(assetTransfer as any, details, { address: to, useStats: false });
   }
 }
