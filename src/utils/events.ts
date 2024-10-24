@@ -14,6 +14,14 @@ export const getEventData = (e: TypedEventRecord<Codec[]>, reversedOrder = false
   return reversedOrder ? data.reverse() : data;
 };
 
+export const isReferrerRewardedEvent = (e: TypedEventRecord<Codec[]>): boolean => {
+  return isEvent(e, 'xorFee', 'ReferrerRewarded');
+};
+
+export const isAssetsTransferEvent = (e: TypedEventRecord<Codec[]>): boolean => {
+  return isEvent(e, 'assets', 'Transfer');
+};
+
 export const isExchangeEvent = (e: TypedEventRecord<Codec[]>): boolean => {
   return isEvent(e, 'liquidityProxy', 'Exchange');
 };

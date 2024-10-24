@@ -2,7 +2,7 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { createHistoryElement } from '../../utils/history';
 import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
-import { isXorTransferEvent, getTransferEventData } from '../../utils/events';
+import { isXorTransferEvent, isReferrerRewardedEvent, getTransferEventData } from '../../utils/events';
 import { XOR } from '../../utils/consts';
 import { logStartProcessingCall } from '../../utils/logs';
 
@@ -21,8 +21,10 @@ export async function setReferralHandler(extrinsic: SubstrateExtrinsic): Promise
 
   await createHistoryElement(extrinsic, details);
 
-  if (from !== to) {
-    await createHistoryElement(extrinsic, details, { address: to, useStats: false });
+  const rewardedEvent = extrinsic.events.find((e) => isReferrerRewardedEvent(e));
+
+  if (rewardedEvent && from !== to) {
+    await createHistoryElement(rewardedEvent as any, details, { address: to, useStats: false });
   }
 }
 
