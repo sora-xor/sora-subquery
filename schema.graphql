@@ -156,6 +156,21 @@ type Account @entity {
   # liquidities: [AccountLiquidity] @derivedFrom(field: "account")
 }
 
+type AccountPointSystem @entity {
+  id: ID! # accountId - version
+  accountId: String!
+  version: Int! # 1 or 2
+  startedAtBlock: Int! # block
+  # points
+  xorFees: AssetVolume!
+  xorBurned: AssetVolume!
+  xorStakingValRewards: AssetVolume!
+  orderBook: AccountMetaEventCounter!
+  vault: AccountMetaEventCounter!
+  governance: AccountMetaGovernance!
+  deposit: AccountMetaDeposit!
+}
+
 type AccountMeta @entity {
   id: ID!
   # account: Account! @index #relation to Account
