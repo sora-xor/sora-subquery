@@ -31,16 +31,12 @@ const getPointSystemVersion = (block: SubstrateBlock): number => {
 
   const blockNumber = getBlockNumber(block);
   const v2 = getStartBlock(PointSystemStartBlockV2);
-  const v1 = getStartBlock(PointSystemStartBlockV1);
 
   if (v2 && blockNumber >= v2) {
     return 2;
   }
-  if (v1 && blockNumber >= v1) {
-    return 1;
-  }
 
-  return 0;
+  return 1;
 };
 
 const getPointSystemStartBlock = (block: SubstrateBlock): number => {
@@ -49,10 +45,8 @@ const getPointSystemStartBlock = (block: SubstrateBlock): number => {
   switch (version) {
     case 2:
       return PointSystemStartBlockV2;
-    case 1:
-      return PointSystemStartBlockV1;
     default:
-      return 1;
+      return PointSystemStartBlockV1;
   }
 };
 
