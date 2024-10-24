@@ -1,7 +1,8 @@
 import BigNumber from 'bignumber.js';
 
 import { SubstrateBlock } from '@subql/types';
-import { Account, AccountMeta } from '../types';
+import { Account, AccountMeta, AccountPointSystem } from '../types';
+import { PointSystemV2StartBlock } from '../config';
 
 import { KXOR } from './consts';
 import { EntityStorage } from './storage';
@@ -25,39 +26,33 @@ export const getAccountEntity = async (block: SubstrateBlock, accountAddress: st
   return account;
 };
 
-class AccountMetaStorage extends EntityStorage<AccountMeta> {
-  constructor() {
-    super('AccountMeta');
+const getPointSystemVersion = (block: SubstrateBlock): number => {
+  const v2 = Number.isFinite(PointSystemV2StartBlock) ? PointSystemV2StartBlock : null;
+  const blockNumber = getBlockNumber(block);
+
+  if (v2 && blockNumber >= v2) {
+    return 2;
   }
 
-  protected override async loadEntity(id: string): Promise<AccountMeta> {
-    return await AccountMeta.get(id);
+  return 1;
+};
+
+const getPointSystemStartBlock = (block: SubstrateBlock): number => {
+  const version = getPointSystemVersion(block);
+
+  if (version === 2) {
+    return PointSystemV2StartBlock;
   }
 
-  public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountMeta> {
-    const account = await getAccountEntity(block, id);
-    const assetVolumeData = { amount: '0', amountUSD: '0' };
-    const counterData = { created: 0, closed: 0, amountUSD: '0' };
-    const governanceData = { votes: 0, amount: '0', amountUSD: '0' };
-    const depositData = { incomingUSD: '0', outgoingUSD: '0' };
+  return 1;
+};
 
-    const entity = new AccountMeta(
-      id,
-      // account.id,
-      formatDateTimestamp(block.timestamp),
-      getBlockNumber(block),
-      { ...assetVolumeData },
-      { ...assetVolumeData },
-      { ...assetVolumeData },
-      { ...counterData },
-      { ...counterData },
-      { ...governanceData },
-      { ...depositData }
-    );
+const assetVolumeData = { amount: '0', amountUSD: '0' };
+const counterData = { created: 0, closed: 0, amountUSD: '0' };
+const governanceData = { votes: 0, amount: '0', amountUSD: '0' };
+const depositData = { incomingUSD: '0', outgoingUSD: '0' };
 
-    return entity;
-  }
-
+class PointsStorage<T extends AccountMeta | AccountPointSystem> extends EntityStorage<T> {
   public async updateFees(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
     const meta = await this.getEntity(block, id);
 
@@ -185,4 +180,173 @@ class AccountMetaStorage extends EntityStorage<AccountMeta> {
   }
 }
 
-export const accountMetaStorage = new AccountMetaStorage();
+class AccountMetaStorage extends PointsStorage<AccountMeta> {
+  constructor() {
+    super('AccountMeta');
+  }
+
+  protected override async loadEntity(id: string): Promise<AccountMeta> {
+    return await AccountMeta.get(id);
+  }
+
+  public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountMeta> {
+    const account = await getAccountEntity(block, id);
+
+    const entity = new AccountMeta(
+      id,
+      // account.id,
+      formatDateTimestamp(block.timestamp),
+      getBlockNumber(block),
+      { ...assetVolumeData },
+      { ...assetVolumeData },
+      { ...assetVolumeData },
+      { ...counterData },
+      { ...counterData },
+      { ...governanceData },
+      { ...depositData }
+    );
+
+    return entity;
+  }
+}
+
+class AccountPointSystemStorage extends PointsStorage<AccountPointSystem> {
+  protected accountMetaStorage!: AccountMetaStorage;
+
+  constructor(accountMetaStorage: AccountMetaStorage) {
+    super('AccountPointSystem');
+
+    this.accountMetaStorage = accountMetaStorage;
+  }
+
+  protected override async loadEntity(id: string): Promise<AccountPointSystem> {
+    return await AccountPointSystem.get(id);
+  }
+
+  override async getEntity(block: SubstrateBlock, accountId: string): Promise<AccountPointSystem> {
+    const version = getPointSystemVersion(block);
+    const id = this.getId(accountId, version);
+
+    return await super.getEntity(block, id);
+  }
+
+  public override async createEntity(block: SubstrateBlock, id: string): Promise<AccountPointSystem> {
+    const [accountId, _version] = this.parseId(id);
+    const version = Number(_version);
+
+    const meta = version === 1 ? await this.accountMetaStorage.getEntity(block, accountId) : null;
+
+    const xorFees = meta?.xorFees ?? { ...assetVolumeData };
+    const xorBurned = meta?.xorBurned ?? { ...assetVolumeData };
+    const xorStakingValRewards = meta?.xorStakingValRewards ?? { ...assetVolumeData };
+    const orderBook = meta?.orderBook ?? { ...counterData };
+    const vault = meta?.vault ?? { ...counterData };
+    const governance = meta?.governance ?? { ...governanceData };
+    const deposit = meta?.deposit ?? { ...depositData };
+
+    const entity = new AccountPointSystem(
+      id,
+      accountId,
+      version,
+      getPointSystemStartBlock(block),
+      { ...xorFees },
+      { ...xorBurned },
+      { ...xorStakingValRewards },
+      { ...orderBook },
+      { ...vault },
+      { ...governance },
+      { ...deposit }
+    );
+
+    return entity;
+  }
+}
+
+class AccountMetaProxy {
+  protected accountMetaStorage!: AccountMetaStorage;
+  protected accountPointSystemStorage!: AccountPointSystemStorage;
+
+  constructor() {
+    this.accountMetaStorage = new AccountMetaStorage();
+    this.accountPointSystemStorage = new AccountPointSystemStorage(this.accountMetaStorage);
+  }
+
+  public async updateFees(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
+    await this.accountPointSystemStorage.updateFees(block, id, amount, amountUSD);
+    await this.accountMetaStorage.updateFees(block, id, amount, amountUSD);
+  }
+
+  public async updateBurned(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
+    await this.accountPointSystemStorage.updateBurned(block, id, amount, amountUSD);
+    await this.accountMetaStorage.updateBurned(block, id, amount, amountUSD);
+  }
+
+  public async updateGovernance(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
+    await this.accountPointSystemStorage.updateGovernance(block, id, amount, amountUSD);
+    await this.accountMetaStorage.updateGovernance(block, id, amount, amountUSD);
+  }
+
+  public async updateStakingRewards(block: SubstrateBlock, id: string, amount: string, amountUSD: string) {
+    await this.accountPointSystemStorage.updateStakingRewards(block, id, amount, amountUSD);
+    await this.accountMetaStorage.updateStakingRewards(block, id, amount, amountUSD);
+  }
+
+  public async updateOrderCreated(block: SubstrateBlock, id: string) {
+    await this.accountPointSystemStorage.updateOrderCreated(block, id);
+    await this.accountMetaStorage.updateOrderCreated(block, id);
+  }
+
+  public async updateOrderClosed(block: SubstrateBlock, id: string) {
+    await this.accountPointSystemStorage.updateOrderClosed(block, id);
+    await this.accountMetaStorage.updateOrderClosed(block, id);
+  }
+
+  public async updateOrderExecuted(
+    block: SubstrateBlock,
+    id: string,
+    quoteAssetId: string,
+    price: string,
+    amount: string
+  ) {
+    await this.accountPointSystemStorage.updateOrderExecuted(block, id, quoteAssetId, price, amount);
+    await this.accountMetaStorage.updateOrderExecuted(block, id, quoteAssetId, price, amount);
+  }
+
+  public async updateVaultCreated(block: SubstrateBlock, id: string, assetId: string) {
+    await this.accountPointSystemStorage.updateVaultCreated(block, id, assetId);
+    await this.accountMetaStorage.updateVaultCreated(block, id, assetId);
+  }
+
+  public async updateVaultClosed(block: SubstrateBlock, id: string, assetId: string) {
+    await this.accountPointSystemStorage.updateVaultClosed(block, id, assetId);
+    await this.accountMetaStorage.updateVaultClosed(block, id, assetId);
+  }
+
+  public async updateVaultExecuted(
+    block: SubstrateBlock,
+    id: string,
+    assetId: string,
+    amount: string,
+    isCollateral = false
+  ) {
+    await this.accountPointSystemStorage.updateVaultExecuted(block, id, assetId, amount, isCollateral);
+    await this.accountMetaStorage.updateVaultExecuted(block, id, assetId, amount, isCollateral);
+  }
+
+  public async updateIncomingDeposit(block: SubstrateBlock, id: string, amountUSD: string) {
+    await this.accountPointSystemStorage.updateIncomingDeposit(block, id, amountUSD);
+    await this.accountMetaStorage.updateIncomingDeposit(block, id, amountUSD);
+  }
+
+  public async updateOutgoingDeposit(block: SubstrateBlock, id: string, amountUSD: string) {
+    await this.accountPointSystemStorage.updateOutgoingDeposit(block, id, amountUSD);
+    await this.accountMetaStorage.updateOutgoingDeposit(block, id, amountUSD);
+  }
+
+  public async sync(block: SubstrateBlock, clean = false): Promise<void> {
+    await this.accountPointSystemStorage.sync(block, clean);
+    await this.accountMetaStorage.sync(block, clean);
+  }
+}
+
+export const accountMetaStorage = new AccountMetaProxy();
