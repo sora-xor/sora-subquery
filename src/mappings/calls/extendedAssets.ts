@@ -3,7 +3,7 @@ import { getExtrinsicArgs, getExtrinsicSigner } from '../../utils';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
-import { updateSbtAccessOnAccount } from 'src/utils/extendedAssets';
+import { updateSbtAccessOnAccount } from 'src/utils/assetOwner';
 
 export async function setSbtExpirationCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
