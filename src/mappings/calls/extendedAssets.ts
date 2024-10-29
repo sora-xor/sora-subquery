@@ -1,24 +1,29 @@
 import { SubstrateExtrinsic } from '@subql/types';
-import { getExtrinsicArgs } from '../../utils';
+import { getExtrinsicArgs, getExtrinsicSigner } from '../../utils';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
+import { updateSbtAccessOnAccount } from 'src/utils/extendedAssets';
 
-export async function setSbtExpiratioCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
+export async function setSbtExpirationCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
   const [account, sbtAsset, newExpiresAt] = getExtrinsicArgs(extrinsic) as any;
 
+  const issuer = getExtrinsicSigner(extrinsic);
   const sbtAssetId = getAssetId(sbtAsset);
   const newExpiresAtTime = newExpiresAt.toString();
   const accountId = account.toString();
+  
 
   const details = {
+    issuer,
     sbtAssetId,
     newExpiresAtTime,
     accountId,
   };
 
   await createHistoryElement(extrinsic, details);
+  await updateSbtAccessOnAccount(extrinsic.block, accountId, sbtAssetId, newExpiresAtTime, issuer);
 }
 
 export async function regulateAssetCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {

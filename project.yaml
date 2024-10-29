@@ -394,7 +394,7 @@ dataSources:
             module: orderBook
             method: cancelLimitOrdersBatch
         # defi-r calls
-        - handler: setSbtExpiratioCallHandler
+        - handler: setSbtExpirationCallHandler
           kind: substrate/CallHandler
           filter:
             module: extendedAssets

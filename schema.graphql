@@ -47,6 +47,23 @@ type NetworkSnapshot implements ISnapshot @entity {
   bridgeOutgoingTransactions: Int!
 }
 
+type AssetOwner @entity {
+  id: ID! # accountId of issuer
+  sbtAccesses: [AssetOwnerAccount!]!
+}
+
+type AssetOwnerAccount @jsonField {
+  sbtAssetId: String!
+  accountAddress: String!
+  expiresAt: Int!
+}
+
+type AssetOwnerSnapshot implements ISnapshot {
+  id: !ID
+  timestamp: Int!
+  type: SnapshotType!
+}
+
 type UpdatesStream @entity {
   id: ID!
   block: Int!
