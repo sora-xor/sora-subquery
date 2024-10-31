@@ -3,4 +3,4 @@ export const testLogMode = process.env.INDEXER_TEST_LOG_MODE ? process.env.INDEX
 export const PricesV2StartBlock = 18_020_000;
 
 export const PointSystemStartBlockV1 = 1;
-export const PointSystemStartBlockV2 = 18_200_000;
+export const PointSystemStartBlockV2 = 20_000_000;
