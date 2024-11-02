@@ -335,7 +335,7 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<
     // update locked luqidity for assets
     for (const [assetId, liquidity] of lockedAssets.entries()) {
       const asset = await assetStorage.updateLiquidityBooks(block, assetId, liquidity);
-      const assetLockedUSD = calcTvlUSD(asset.id, asset.priceUSD, asset.liquidity);
+      const assetLockedUSD = calcTvlUSD(asset.id, asset.priceUSD, asset.liquidityBooks);
 
       lockedUSD = lockedUSD.plus(assetLockedUSD);
     }
