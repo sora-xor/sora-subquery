@@ -10,6 +10,8 @@ export async function rewardsHandler(extrinsic: SubstrateExtrinsic): Promise<voi
   const details = [];
 
   for (const e of extrinsic.events) {
+    if (!isAssetTransferEvent(e)) continue;
+
     const { assetId, amount: amountData } = getTransferEventData(e);
     const amount = formatU128ToBalance(amountData, assetId);
     const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
