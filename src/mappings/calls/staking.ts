@@ -342,7 +342,7 @@ export async function stakingUnbondCallHandler(extrinsic: SubstrateExtrinsic): P
   const [value] = getExtrinsicArgs(extrinsic);
 
   const amount = formatU128ToBalance(value.toString(), XOR);
-  const amountUSD =  await getAmountUSD(extrinsic.block, XOR, amount);
+  const amountUSD = await getAmountUSD(extrinsic.block, XOR, amount);
 
   const details = {
     amount,

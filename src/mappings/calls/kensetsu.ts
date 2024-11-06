@@ -22,7 +22,7 @@ const getCreateCdpArgs = (extrinsic: SubstrateExtrinsic) => {
     debtAssetId,
     debtAmount,
   };
-}
+};
 
 export async function vaultCreateCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
