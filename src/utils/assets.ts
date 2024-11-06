@@ -97,24 +97,29 @@ class AssetStorage extends EntityStorage<Asset> {
     return new Asset(id, '0', BigInt(0));
   }
 
-  async updatePrice(block: SubstrateBlock, id: string, priceUSD: string): Promise<void> {
+  async updatePrice(block: SubstrateBlock, id: string, priceUSD: string): Promise<Asset> {
     const asset = await this.getEntity(block, id);
 
-    if (asset.priceUSD === priceUSD) return;
+    if (asset.priceUSD !== priceUSD) {
+      // stream update
+      priceUpdatesStream.update(id, priceUSD);
+    }
 
     asset.priceUSD = priceUSD;
-    // stream update
-    priceUpdatesStream.update(id, priceUSD);
+
+    await this.save(block, asset);
 
     this.log(block, true).debug({ assetId: id, newPrice: priceUSD }, 'Asset price updated');
 
-    await this.save(block, asset);
+    return asset;
   }
 
   async updateLiquidity(block: SubstrateBlock, id: string, liquidity: bigint): Promise<Asset> {
     const asset = await this.getEntity(block, id);
 
     asset.liquidity = liquidity;
+
+    await this.save(block, asset);
 
     this.log(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidity updated');
 
@@ -126,7 +131,33 @@ class AssetStorage extends EntityStorage<Asset> {
 
     asset.liquidityBooks = liquidity;
 
-    this.log(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidity in order books updated');
+    await this.save(block, asset);
+
+    this.log(block, true).debug({ assetId: id, newLiquidity: liquidity }, 'Asset liquidityBooks updated');
+
+    return asset;
+  }
+
+  async updateMinted(block: SubstrateBlock, id: string, amount: bigint): Promise<Asset> {
+    const asset = await this.getEntity(block, id);
+
+    asset.supply = asset.supply + amount;
+
+    await this.save(block, asset);
+
+    this.log(block).debug({ assetId: id, minted: amount.toString() }, 'Asset minted');
+
+    return asset;
+  }
+
+  async updateBurned(block: SubstrateBlock, id: string, amount: bigint): Promise<Asset> {
+    const asset = await this.getEntity(block, id);
+
+    asset.supply = asset.supply - amount;
+
+    await this.save(block, asset);
+
+    this.log(block).debug({ assetId: id, burned: amount.toString() }, 'Asset burned');
 
     return asset;
   }
@@ -182,9 +213,9 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
       snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), bnPrice).toString();
       snapshot.priceUSD.low = BigNumber.min(new BigNumber(snapshot.priceUSD.low), bnPrice).toString();
 
-      this.log(block, true).debug({ assetId, newPrice: price }, 'Asset snapshot price updated');
-
       await this.save(block, snapshot);
+
+      this.log(block, true).debug({ assetId, newPrice: price }, 'Asset snapshot price updated');
     }
 
     await this.entityStorage.updatePrice(block, assetId, price);
@@ -192,8 +223,7 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
 
   async updateVolume(block: SubstrateBlock, assetId: string, amount: string): Promise<BigNumber> {
     const asset = await this.entityStorage.getEntity(block, assetId);
-
-    const assetPrice = DAI === assetId ? new BigNumber(1) : new BigNumber(asset?.priceUSD ?? 0);
+    const assetPrice = new BigNumber(asset?.priceUSD ?? 0);
 
     const volume = new BigNumber(amount);
     const volumeUSD = volume.multipliedBy(assetPrice);
@@ -207,6 +237,8 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
       snapshot.volume.amount = new BigNumber(snapshot.volume.amount).plus(volume).toString();
       snapshot.volume.amountUSD = new BigNumber(snapshot.volume.amountUSD).plus(volumeUSD).toFixed(2);
 
+      await this.save(block, snapshot);
+
       this.log(block, true).debug({ assetId: assetId, newVolume: volume.toString() }, 'Asset snapshot volume updated');
     }
 
@@ -214,41 +246,35 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
   }
 
   async updateMinted(block: SubstrateBlock, assetId: string, amount: bigint): Promise<void> {
+    await this.entityStorage.updateMinted(block, assetId, amount);
+
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
-      this.log(block).debug({ type }, 'Type');
       const snapshot = await this.getSnapshot(block, assetId, type);
 
       snapshot.mint = snapshot.mint + amount;
 
-      this.log(block, true).debug({ assetId: assetId, newMinted: amount.toString() }, 'Asset snapshot mint updated');
+      await this.save(block, snapshot);
+
+      this.log(block, true).debug({ assetId: assetId, minted: amount.toString() }, 'Asset snapshot mint updated');
     }
-
-    const asset = await this.entityStorage.getEntity(block, assetId);
-
-    asset.supply = asset.supply + amount;
-    this.log(block).debug({ assetId: assetId, minted: amount.toString() }, 'Asset minted');
   }
 
   async updateBurned(block: SubstrateBlock, assetId: string, amount: bigint): Promise<void> {
+    await this.entityStorage.updateBurned(block, assetId, amount);
+
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
       const snapshot = await this.getSnapshot(block, assetId, type);
 
       snapshot.burn = snapshot.burn + amount;
-      this.log(block, true).debug(
-        { assetId: assetId, burned: snapshot.burn.toString() },
-        'Asset snapshot burn updated'
-      );
+
+      await this.save(block, snapshot);
+
+      this.log(block, true).debug({ assetId: assetId, burned: amount.toString() }, 'Asset snapshot burn updated');
     }
-
-    const asset = await this.entityStorage.getEntity(block, assetId);
-
-    asset.supply = asset.supply - amount;
-
-    this.log(block).debug({ assetId: assetId, supply: asset.supply.toString() }, 'Asset supply updated');
   }
 
   private async calcStats(block: SubstrateBlock, asset: Asset, type: SnapshotType, snapshotsCount: number) {
@@ -292,6 +318,7 @@ class AssetSnapshotsStorage extends EntitySnapshotsStorage<Asset, AssetSnapshot,
 
   async updateWeeklyStats(block: SubstrateBlock): Promise<void> {
     this.log(block).debug(`Assets Weekly stats updating...`);
+
     for (const asset of this.entityStorage.entities) {
       const { priceChange, volumeUSD, velocity } = await this.calcStats(block, asset, SnapshotType.DAY, 7);
 

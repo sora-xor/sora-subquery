@@ -278,6 +278,8 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<
       snapshot.price.high = BigNumber.max(new BigNumber(snapshot.price.high), quotePrice).toString();
       snapshot.price.low = BigNumber.min(new BigNumber(snapshot.price.low), quotePrice).toString();
 
+      await this.save(block, snapshot);
+
       this.log(block, true).debug(
         {
           dexId,
@@ -293,8 +295,6 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<
         },
         'Order Book snapshot price and volume updated'
       );
-
-      await this.save(block, snapshot);
     }
 
     await this.entityStorage.updateDeal(block, dexId, baseAssetId, quoteAssetId, orderId, price, amount, isBuy);
@@ -357,6 +357,8 @@ export class OrderBooksSnapshotsStorage extends EntitySnapshotsStorage<
       const snapshot = await this.getSnapshot(block, orderBookId, type);
 
       snapshot.liquidityUSD = liquidityUSD.toFixed(2);
+
+      await this.save(block, snapshot);
     }
   }
 

@@ -70,6 +70,8 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
       const snapshot = await this.getSnapshot(block, stats.id, type);
 
       snapshot.accounts = snapshot.accounts + 1;
+
+      await this.save(block, snapshot);
     }
   }
 
@@ -86,6 +88,8 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
       const snapshot = await this.getSnapshot(block, stats.id, type);
 
       snapshot.transactions = snapshot.transactions + 1;
+
+      await this.save(block, snapshot);
     }
   }
 
@@ -102,6 +106,8 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
       const snapshot = await this.getSnapshot(block, stats.id, type);
 
       snapshot.bridgeIncomingTransactions = snapshot.bridgeIncomingTransactions + 1;
+
+      await this.save(block, snapshot);
     }
   }
 
@@ -118,6 +124,8 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
       const snapshot = await this.getSnapshot(block, stats.id, type);
 
       snapshot.bridgeOutgoingTransactions = snapshot.bridgeOutgoingTransactions + 1;
+
+      await this.save(block, snapshot);
     }
   }
 
@@ -134,6 +142,8 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
       const snapshot = await this.getSnapshot(block, stats.id, type);
 
       snapshot.fees = snapshot.fees + fee;
+
+      await this.save(block, snapshot);
     }
   }
 
@@ -152,6 +162,8 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
       const snapshot = await this.getSnapshot(block, stats.id, type);
 
       snapshot.liquidityUSD = liquiditiesUSD.toFixed(2);
+
+      await this.save(block, snapshot);
     }
   }
 
@@ -166,6 +178,8 @@ class NetworkSnapshotsStorage extends EntitySnapshotsStorage<NetworkStats, Netwo
       const snapshot = await this.getSnapshot(block, stats.id, type);
 
       snapshot.volumeUSD = new BigNumber(snapshot.volumeUSD).plus(volumeUSD).toFixed(2);
+
+      await this.save(block, snapshot);
     }
   }
 }

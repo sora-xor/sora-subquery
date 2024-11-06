@@ -345,12 +345,15 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     const pool = await this.getPool(block, id);
 
     if (pool.strategicBonusApy !== strategicBonusApy) {
-      pool.strategicBonusApy = strategicBonusApy;
       // stream update
       poolXykApyUpdatesStream.update(id, strategicBonusApy);
-
-      this.log(block).debug({ poolId: pool.id }, 'Pool Apy updated');
     }
+
+    pool.strategicBonusApy = strategicBonusApy;
+
+    await this.save(block, pool);
+
+    this.log(block).debug({ poolId: pool.id }, 'Pool Apy updated');
 
     return pool;
   }
@@ -358,13 +361,11 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
   async updatePrice(block: SubstrateBlock, id: string, targetAssetPrice: string): Promise<PoolXYK> {
     const pool = await this.getPool(block, id);
 
-    if (pool.priceUSD !== targetAssetPrice) {
-      pool.priceUSD = targetAssetPrice;
+    pool.priceUSD = targetAssetPrice;
 
-      this.log(block, true).debug({ id, newPrice: targetAssetPrice }, 'Pool price updated');
+    await this.save(block, pool);
 
-      await this.save(block, pool);
-    }
+    this.log(block, true).debug({ id, newPrice: targetAssetPrice }, 'Pool price updated');
 
     return pool;
   }
@@ -374,6 +375,8 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     const balance = await getPoolBalance(block, id);
 
     pool.poolTokenSupply = BigInt(balance);
+
+    await this.save(block, pool);
 
     this.log(block).debug({ poolId: pool.id }, 'Pool tokens updated');
 
@@ -400,6 +403,8 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
 
     pool.liquidityUSD = liquidityUSD.toFixed(2);
 
+    await this.save(block, pool);
+
     this.log(block, true).debug({ id, liquidityUSD: pool.liquidityUSD }, 'Pool liquidity usd updated');
 
     return pool;
@@ -414,15 +419,11 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
 
     pool.poolTokenPriceUSD = poolTokenPriceUSD;
 
+    await this.save(block, pool);
+
     this.log(block).debug({ poolId: pool.id, poolTokenPriceUSD }, 'Pool token price updated');
 
     return pool;
-  }
-
-  async processPriceChange(block: SubstrateBlock, id: string, targetAssetPrice: string): Promise<void> {
-    await this.updatePrice(block, id, targetAssetPrice);
-    await this.updateLiquidityUSD(block, id);
-    await this.updatePoolTokenPrice(block, id);
   }
 
   async processDeposit(block: SubstrateBlock, id: string, assetId: string, amount: string): Promise<PoolXYK> {
@@ -440,6 +441,8 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     }
 
     PoolsPrices.set(true);
+
+    await this.save(block, pool);
 
     this.log(block).debug({ poolId: pool.id }, 'Pool reserves saved after deposit');
 
@@ -461,6 +464,8 @@ class PoolsStorage extends EntityStorage<PoolXYK> {
     }
 
     PoolsPrices.set(true);
+
+    await this.save(block, pool);
 
     this.log(block).debug({ poolId: pool.id }, 'Pool reserves saved after withdrawal');
 
@@ -537,9 +542,9 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
       snapshot.priceUSD.high = BigNumber.max(new BigNumber(snapshot.priceUSD.high), bnPrice).toString();
       snapshot.priceUSD.low = BigNumber.min(new BigNumber(snapshot.priceUSD.low), bnPrice).toString();
 
-      this.log(block, true).debug({ id, newPrice: pool.priceUSD }, `${this.entityName} price updated'`);
-
       await this.save(block, snapshot);
+
+      this.log(block, true).debug({ id, type, newPrice: pool.priceUSD }, `${this.entityName} price updated'`);
     }
   }
 
@@ -553,9 +558,9 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 
       snapshot.poolTokenSupply = pool.poolTokenSupply;
 
-      this.log(block, true).debug({}, `${this.entityName} pool token supply updated`);
-
       await this.save(block, snapshot);
+
+      this.log(block, true).debug({ id, type }, `${this.entityName} poolTokenSupply updated`);
     }
   }
 
@@ -569,9 +574,9 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 
       snapshot.liquidityUSD = pool.liquidityUSD;
 
-      this.log(block, true).debug({}, `${this.entityName} liquidity usd updated`);
-
       await this.save(block, snapshot);
+
+      this.log(block, true).debug({ id, type }, `${this.entityName} liquidityUSD updated`);
     }
   }
 
@@ -585,9 +590,9 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
 
       snapshot.poolTokenPriceUSD = pool.poolTokenPriceUSD;
 
-      this.log(block, true).debug({}, `${this.entityName} pool token price updated`);
-
       await this.save(block, snapshot);
+
+      this.log(block, true).debug({ id, type }, `${this.entityName} pool token price updated`);
     }
   }
 
@@ -677,25 +682,26 @@ class PoolsSnapshotsStorage extends EntitySnapshotsStorage<PoolXYK, PoolSnapshot
       snapshot.targetAssetVolume = new BigNumber(snapshot.targetAssetVolume).plus(targetVolume).toString();
       snapshot.chameleonAssetVolume = new BigNumber(snapshot.chameleonAssetVolume).plus(chameleonVolume).toString();
 
-      this.log(block, true).debug({}, `${this.entityName} volumeUSD updated`);
-
       await this.save(block, snapshot);
+
+      this.log(block, true).debug({ id, type }, `${this.entityName} volumeUSD updated`);
     }
   }
 
   protected async updateReserves(block: SubstrateBlock, pool: PoolXYK) {
+    const id = pool.id;
     const snapshotTypes = getSnapshotTypes(block, this.updateTypes);
 
     for (const type of snapshotTypes) {
-      const snapshot = await this.getSnapshot(block, pool.id, type);
+      const snapshot = await this.getSnapshot(block, id, type);
 
       snapshot.baseAssetReserves = pool.baseAssetReserves;
       snapshot.targetAssetReserves = pool.targetAssetReserves;
       snapshot.chameleonAssetReserves = pool.chameleonAssetReserves ?? BigInt(0);
 
-      this.log(block, true).debug({}, `${this.entityName} reserves updated`);
-
       await this.save(block, snapshot);
+
+      this.log(block, true).debug({ id, type }, `${this.entityName} reserves updated`);
     }
   }
 

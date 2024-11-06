@@ -3,7 +3,13 @@ import BigNumber from 'bignumber.js';
 import { SubstrateExtrinsic } from '@subql/types';
 import { bytesToString, getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { XOR } from '../../utils/consts';
-import { isAssetTransferEvent, isAssetDepositedEvent, isExchangeEvent, isEvent, getEventData } from '../../utils/events';
+import {
+  isAssetTransferEvent,
+  isAssetDepositedEvent,
+  isExchangeEvent,
+  isEvent,
+  getEventData,
+} from '../../utils/events';
 import { createHistoryElement, getExtrinsicNetworkFee } from '../../utils/history';
 import { getAssetId, getAmountUSD, formatU128ToBalance } from '../../utils/assets';
 import { accountMetaStorage } from '../../utils/account';
