@@ -14,6 +14,7 @@ def jobParams  = [
 def pipeline = new org.subqd.AppPipeline(
     steps: this,
     validate: true,
-    jobParams: jobParams
+    jobParams: jobParams,
+    upstreamJobList: '../../subquery/stage'
 )
 pipeline.runPipeline()
