@@ -1,16 +1,16 @@
-import { SubstrateEvent } from "@subql/types";
-import { Vault, VaultAccount, VaultStatus, VaultEvent, VaultEventType } from '../../types'
+import { SubstrateEvent } from '@subql/types';
+import { Account, Vault, VaultStatus, VaultEvent, VaultEventType } from '../../types';
 
-import { formatDateTimestamp, getEventId } from '../../utils';
-import { getVaultAccountEntity } from '../../utils/kensetsu';
+import { formatDateTimestamp, getEventId, getBlockNumber } from '../../utils';
+import { accountMetaStorage, getAccountEntity } from '../../utils/account';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 
 async function handleEventType(event: SubstrateEvent, eventType: VaultEventType) {
   logStartProcessingEvent(event);
 
   let vault!: Vault;
-  let account!: VaultAccount
+  let account!: Account;
   let vaultIdCodec!: any;
   let ownerCodec!: any;
   let assetCodec!: any;
@@ -34,11 +34,11 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   }
 
   const vauldId = vaultIdCodec.toString();
-  const blockNumber = event.block.block.header.number.toNumber();
+  const blockNumber = getBlockNumber(event.block);
   const timestamp = formatDateTimestamp(event.block.timestamp);
 
   if (eventType === VaultEventType.Created) {
-    account = await getVaultAccountEntity(event.block, ownerCodec.toString());
+    account = await getAccountEntity(event.block, ownerCodec.toString());
 
     vault = new Vault(
       vauldId,
@@ -48,8 +48,10 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
       getAssetId(assetCodec),
       getAssetId(debtAssetCodec),
       blockNumber,
-      blockNumber,
+      blockNumber
     );
+
+    await accountMetaStorage.updateVaultCreated(event.block, vault.ownerId, vault.debtAssetId);
   } else {
     vault = await Vault.get(vauldId);
   }
@@ -57,15 +59,9 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
   if (!vault) {
     getEventHandlerLog(event).error({ id: vauldId }, 'Vault not found');
     return;
-  };
+  }
 
-  const vaultEvent = new VaultEvent(
-    getEventId(event),
-    eventType,
-    vault.id,
-    timestamp,
-    blockNumber,
-  );
+  const vaultEvent = new VaultEvent(getEventId(event), eventType, vault.id, timestamp, blockNumber);
 
   const assetId = getAssetId(assetCodec);
   const amount = amountCodec ? formatU128ToBalance(amountCodec.toString(), assetId) : null;
@@ -77,11 +73,19 @@ async function handleEventType(event: SubstrateEvent, eventType: VaultEventType)
     case VaultEventType.Closed: {
       vault.status = Number(amount) === 0 ? VaultStatus.Liquidated : VaultStatus.Closed;
       vault.collateralAmountReturned = amount;
+
+      await accountMetaStorage.updateVaultClosed(event.block, vault.ownerId, vault.debtAssetId);
+      break;
+    }
+    case VaultEventType.DebtPayment: {
+      await accountMetaStorage.updateVaultExecuted(event.block, vault.ownerId, vault.debtAssetId, amount);
       break;
     }
     case VaultEventType.Liquidated: {
-      account = await getVaultAccountEntity(event.block, vault.ownerId);
+      account = await getAccountEntity(event.block, vault.ownerId);
       account.lastLiquidationId = vaultEvent.id;
+
+      await accountMetaStorage.updateVaultExecuted(event.block, vault.ownerId, vault.collateralAssetId, amount, true);
       break;
     }
   }
