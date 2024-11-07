@@ -12,7 +12,9 @@ export async function vestedTransferHandler(extrinsic: SubstrateExtrinsic): Prom
 
   const [destCodec, scheduleCodec] = getExtrinsicArgs(extrinsic);
   const schedule = scheduleCodec as any;
-  const args = schedule.isLinearVestingSchedule ? schedule.asLinearVestingSchedule : schedule.asLinearPendingVestingSchedule;
+  const args = schedule.isLinearVestingSchedule
+    ? schedule.asLinearVestingSchedule
+    : schedule.asLinearPendingVestingSchedule;
 
   const from = getExtrinsicSigner(extrinsic);
   const to = destCodec.toString();
@@ -41,7 +43,7 @@ export async function vestedTransferHandler(extrinsic: SubstrateExtrinsic): Prom
     from,
     to,
     period,
-    percent
+    percent,
   };
 
   await createHistoryElement(extrinsic, details, { address: from });

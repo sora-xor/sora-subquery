@@ -27,7 +27,7 @@ export const getAccountEntity = async (block: SubstrateBlock, accountAddress: st
 };
 
 const getPointSystemVersion = (block: SubstrateBlock): number => {
-  const getStartBlock = (start?: number) => Number.isFinite(start) ? start : null;
+  const getStartBlock = (start?: number) => (Number.isFinite(start) ? start : null);
 
   const blockNumber = getBlockNumber(block);
   const v2 = getStartBlock(PointSystemStartBlockV2);

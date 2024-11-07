@@ -116,9 +116,9 @@ class AccountLiquiditySnapshotsStorage extends EntitySnapshotsStorage<
       snapshot.poolTokens = poolTokens;
       snapshot.liquidityUSD = liquidityUSD;
 
-      this.log(block, true).debug({ id, poolTokens }, 'Account Liquidity snapshot pool tokens updated');
-
       await this.save(block, snapshot, true);
+
+      this.log(block, true).debug({ id, poolTokens }, 'Account Liquidity snapshot pool tokens updated');
     }
   }
 }

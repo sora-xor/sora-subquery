@@ -8,7 +8,7 @@ import {
   tickerSyntheticAssetId,
 } from '../../utils/assets';
 import { XOR } from '../../utils/consts';
-import { getInitializeAssetsLog } from "../../utils/logs";
+import { getInitializeAssetsLog } from '../../utils/logs';
 import { isPriceV2 } from '../../utils/price';
 
 let isFirstBlockIndexed = false;
@@ -162,7 +162,7 @@ export async function initializeAssets(block: SubstrateBlock): Promise<void> {
         const price = (data as any).value.value.toString();
         const priceUSD = formatU128ToBalance(price, assetId);
 
-        getInitializeAssetsLog(block).debug(`'${referenceSymbol}' ticker price: ${priceUSD}`)
+        getInitializeAssetsLog(block).debug(`'${referenceSymbol}' ticker price: ${priceUSD}`);
       }
 
       assets.get(assetId).priceUSD = priceUSD;
