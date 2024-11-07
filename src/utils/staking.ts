@@ -1,120 +1,114 @@
-import { PayeeType, StakingEra, StakingStaker } from '../types'
-import { getUtilsLog } from './logs'
+import { PayeeType, StakingEra, StakingStaker } from '../types';
+import { getBlockNumber } from './index';
+import { getUtilsLog } from './logs';
 import { SubstrateBlock } from '@subql/types';
 
 let eraBlock!: number;
 let eraData!: any;
 
 const getActiveEraData = async (block: SubstrateBlock) => {
-	const key = block.block.header.number.toNumber();
+  const key = getBlockNumber(block);
 
-	if (eraBlock === key) {
-		return eraData;
-	}
+  if (eraBlock === key) {
+    return eraData;
+  }
 
-	getUtilsLog(block).debug('Active era request')
+  getUtilsLog(block).debug('Active era request');
 
-	const activeEra = (await api.query.staking.activeEra()).toJSON() as any;
+  const activeEra = (await api.query.staking.activeEra()).toJSON() as any;
 
-	if (!activeEra) {
-		getUtilsLog(block).error('Active era not found')
-		throw new Error('Active era not found')
-	}
+  if (!activeEra) {
+    getUtilsLog(block).error('Active era not found');
+    throw new Error('Active era not found');
+  }
 
-	eraBlock = key;
-	eraData = activeEra;
+  eraBlock = key;
+  eraData = activeEra;
 
-	return activeEra;
-}
+  return activeEra;
+};
 
 export const getActiveStakingEra = async (block: SubstrateBlock): Promise<StakingEra> => {
-	const activeEra = await getActiveEraData(block);
+  const activeEra = await getActiveEraData(block);
 
-	let stakingEra = await StakingEra.get(activeEra.index.toString())
+  let stakingEra = await StakingEra.get(activeEra.index.toString());
 
-	if (!stakingEra) {
-		stakingEra = new StakingEra(
-			activeEra.index.toString(),
-			activeEra.index,
-			activeEra.start
-		)
-		await stakingEra.save()
-		getUtilsLog(block).debug({ index: activeEra.index }, 'Staking era saved')
-	}
+  if (!stakingEra) {
+    stakingEra = new StakingEra(activeEra.index.toString(), activeEra.index, activeEra.start);
+    await stakingEra.save();
+    getUtilsLog(block).debug({ index: activeEra.index }, 'Staking era saved');
+  }
 
-	return stakingEra
-}
+  return stakingEra;
+};
 
 const getController = async (block: SubstrateBlock, address: string) => {
-	try {
-		const controllerCodec = await api.query.staking.bonded(address) as any;
+  try {
+    const controllerCodec = (await api.query.staking.bonded(address)) as any;
 
-		return controllerCodec.isNone ? '' : controllerCodec.unwrap().toString();
-	} catch (e) {
-		getUtilsLog(block).error(`Error getting Controller for account "${address}"`);
-		getUtilsLog(block).error(e);
-		return '';
-	}
-}
+    return controllerCodec.isNone ? '' : controllerCodec.unwrap().toString();
+  } catch (e) {
+    getUtilsLog(block).error(`Error getting Controller for account "${address}"`);
+    getUtilsLog(block).error(e);
+    return '';
+  }
+};
 
 export const getStakingStakerController = async (block: SubstrateBlock, staker: StakingStaker) => {
-	if (!staker.controller) {
-		staker.controller = await getController(block, staker.id);
-		await staker.save();
-	}
-	return staker.controller;
-}
+  if (!staker.controller) {
+    staker.controller = await getController(block, staker.id);
+    await staker.save();
+  }
+  return staker.controller;
+};
 
 const getPayeeDestination = async (block: SubstrateBlock, address: string) => {
-	try {
-		const destinationCodec = await api.query.staking.payee(address) as any;
+  try {
+    const destinationCodec = (await api.query.staking.payee(address)) as any;
 
-		return destinationCodec;
-	} catch (e) {
-		getUtilsLog(block).error(`Error getting Payee for account "${address}"`);
-		getUtilsLog(block).error(e);
-		return null;
-	}
-}
+    return destinationCodec;
+  } catch (e) {
+    getUtilsLog(block).error(`Error getting Payee for account "${address}"`);
+    getUtilsLog(block).error(e);
+    return null;
+  }
+};
 
 const getStakerAccounts = async (block: SubstrateBlock, address: string) => {
-	const destinationCodec = await getPayeeDestination(block, address);
+  const destinationCodec = await getPayeeDestination(block, address);
 
-	let payee = address;
-	let payeeType = PayeeType.STASH;
-	let controller = '';
+  let payee = address;
+  let payeeType = PayeeType.STASH;
+  let controller = '';
 
-	if (destinationCodec) {
-		if (destinationCodec.isAccount) {
-			payee =  destinationCodec.asAccount.toString();
-			payeeType = PayeeType.ACCOUNT;
-		} else if (destinationCodec.isController) {
-			controller = await getController(block, address);
-			payee = controller;
-			payeeType = PayeeType.CONTROLLER;
-		}
-	}
+  if (destinationCodec) {
+    if (destinationCodec.isAccount) {
+      payee = destinationCodec.asAccount.toString();
+      payeeType = PayeeType.ACCOUNT;
+    } else if (destinationCodec.isController) {
+      controller = await getController(block, address);
+      payee = controller;
+      payeeType = PayeeType.CONTROLLER;
+    }
+  }
 
-	return { payee, payeeType, controller };
-}
+  return { payee, payeeType, controller };
+};
 
 export const getStakingStaker = async (block: SubstrateBlock, address: string): Promise<StakingStaker> => {
-	let stakingStaker = await StakingStaker.get(address);
+  let stakingStaker = await StakingStaker.get(address);
 
-	if (!stakingStaker) {
-		const { payee, payeeType, controller } = await getStakerAccounts(block, address);
+  if (!stakingStaker) {
+    const { payee, payeeType, controller } = await getStakerAccounts(block, address);
 
-		stakingStaker = new StakingStaker(
-			address,
-			payeeType
-		);
+    stakingStaker = new StakingStaker(address, payeeType);
 
-		stakingStaker.controller = controller;
-		stakingStaker.payee = payee;
+    stakingStaker.controller = controller;
+    stakingStaker.payee = payee;
 
-		await stakingStaker.save();
-		getUtilsLog(block).debug({ id: address }, 'Staking staker saved');
-	}
+    await stakingStaker.save();
+    getUtilsLog(block).debug({ id: address }, 'Staking staker saved');
+  }
 
-	return stakingStaker;
+  return stakingStaker;
 };
