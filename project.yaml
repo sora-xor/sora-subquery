@@ -568,3 +568,7 @@ dataSources:
           kind: substrate/BlockHandler
           filter:
             modulo: 50
+        - handler: syncAssetOwner
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 50

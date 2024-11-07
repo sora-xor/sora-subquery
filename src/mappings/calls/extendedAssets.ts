@@ -3,7 +3,7 @@ import { getExtrinsicArgs, getExtrinsicSigner } from '../../utils';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId } from '../../utils/assets';
 import { logStartProcessingCall } from '../../utils/logs';
-import { updateSbtAccessOnAccount } from 'src/utils/assetOwner';
+import { updateSbtAccessOnAccount } from '../../utils/assetOwner';
 
 export async function setSbtExpirationCallHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
   logStartProcessingCall(extrinsic);
@@ -13,7 +13,6 @@ export async function setSbtExpirationCallHandler(extrinsic: SubstrateExtrinsic)
   const sbtAssetId = getAssetId(sbtAsset);
   const newExpiresAtTime = newExpiresAt.toString();
   const accountId = account.toString();
-  
 
   const details = {
     issuer,

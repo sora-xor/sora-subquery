@@ -1,6 +1,6 @@
-import { EntityStorage, EntitySnapshotsStorage } from './storage';
+import { EntityStorage } from './storage';
 
-import { AssetOwner, AssetOwnerSnapshot, AssetOwnerAccount } from '../types';
+import { AssetOwner, AssetOwnerAccount } from '../types';
 
 import { SubstrateBlock } from '@subql/types';
 
@@ -17,50 +17,24 @@ class AssetOwnerStorage extends EntityStorage<AssetOwner> {
     return new AssetOwner(id, []);
   }
 
-  async updateAccess(
-    block: SubstrateBlock,
-    id: string,
-    accountId: string,
-    expiresAt: number,
-    sbtAssetId
-  ): Promise<void> {
+  async updateAccess(block: SubstrateBlock, id: string, accountId: string, expiresAt: number): Promise<void> {
     const assetOwner = await this.getEntity(block, id);
     const currentSbtAccesses = assetOwner.sbtAccesses;
 
-    const foundAccount = currentSbtAccesses.find((sbtAccess) => sbtAccess.accountAddress === accountId);
+    const newRecord = { accountAddress: accountId, expiresAt };
 
-    let updated: Array<AssetOwnerAccount> = [];
-
-    if (foundAccount) {
-      updated = currentSbtAccesses.map((sbtAccess) => {
-        if (sbtAccess.accountAddress === accountId) {
-          return { ...sbtAccess, expiresAt };
-        }
-
-        return sbtAccess;
-      });
-    } else {
-      updated = currentSbtAccesses;
-      updated.push({ accountAddress: accountId, expiresAt, sbtAssetId });
-    }
+    // update if exists, attach if it's new
+    const updated = currentSbtAccesses
+      .filter((record: AssetOwnerAccount) => record.accountAddress !== newRecord.accountAddress)
+      .concat(newRecord);
 
     assetOwner.sbtAccesses = updated;
 
-    await this.save(block, assetOwner);
+    await this.save(block, assetOwner, true);
 
-    this.log(block, true).debug({ accountId, sbtAssetId }, 'SBT account access privileges updated');
+    this.log(block, true).debug({ accountId }, 'SBT account access privileges updated');
   }
 }
-
-// class AssetOwnerSnaphotsStorage extends EntitySnapshotsStorage<AssetOwner, AssetOwnerSnapshot, AssetOwnerStorage> {
-//   constructor(assetOwner: AssetOwner) {
-//     super('AssetOwnerSnapshot', assetOwner);
-//   }
-
-//   protected override async loadEntity(id: string): Promise<AssetOwnerSnapshot> {
-//     return await AssetOwnerSnapshot.get(id);
-//   }
-// }
 
 export const updateSbtAccessOnAccount = async (
   block: SubstrateBlock,
@@ -69,8 +43,7 @@ export const updateSbtAccessOnAccount = async (
   newExpiresAt: string,
   signer: string
 ): Promise<void> => {
-  await assetOwnerStorage.updateAccess(block, signer, accountId, Number(newExpiresAt), sbtAssetId);
+  await assetOwnerStorage.updateAccess(block, `${signer}-${sbtAssetId}`, accountId, Number(newExpiresAt));
 };
 
-const assetOwnerStorage = new AssetOwnerStorage();
-// export const assetOwnerSnapshotsStorage = new AssetOwnerSnaphotsStorage(assetOwnerStorage);
+export const assetOwnerStorage = new AssetOwnerStorage();

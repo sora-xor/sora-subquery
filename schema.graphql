@@ -7,16 +7,16 @@ enum SnapshotType {
 }
 
 enum PayeeType {
-	STAKED
-	STASH
-	CONTROLLER,
-	ACCOUNT,
-	NONE
+  STAKED
+  STASH
+  CONTROLLER
+  ACCOUNT
+  NONE
 }
 
 enum HistoryElementType {
-	CALL
-	EVENT
+  CALL
+  EVENT
 }
 
 interface ISnapshot {
@@ -48,20 +48,13 @@ type NetworkSnapshot implements ISnapshot @entity {
 }
 
 type AssetOwner @entity {
-  id: ID! # accountId of issuer
+  id: ID! # accountId-sbtAssetId (of issuer)
   sbtAccesses: [AssetOwnerAccount!]!
 }
 
 type AssetOwnerAccount @jsonField {
-  sbtAssetId: String!
-  accountAddress: String!
+  accountAddress: String! # address that has been given access to
   expiresAt: Int!
-}
-
-type AssetOwnerSnapshot implements ISnapshot {
-  id: !ID
-  timestamp: Int!
-  type: SnapshotType!
 }
 
 type UpdatesStream @entity {
@@ -221,7 +214,7 @@ type AccountMetaDeposit @jsonField {
 
 type HistoryElement @entity {
   id: ID!
-	type: HistoryElementType!
+  type: HistoryElementType!
   blockHeight: Int!
   blockHash: String! @index
   module: String! @index
@@ -231,12 +224,12 @@ type HistoryElement @entity {
   execution: ExecutionResult!
   timestamp: Int!
   data: HistoryElementDetails
-	dataTo: String @index
-	dataFrom: String @index
+  dataTo: String @index
+  dataFrom: String @index
   dataAssets: [String]
-	calls: [HistoryElementCall!]! @derivedFrom(field: "historyElement")
-	callNames: [String]!
-	updatedAtBlock: Int!
+  calls: [HistoryElementCall!]! @derivedFrom(field: "historyElement")
+  callNames: [String]!
+  updatedAtBlock: Int!
 }
 
 type HistoryElementDetails @jsonField {
@@ -244,13 +237,13 @@ type HistoryElementDetails @jsonField {
 }
 
 type HistoryElementCall @entity {
-	id: ID!
-	historyElement: HistoryElement! @index
-	module: String!
-	method: String!
+  id: ID!
+  historyElement: HistoryElement! @index
+  module: String!
+  method: String!
   hash: String! @index
-	data: HistoryElementCallDetails
-	updatedAtBlock: Int!
+  data: HistoryElementCallDetails
+  updatedAtBlock: Int!
 }
 
 type HistoryElementCallDetails @jsonField {
@@ -269,11 +262,11 @@ type Error @jsonField {
 }
 
 type ReferrerReward @entity {
-	id: ID!
-	referral: String! @index
-	referrer: String!
-	updated: Int!
-	amount: BigInt!
+  id: ID!
+  referral: String! @index
+  referrer: String!
+  updated: Int!
+  amount: BigInt!
 }
 
 type StakingStaker @entity {
@@ -413,15 +406,15 @@ type OrderBookOrder implements IOrderBookDeal @entity {
 # CdpType
 enum VaultType {
   # Pays stability fee in underlying collateral, cannot be liquidated.
-  Type1,
+  Type1
   # Pays stability fee in stable coins, can be liquidated. (by default ??)
-  Type2,
+  Type2
 }
 
 enum VaultStatus {
-  Opened,
-  Closed,
-  Liquidated, # returned collateral amount === 0
+  Opened
+  Closed
+  Liquidated # returned collateral amount === 0
 }
 
 type Vault @entity {
@@ -438,12 +431,12 @@ type Vault @entity {
 }
 
 enum VaultEventType {
-  Created,
-  Closed,
-  CollateralDeposit,
-  DebtIncreased,
-  DebtPayment,
-  Liquidated,
+  Created
+  Closed
+  CollateralDeposit
+  DebtIncreased
+  DebtPayment
+  Liquidated
 }
 
 type VaultEvent @entity {
