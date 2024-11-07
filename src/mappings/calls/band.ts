@@ -3,9 +3,9 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { tickerSyntheticAssetId, assetSnapshotsStorage, formatU128ToBalance } from '../../utils/assets';
 import { bytesToString, getExtrinsicArgs } from '../../utils';
 import { BASE_ASSETS } from '../../utils/consts';
-import { getCallHandlerLog, logStartProcessingCall } from "../../utils/logs";
+import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 import { poolAccounts } from '../../utils/pools';
-import { isPriceV2 } from "../../utils/price";
+import { isPriceV2 } from '../../utils/price';
 
 export async function handleBandRateUpdate(extrinsic: SubstrateExtrinsic): Promise<void> {
   const blockNumber = extrinsic.block.block.header.number.toNumber();
@@ -36,6 +36,6 @@ export async function handleBandRateUpdate(extrinsic: SubstrateExtrinsic): Promi
 
     await assetSnapshotsStorage.updatePrice(extrinsic.block, syntheticAssetId, price);
 
-    getCallHandlerLog(extrinsic).debug({ syntheticAssetId, price }, 'Synthetic asset price update')
+    getCallHandlerLog(extrinsic).debug({ syntheticAssetId, price }, 'Synthetic asset price update');
   }
 }

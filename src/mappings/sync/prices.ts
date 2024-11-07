@@ -12,7 +12,7 @@ import {
   getChameleonPoolBaseAssetId,
 } from '../../utils/pools';
 import { XOR, PSWAP, DAI, BASE_ASSETS, XSTUSD } from '../../utils/consts';
-import { getPoolsStorageLog, getSyncPricesLog } from "../../utils/logs";
+import { getPoolsStorageLog, getSyncPricesLog } from '../../utils/logs';
 import { calcPriceInReference, isPriceV2 } from '../../utils/price';
 
 const getAssetDexCap = (assetReserves: BigNumber, assetPrice: BigNumber, daiReserves: BigNumber) => {
@@ -74,9 +74,14 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
       if (pool.targetAssetId === DAI) {
         baseAssetPriceInDAI = calcPriceInReference(blockNumber, baseAssetReservesBN, targetAssetReservesBN);
-        daiReserves[baseAssetId] = targetAssetReservesBN
+        daiReserves[baseAssetId] = targetAssetReservesBN;
       } else if (pool.targetAssetId === chameleonAsset) {
-        chameleonAssetPriceInBaseAsset = calcPriceInReference(blockNumber, baseAssetReservesBN, targetAssetReservesBN, baseAssetPriceInDAI);
+        chameleonAssetPriceInBaseAsset = calcPriceInReference(
+          blockNumber,
+          baseAssetReservesBN,
+          targetAssetReservesBN,
+          baseAssetPriceInDAI
+        );
       }
 
       pools[baseAssetId].push(pool);
@@ -94,7 +99,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
         if (p.targetAssetId === DAI) {
           p.priceUSD = '1';
           continue;
-        };
+        }
 
         const baseAssetReserves = new BigNumber(p.baseAssetReserves.toString());
         const targetAssetReserves = new BigNumber(p.targetAssetReserves.toString());
@@ -106,10 +111,10 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
           const baseAssetVolume = baseAssetReserves.minus(chameleonAssetReserves);
           const chameleonAssetVolume = chameleonAssetReserves.multipliedBy(chameleonAssetPriceInBaseAsset);
           const targetAssetPriceInBaseAsset = calcPriceInReference(
-              blockNumber,
-              baseAssetVolume.plus(chameleonAssetVolume),
-              targetAssetReserves,
-              baseAssetPriceInDAI,
+            blockNumber,
+            baseAssetVolume.plus(chameleonAssetVolume),
+            targetAssetReserves,
+            baseAssetPriceInDAI
           );
 
           daiPrice = targetAssetPriceInBaseAsset.multipliedBy(baseAssetPriceInDAI);
@@ -169,7 +174,7 @@ export async function syncPoolXykPrices(block: SubstrateBlock): Promise<void> {
 
   // update assets prices
   for (const [assetId, { price }] of Object.entries(assetsPrices)) {
-    // [v1] do not update price from XYK pool for synthetic 
+    // [v1] do not update price from XYK pool for synthetic
     // [v2] update price from XYK pool for synthetic
     if (isPriceV2(blockNumber) || !syntheticAssetsIds.includes(assetId)) {
       await assetSnapshotsStorage.updatePrice(block, assetId, price);
