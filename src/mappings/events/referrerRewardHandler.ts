@@ -1,38 +1,41 @@
-import { SubstrateEvent } from "@subql/types";
-import { ReferrerReward } from "../../types";
+import { SubstrateEvent } from '@subql/types';
+import { ReferrerReward } from '../../types';
 import { formatDateTimestamp } from '../../utils';
-import { getEventHandlerLog, logStartProcessingEvent } from "../../utils/logs";
+import { getEventData } from '../../utils/events';
+import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 
 export async function referrerRewardHandler(event: SubstrateEvent): Promise<void> {
-    logStartProcessingEvent(event)
+  logStartProcessingEvent(event);
 
-	const {
-		event: {
-			data: [referral, referrer, amount],
-		},
-	} = event;
+  const [referral, referrer, amount] = getEventData(event);
 
-	const key = `${referral.toString()}-${referrer.toString()}`;
+  const key = `${referral.toString()}-${referrer.toString()}`;
 
-	let referrerReward = await ReferrerReward.get(key);
+  let referrerReward = await ReferrerReward.get(key);
 
-	if (!referrerReward) {
-		referrerReward = new ReferrerReward(key, referral.toString(), referrer.toString(), formatDateTimestamp(event.block.timestamp), BigInt(0));
-	}
+  if (!referrerReward) {
+    referrerReward = new ReferrerReward(
+      key,
+      referral.toString(),
+      referrer.toString(),
+      formatDateTimestamp(event.block.timestamp),
+      BigInt(0)
+    );
+  }
 
-	referrerReward.updated = formatDateTimestamp(event.block.timestamp);
+  referrerReward.updated = formatDateTimestamp(event.block.timestamp);
 
-	referrerReward.amount = referrerReward.amount + (BigInt(amount.toString()));
+  referrerReward.amount = referrerReward.amount + BigInt(amount.toString());
 
-	await referrerReward.save();
+  await referrerReward.save();
 
-	getEventHandlerLog(event).debug(
-		{
-			referral: referrerReward.referral,
-			referrer: referrerReward.referrer,
-			amount: referrerReward.amount,
-			updated: referrerReward.updated
-		},
-		'Referrer reward updated',
-	)
+  getEventHandlerLog(event).debug(
+    {
+      referral: referrerReward.referral,
+      referrer: referrerReward.referrer,
+      amount: referrerReward.amount,
+      updated: referrerReward.updated,
+    },
+    'Referrer reward updated'
+  );
 }
