@@ -86,7 +86,7 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
   const grantAccess: any = entities.find((entity: any) => entity.method === 'setSbtExpiration');
 
   if (grantAccess) {
-    const { account_id: accountId, sbt_asset_id: sbtAssetId, new_expires_at: newExpiresAt } = grantAccess.data?.args;
+    const { account_id: accountId, sbt_asset_id: sbtAssetId, new_expires_at: newExpiresAt } = grantAccess.data.args;
 
     await updateSbtAccessOnAccount(
       extrinsic.block,
