@@ -121,6 +121,11 @@ dataSources:
           filter:
             module: substrateBridgeInboundChannel
             method: submit
+        - handler: tonBridgeIncomingHandler
+          kind: substrate/CallHandler
+          filter:
+            module: bridgeInboundChannel
+            method: submit
         # rewards
         - handler: rewardsHandler
           kind: substrate/CallHandler
