@@ -17,6 +17,7 @@ function getEvmNetworkId(network: any): number {
 
 function getNetworkId(network: any): string | number {
   if (network.isSub) return network.asSub.toString();
+  if (network.isTon) return network.asTon.toString();
 
   return getEvmNetworkId(network);
 }
@@ -100,6 +101,8 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 
   const details: any = {};
 
+  details.hash = getBridgeProxyHash(extrinsic);
+
   const bridgeAppMinted = extrinsic.events.find(
     (e) => isEvent(e, 'parachainBridgeApp', 'Minted') || isEvent(e, 'substrateBridgeApp', 'Minted')
   );
@@ -121,8 +124,6 @@ export async function substrateBridgeIncomingHandler(extrinsic: SubstrateExtrins
 
     await accountMetaStorage.updateIncomingDeposit(extrinsic.block, recipient, amountUSD);
   }
-
-  details.hash = getBridgeProxyHash(extrinsic);
 
   await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(extrinsic.block);
 
@@ -157,4 +158,43 @@ export async function bridgeProxyOutgoingHandler(extrinsic: SubstrateExtrinsic):
   await createHistoryElement(extrinsic, details);
 
   await accountMetaStorage.updateOutgoingDeposit(extrinsic.block, sender, amountUSD);
+}
+
+export async function tonBridgeIncomingHandler(extrinsic: SubstrateExtrinsic): Promise<void> {
+  logStartProcessingCall(extrinsic);
+
+  const [networkIdCodec] = getExtrinsicArgs(extrinsic) as any;
+
+  const networkType = networkIdCodec.type.toString();
+  const networkId = getNetworkId(networkIdCodec);
+
+  const details: any = {};
+
+  details.hash = getBridgeProxyHash(extrinsic);
+  details.networkType = networkType;
+  details.networkId = networkId;
+
+  const jettonAppMinted = extrinsic.events.find((e) => isEvent(e, 'jettonApp', 'Minted'));
+
+  if (jettonAppMinted) {
+    const [assetCodec, senderCodec, recipientCodec, amountCodec] = getEventData(jettonAppMinted);
+
+    const sender = (senderCodec as any).address.toString();
+    const recipient = recipientCodec.toString();
+    const assetId = getAssetId(assetCodec);
+    const amount = formatU128ToBalance(amountCodec.toString(), assetId);
+    const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
+
+    details.assetId = assetId;
+    details.amount = amount;
+    details.amountUSD = amountUSD;
+    details.to = recipient;
+    details.from = sender;
+
+    await accountMetaStorage.updateIncomingDeposit(extrinsic.block, recipient, amountUSD);
+  }
+
+  await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(extrinsic.block);
+
+  await createHistoryElement(extrinsic, details, { address: details.to });
 }
