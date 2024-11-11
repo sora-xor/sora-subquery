@@ -1,10 +1,10 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
 import { PricesV2StartBlock } from '../config';
 
 enum PriceVersion {
   V1 = 'V1',
-  V2 = 'V2'
+  V2 = 'V2',
 }
 
 const XYK_FEE = new BigNumber(0.003);
@@ -14,9 +14,7 @@ const ZERO = new BigNumber(0);
 const MIN = new BigNumber(1);
 
 const safeDivide = (nominator: BigNumber, denominator: BigNumber): BigNumber => {
-  return !denominator.isZero()
-    ? nominator.dividedBy(denominator)
-    : new BigNumber(0);
+  return !denominator.isZero() ? nominator.dividedBy(denominator) : new BigNumber(0);
 };
 
 /**
@@ -26,18 +24,13 @@ const safeDivide = (nominator: BigNumber, denominator: BigNumber): BigNumber => 
  * @param xIn x_in - desired input amount (base asset)
  * @returns QuoteResult
  */
-const xykQuoteA = (
-  x: BigNumber,
-  y: BigNumber,
-  xIn: BigNumber,
-  deduceFee: boolean
-): BigNumber => {
+const xykQuoteA = (x: BigNumber, y: BigNumber, xIn: BigNumber, deduceFee: boolean): BigNumber => {
   const xInWithoutFee = deduceFee ? xIn.multipliedBy(ONE.minus(XYK_FEE)) : xIn;
   const nominator = xInWithoutFee.multipliedBy(y);
   const denominator = x.plus(xInWithoutFee);
   const yOut = safeDivide(nominator, denominator);
 
-  return yOut
+  return yOut;
 };
 
 /**
@@ -46,12 +39,7 @@ const xykQuoteA = (
  * @param y - base asset reserve
  * @param xIn - desired input amount (other token)
  */
-const xykQuoteB = (
-  x: BigNumber,
-  y: BigNumber,
-  xIn: BigNumber,
-  deduceFee: boolean,
-): BigNumber => {
+const xykQuoteB = (x: BigNumber, y: BigNumber, xIn: BigNumber, deduceFee: boolean): BigNumber => {
   const nominator = xIn.multipliedBy(y);
   const denominator = x.plus(xIn);
   const yOutWithFee = safeDivide(nominator, denominator);
@@ -67,12 +55,7 @@ const xykQuoteB = (
  * @param yOut - desired output amount (other token)
  * @returns QuoteResult
  */
-const xykQuoteC = (
-  x: BigNumber,
-  y: BigNumber,
-  yOut: BigNumber,
-  deduceFee: boolean
-): BigNumber => {
+const xykQuoteC = (x: BigNumber, y: BigNumber, yOut: BigNumber, deduceFee: boolean): BigNumber => {
   if (yOut.isGreaterThanOrEqualTo(y)) {
     return ZERO;
   }
@@ -93,12 +76,7 @@ const xykQuoteC = (
  * @param yOut - desired output amount (base asset)
  * @returns QuoteResult
  */
-const xykQuoteD = (
-  x: BigNumber,
-  y: BigNumber,
-  yOut: BigNumber,
-  deduceFee: boolean
-): BigNumber => {
+const xykQuoteD = (x: BigNumber, y: BigNumber, yOut: BigNumber, deduceFee: boolean): BigNumber => {
   const fxwYout = yOut.plus(MIN); // by 1 correction to overestimate required input
   const yOutWithFee = deduceFee ? safeDivide(fxwYout, ONE.minus(XYK_FEE)) : fxwYout;
 
@@ -113,15 +91,17 @@ const xykQuoteD = (
   return xIn;
 };
 
-
 // ideal price
 const idealPrice = (baseReserves: BigNumber, targetReserves: BigNumber, isDai = false): BigNumber => {
-  return isDai
-    ? safeDivide(targetReserves, baseReserves)
-    : safeDivide(baseReserves, targetReserves);
+  return isDai ? safeDivide(targetReserves, baseReserves) : safeDivide(baseReserves, targetReserves);
 };
 
-const swapPrice = (baseReserves: BigNumber, targetReserves: BigNumber, isDai = false, baseAssetPriceInDAI?: BigNumber): BigNumber => {
+const swapPrice = (
+  baseReserves: BigNumber,
+  targetReserves: BigNumber,
+  isDai = false,
+  baseAssetPriceInDAI?: BigNumber
+): BigNumber => {
   if (baseAssetPriceInDAI && baseAssetPriceInDAI.isZero()) return ZERO;
 
   const baseAmount = TEN.multipliedBy(Math.pow(10, 18)); // DAI
@@ -141,7 +121,7 @@ const getVersion = (blockNumber: number): PriceVersion => {
     return PriceVersion.V2;
   }
   return PriceVersion.V1;
-}
+};
 
 export const isPriceV2 = (blockNumber: number): boolean => {
   return getVersion(blockNumber) === PriceVersion.V2;
@@ -151,7 +131,7 @@ export const calcPriceInReference = (
   blockNumber: number,
   baseReserves: BigNumber,
   targetReserves: BigNumber,
-  baseAssetPriceInDAI?: BigNumber,
+  baseAssetPriceInDAI?: BigNumber
 ): BigNumber => {
   const version = getVersion(blockNumber);
   const isDai = !baseAssetPriceInDAI;
