@@ -5,6 +5,7 @@ import { AnyTuple, CallBase } from '@polkadot/types/types';
 import { createHistoryElement } from '../../utils/history';
 import { getAssetId, formatU128ToBalance } from '../../utils/assets';
 import { updatePoolLiquidity } from '../../utils/pools';
+import { updateSbtAccessOnAccount } from '../../utils/assetOwner';
 import { logStartProcessingCall } from '../../utils/logs';
 import { getEntityId, getBlockNumber, getExtrinsicSigner } from '../../utils';
 import { HistoryElementCall } from '../../types';
@@ -79,6 +80,23 @@ export async function batchTransactionsHandler(extrinsic: SubstrateExtrinsic): P
     const { baseAssetId, targetAssetId } = initializePool.data;
 
     await updatePoolLiquidity(extrinsic.block, baseAssetId, targetAssetId, getExtrinsicSigner(extrinsic));
+  }
+
+  // If set SBT expiration call exists, set expiration & store
+  const grantAccess: any = entities.find((entity: any) => entity.method === 'setSbtExpiration');
+
+  if (grantAccess) {
+    const { account_id: accountId, sbt_asset_id: sbtAssetId, new_expires_at: newExpiresAt } = grantAccess.data.args;
+
+    await updateSbtAccessOnAccount(
+      extrinsic.block,
+      accountId,
+      sbtAssetId?.code,
+      newExpiresAt,
+      getExtrinsicSigner(extrinsic)
+    );
+
+    return;
   }
 
   const historyElementId = getEntityId(extrinsic);

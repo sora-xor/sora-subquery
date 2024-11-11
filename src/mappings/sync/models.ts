@@ -3,6 +3,7 @@ import type { SubstrateBlock } from '@subql/types';
 import { accountMetaStorage } from '../../utils/account';
 import { accountLiquidityStorage, accountLiquiditySnapshotsStorage } from '../../utils/accountLiquidity';
 import { assetSnapshotsStorage, assetStorage } from '../../utils/assets';
+import { assetOwnerStorage } from '../../utils/assetOwner';
 import { networkSnapshotsStorage, networkStatsStorage } from '../../utils/network';
 import { orderBooksStorage, orderBooksSnapshotsStorage } from '../../utils/orderBook';
 import { poolsStorage, poolsSnapshotsStorage } from '../../utils/pools';
@@ -33,6 +34,10 @@ export async function syncAccountLiquidities(block: SubstrateBlock): Promise<voi
 
 export async function syncAccountMeta(block: SubstrateBlock): Promise<void> {
   await accountMetaStorage.sync(block, true);
+}
+
+export async function syncAssetOwner(block: SubstrateBlock): Promise<void> {
+  await assetOwnerStorage.sync(block, true);
 }
 
 export async function updateNetworkStats(block: SubstrateBlock): Promise<void> {

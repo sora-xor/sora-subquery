@@ -127,6 +127,11 @@ dataSources:
           filter:
             module: substrateBridgeInboundChannel
             method: submit
+        - handler: tonBridgeIncomingHandler
+          kind: substrate/CallHandler
+          filter:
+            module: bridgeInboundChannel
+            method: submit
         # rewards
         - handler: rewardsHandler
           kind: substrate/CallHandler
@@ -400,7 +405,7 @@ dataSources:
             module: orderBook
             method: cancelLimitOrdersBatch
         # defi-r calls
-        - handler: setSbtExpiratioCallHandler
+        - handler: setSbtExpirationCallHandler
           kind: substrate/CallHandler
           filter:
             module: extendedAssets
@@ -571,6 +576,10 @@ dataSources:
           filter:
             modulo: 600
         - handler: syncAccountMeta
+          kind: substrate/BlockHandler
+          filter:
+            modulo: 50
+        - handler: syncAssetOwner
           kind: substrate/BlockHandler
           filter:
             modulo: 50
