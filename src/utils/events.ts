@@ -42,6 +42,10 @@ export const isTokenDepositedEvent = (e: TypedEventRecord<Codec[]>) => {
   return isEvent(e, 'tokens', 'Deposited');
 };
 
+export const isAccessGrantEvent = (e: TypedEventRecord<Codec[]>) => {
+  return isEvent(e, 'extendedAssets', 'SBTExpirationUpdated');
+}
+
 // substrate 3
 export const isCurrencyDepositedEvent = (e: TypedEventRecord<Codec[]>) => {
   return isEvent(e, 'currencies', 'Deposited');
