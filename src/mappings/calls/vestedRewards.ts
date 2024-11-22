@@ -19,7 +19,7 @@ export async function vestedTransferHandler(extrinsic: SubstrateExtrinsic): Prom
   const from = getExtrinsicSigner(extrinsic);
   const to = destCodec.toString();
   const assetId = getAssetId(args.assetId);
-  const startArg = args.start.unwrap();
+  const startArg = args.start.unwrap?.() ?? args.start;
 
   const start = startArg ? startArg.toNumber() : undefined;
   const period = args.period.toNumber();
