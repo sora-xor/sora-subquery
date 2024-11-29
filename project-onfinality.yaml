@@ -14,7 +14,7 @@ schema:
   file: ./schema.graphql
 network:
   chainId: '0'
-  endpoint: wss://ws.framenode-8.s5.stg1.sora2.soramitsu.co.jp
+  endpoint: https://rpc.framenode-7.s4.stg1.sora2.soramitsu.co.jp
   chaintypes:
     file: ./types.json
 dataSources:
