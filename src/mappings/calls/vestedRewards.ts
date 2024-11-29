@@ -19,7 +19,9 @@ export async function vestedTransferHandler(extrinsic: SubstrateExtrinsic): Prom
   const from = getExtrinsicSigner(extrinsic);
   const to = destCodec.toString();
   const assetId = getAssetId(args.assetId);
+  const startArg = args.start.unwrap?.() ?? args.start;
 
+  const start = startArg ? startArg.toNumber() : undefined;
   const period = args.period.toNumber();
   const periodCount = args.periodCount.toNumber();
   const perPeriod = formatU128ToBalance(args.perPeriod.unwrap().toString(), assetId);
@@ -44,6 +46,7 @@ export async function vestedTransferHandler(extrinsic: SubstrateExtrinsic): Prom
     to,
     period,
     percent,
+    start,
   };
 
   await createHistoryElement(extrinsic, details, { address: from });
