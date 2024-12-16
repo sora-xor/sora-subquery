@@ -86,3 +86,50 @@ export const getDepositedEventData = (e: TypedEventRecord<Codec[]>) => {
     amount: amount.toString(),
   };
 };
+
+export const getFeeWithdrawnData = (e: TypedEventRecord<Codec[]>) => {
+  const data = getEventData(e);
+  const accountId = data[0].toString();
+  if (data.length === 2) {
+    /// FeeWithdrawn(AccountIdOf<T>, BalanceOf<T>)
+    return {
+      accountId,
+      assetId: XOR,
+      fee: data[1].toString(),
+    };
+  } else if (data.length === 3) {
+    /// FeeWithdrawn(AccountIdOf<T>, AssetIdOf<T>, Balance)
+    return {
+      accountId,
+      assetId: getAssetId(data[1]),
+      fee: data[2].toString(),
+    };
+  } else {
+    throw new Error('FeeWithdrawn: wrong event data');
+  }
+};
+
+export const getReferrerRewardedData = (e: TypedEventRecord<Codec[]>) => {
+  const data = getEventData(e);
+  const referral = data[0].toString();
+  const referrer = data[1].toString();
+  if (data.length === 3) {
+    /// ReferrerRewarded(AccountIdOf<T>, AccountIdOf<T>, Balance)
+    return {
+      referral,
+      referrer,
+      assetId: XOR,
+      amount: data[2].toString(),
+    };
+  } else if (data.length === 4) {
+    /// ReferrerRewarded(AccountIdOf<T>, AccountIdOf<T>, AssetIdOf<T>, Balance)
+    return {
+      referral,
+      referrer,
+      assetId: getAssetId(data[2]),
+      amount: data[3].toString(),
+    };
+  } else {
+    throw new Error('ReferrerRewarded: wrong event data');
+  }
+};
