@@ -1,31 +1,30 @@
+import { XOR } from '../../utils/consts';
 import { SubstrateEvent } from '@subql/types';
 import { ReferrerReward } from '../../types';
 import { formatDateTimestamp } from '../../utils';
-import { getEventData } from '../../utils/events';
+import { getReferrerRewardedData } from '../../utils/events';
 import { getEventHandlerLog, logStartProcessingEvent } from '../../utils/logs';
 
 export async function referrerRewardHandler(event: SubstrateEvent): Promise<void> {
   logStartProcessingEvent(event);
 
-  const [referral, referrer, amount] = getEventData(event);
+  const { referral, referrer, amount, assetId } = getReferrerRewardedData(event);
 
-  const key = `${referral.toString()}-${referrer.toString()}`;
+  if (assetId !== XOR) {
+    throw new Error('XORless referrer rewards is not supported!');
+  }
+
+  const key = `${referral}-${referrer}`;
 
   let referrerReward = await ReferrerReward.get(key);
 
   if (!referrerReward) {
-    referrerReward = new ReferrerReward(
-      key,
-      referral.toString(),
-      referrer.toString(),
-      formatDateTimestamp(event.block.timestamp),
-      BigInt(0)
-    );
+    referrerReward = new ReferrerReward(key, referral, referrer, formatDateTimestamp(event.block.timestamp), BigInt(0));
   }
 
   referrerReward.updated = formatDateTimestamp(event.block.timestamp);
 
-  referrerReward.amount = referrerReward.amount + BigInt(amount.toString());
+  referrerReward.amount = referrerReward.amount + BigInt(amount);
 
   await referrerReward.save();
 
