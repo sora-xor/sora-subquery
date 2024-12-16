@@ -30,8 +30,8 @@
   "author": "Soramitsu",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@subql/cli": "5.3.2",
-    "@subql/node": "5.4.2",
+    "@subql/cli": "5.4.0",
+    "@subql/node": "5.6.0",
     "@subql/types": "3.11.4",
     "fs-extra": "^11.2.0",
     "js-yaml": "^4.1.0",
