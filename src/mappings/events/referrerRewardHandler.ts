@@ -11,7 +11,8 @@ export async function referrerRewardHandler(event: SubstrateEvent): Promise<void
   const { referral, referrer, amount, assetId } = getReferrerRewardedData(event);
 
   if (assetId !== XOR) {
-    throw new Error('XORless referrer rewards is not supported!');
+    // 'XORless referrer rewards is not supported!'
+    return;
   }
 
   const key = `${referral}-${referrer}`;
