@@ -1,5 +1,5 @@
 {
-  "name": "sora-subquery",
+  "name": "analog-bridge-subquery",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -27,7 +27,7 @@
   "resolutions": {
     "ipfs-unixfs": "6.0.6"
   },
-  "author": "Soramitsu",
+  "author": "Analog",
   "license": "Apache-2.0",
   "devDependencies": {
     "@subql/cli": "5.4.0",

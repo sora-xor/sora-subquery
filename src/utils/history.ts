@@ -1,16 +1,12 @@
 import type { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subql/types';
 
 import { HistoryElement, HistoryElementCall, HistoryElementType } from '../types';
-import { getAccountEntity } from './account';
-import { networkSnapshotsStorage } from './network';
 import { formatDateTimestamp, getEntityId, shouldUpdate, getBlockNumber, getExtrinsicSigner } from './index';
 import { isEvent, getEventData } from './events';
 import { getUtilsLog } from './logs';
 
-const INCOMING_TRANSFER_METHODS = ['transfer', 'xorlessTransfer', 'swapTransfer', 'swapTransferBatch'];
-
 class HistoryElementsStorage {
-  public readonly maxSize = 1000;
+  public readonly maxSize = 10;
 
   private elements!: HistoryElement[];
   private calls!: HistoryElementCall[];
@@ -50,25 +46,9 @@ class HistoryElementsStorage {
     }
   }
 
-  private async updateAccounts(block: SubstrateBlock) {
-    const accounts = [];
-
-    for (const [accountId, historyId] of this.accounts.entries()) {
-      const account = await getAccountEntity(block, accountId);
-      account.latestHistoryElementId = historyId;
-      accounts.push(account);
-    }
-
-    if (accounts.length) {
-      await store.bulkUpdate('Account', accounts);
-      getUtilsLog(block).debug(`Accounts updated: ${accounts.length}`);
-    }
-  }
-
   public async sync(block: SubstrateBlock): Promise<void> {
     await this.updateElements(block);
     await this.updateCalls(block);
-    await this.updateAccounts(block);
 
     this.clear();
   }
@@ -109,7 +89,7 @@ type CreateHistoryElementOptions = {
 export const createHistoryElement = async (
   ctx: SubstrateExtrinsic | SubstrateEvent,
   data?: {},
-  { calls, address, useStats = true }: CreateHistoryElementOptions = {}
+  { calls, address }: CreateHistoryElementOptions = {}
 ): Promise<HistoryElement> => {
   const isEvent = 'event' in ctx;
   const type = isEvent ? HistoryElementType.EVENT : HistoryElementType.CALL;
@@ -179,10 +159,6 @@ export const createHistoryElement = async (
 
   getUtilsLog(ctx).debug({ ...logArguments, executionSuccess: execution.success }, 'Created history element');
 
-  if (useStats) {
-    await updateHistoryElementStats(block);
-  }
-
   return historyElement;
 };
 
@@ -219,7 +195,7 @@ const addAssetsDataToHistoryElement = (historyElement: HistoryElement, data: any
 
   const assets = historyElement.dataAssets ?? [];
 
-  ['assetId', 'baseAssetId', 'targetAssetId', 'quoteAssetId', 'collateralAssetId', 'debtAssetId'].forEach((attr) => {
+  ['assetId'].forEach((attr) => {
     if (attr in data && typeof data[attr] === 'string') {
       assets.push(data[attr]);
     }
@@ -243,20 +219,9 @@ const addCallsToHistoryElement = async (
 
 const getHistoryElementAccountAddresses = (block: SubstrateBlock, history: HistoryElement) => {
   const addresses = [history.address];
-
-  if (INCOMING_TRANSFER_METHODS.includes(history.method) && history.dataTo) {
-    addresses.push(history.dataTo);
-  }
-
   const acccountAddresses = [...new Set(addresses)];
 
   getUtilsLog(block).debug({ historyId: history.id, addresses: acccountAddresses.join(', ') }, 'addresses');
 
   return acccountAddresses;
-};
-
-const updateHistoryElementStats = async (block: SubstrateBlock) => {
-  await networkSnapshotsStorage.updateTransactionsStats(block);
-
-  getUtilsLog(block).debug('Updated history element stats');
 };

@@ -2,7 +2,7 @@ import { TypedEventRecord } from '@subql/types';
 import { Codec } from '@polkadot/types/types';
 
 import { getAssetId } from '../utils/assets';
-import { XOR } from './consts';
+import { NATIVE } from './consts';
 
 export const isEvent = (e: TypedEventRecord<Codec[]>, section: string, method: string): boolean => {
   return e.event.method === method && e.event.section === section;
@@ -12,18 +12,6 @@ export const getEventData = (e: TypedEventRecord<Codec[]>, reversedOrder = false
   const data = e.event.data.slice();
 
   return reversedOrder ? data.reverse() : data;
-};
-
-export const isReferrerRewardedEvent = (e: TypedEventRecord<Codec[]>): boolean => {
-  return isEvent(e, 'xorFee', 'ReferrerRewarded');
-};
-
-export const isAssetsTransferEvent = (e: TypedEventRecord<Codec[]>): boolean => {
-  return isEvent(e, 'assets', 'Transfer');
-};
-
-export const isExchangeEvent = (e: TypedEventRecord<Codec[]>): boolean => {
-  return isEvent(e, 'liquidityProxy', 'Exchange');
 };
 
 export const isXorTransferEvent = (e: TypedEventRecord<Codec[]>) => {
@@ -40,10 +28,6 @@ export const isTokenTransferEvent = (e: TypedEventRecord<Codec[]>) => {
 
 export const isTokenDepositedEvent = (e: TypedEventRecord<Codec[]>) => {
   return isEvent(e, 'tokens', 'Deposited');
-};
-
-export const isAccessGrantEvent = (e: TypedEventRecord<Codec[]>) => {
-  return isEvent(e, 'extendedAssets', 'SBTExpirationUpdated');
 };
 
 // substrate 3
@@ -66,7 +50,7 @@ export const isAssetDepositedEvent = (e: TypedEventRecord<Codec[]>): boolean => 
 
 export const getTransferEventData = (e: TypedEventRecord<Codec[]>) => {
   const [amount, to, from, currencyId] = getEventData(e, true);
-  const assetId = currencyId ? getAssetId(currencyId) : XOR;
+  const assetId = currencyId ? getAssetId(currencyId) : NATIVE;
 
   return {
     assetId,
@@ -78,58 +62,11 @@ export const getTransferEventData = (e: TypedEventRecord<Codec[]>) => {
 
 export const getDepositedEventData = (e: TypedEventRecord<Codec[]>) => {
   const [amount, to, currencyId] = getEventData(e, true);
-  const assetId = currencyId ? getAssetId(currencyId) : XOR;
+  const assetId = currencyId ? getAssetId(currencyId) : NATIVE;
 
   return {
     assetId,
     to: to.toString(),
     amount: amount.toString(),
   };
-};
-
-export const getFeeWithdrawnData = (e: TypedEventRecord<Codec[]>) => {
-  const data = getEventData(e);
-  const accountId = data[0].toString();
-  if (data.length === 2) {
-    /// FeeWithdrawn(AccountIdOf<T>, BalanceOf<T>)
-    return {
-      accountId,
-      assetId: XOR,
-      fee: data[1].toString(),
-    };
-  } else if (data.length === 3) {
-    /// FeeWithdrawn(AccountIdOf<T>, AssetIdOf<T>, Balance)
-    return {
-      accountId,
-      assetId: getAssetId(data[1]),
-      fee: data[2].toString(),
-    };
-  } else {
-    throw new Error('FeeWithdrawn: wrong event data');
-  }
-};
-
-export const getReferrerRewardedData = (e: TypedEventRecord<Codec[]>) => {
-  const data = getEventData(e);
-  const referral = data[0].toString();
-  const referrer = data[1].toString();
-  if (data.length === 3) {
-    /// ReferrerRewarded(AccountIdOf<T>, AccountIdOf<T>, Balance)
-    return {
-      referral,
-      referrer,
-      assetId: XOR,
-      amount: data[2].toString(),
-    };
-  } else if (data.length === 4) {
-    /// ReferrerRewarded(AccountIdOf<T>, AccountIdOf<T>, AssetIdOf<T>, Balance)
-    return {
-      referral,
-      referrer,
-      assetId: getAssetId(data[2]),
-      amount: data[3].toString(),
-    };
-  } else {
-    throw new Error('ReferrerRewarded: wrong event data');
-  }
 };

@@ -2,8 +2,8 @@ import { SubstrateExtrinsic } from '@subql/types';
 import { getExtrinsicSigner, getExtrinsicArgs } from '../../utils';
 import { isEvent } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
-import { XOR } from '../../utils/consts';
-import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
+import { NATIVE } from '../../utils/consts';
+import { formatU128ToBalance } from '../../utils/assets';
 import { getCallHandlerLog, logStartProcessingCall } from '../../utils/logs';
 import { PayeeType } from '../../types';
 import { getStakingStaker, getStakingStakerController } from '../../utils/staking';
@@ -13,15 +13,13 @@ export async function stakingBondCallHandler(extrinsic: SubstrateExtrinsic): Pro
 
   const [controller, value, payee] = getExtrinsicArgs(extrinsic) as any;
 
-  const assetId = XOR;
+  const assetId = NATIVE;
   const amount = formatU128ToBalance(value.toString(), assetId);
-  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
   const details = {
     controller: controller.toString(),
     payee: payee.isAccount ? { kind: payee.type, value: payee.asAccount.toString() } : { kind: payee.type },
     amount,
-    amountUSD,
   };
 
   await createHistoryElement(extrinsic, details);
@@ -32,13 +30,11 @@ export async function stakingBondExtraCallHandler(extrinsic: SubstrateExtrinsic)
 
   const [maxAdditional] = getExtrinsicArgs(extrinsic) as any;
 
-  const assetId = XOR;
+  const assetId = NATIVE;
   const amount = formatU128ToBalance(maxAdditional.toString(), assetId);
-  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
   const details = {
     amount,
-    amountUSD,
   };
 
   await createHistoryElement(extrinsic, details);
@@ -195,13 +191,12 @@ export async function stakingRebondCallHandler(extrinsic: SubstrateExtrinsic): P
 
   const [value] = getExtrinsicArgs(extrinsic);
 
-  const assetId = XOR;
+  const assetId = NATIVE;
   const amount = formatU128ToBalance(value.toString(), assetId);
-  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
   const details = {
     value,
-    amountUSD,
+    amount
   };
 
   await createHistoryElement(extrinsic, details);
@@ -307,7 +302,7 @@ export async function stakingSetStakingConfigsCallHandler(extrinsic: SubstrateEx
     return value.isSet
       ? {
           kind: value.type,
-          value: formatU128ToBalance(value.asSet.toString(), XOR),
+          value: formatU128ToBalance(value.asSet.toString(), NATIVE),
         }
       : { kind: value.type };
   };
@@ -341,12 +336,10 @@ export async function stakingUnbondCallHandler(extrinsic: SubstrateExtrinsic): P
 
   const [value] = getExtrinsicArgs(extrinsic);
 
-  const amount = formatU128ToBalance(value.toString(), XOR);
-  const amountUSD = await getAmountUSD(extrinsic.block, XOR, amount);
+  const amount = formatU128ToBalance(value.toString(), NATIVE);
 
   const details = {
     amount,
-    amountUSD,
   };
 
   await createHistoryElement(extrinsic, details);
@@ -380,12 +373,9 @@ export async function stakingWithdrawUnbondedCallHandler(extrinsic: SubstrateExt
   if (stakingWithdrawnEvent) {
     const [stash, amountCodec] = stakingWithdrawnEvent.event.data;
 
-    const assetId = XOR;
-    const amount = formatU128ToBalance(amountCodec.toString(), XOR);
-    const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
+    const amount = formatU128ToBalance(amountCodec.toString(), NATIVE);
 
     details.amount = amount;
-    details.amountUSD = amountUSD;
   }
 
   await createHistoryElement(extrinsic, details);

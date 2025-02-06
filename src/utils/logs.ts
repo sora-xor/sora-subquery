@@ -90,50 +90,14 @@ export function getEventHandlerLog(event: SubstrateEvent, onlyWithTestLogMode: b
   return getLog(event, 'EventHandler', attributes, onlyWithTestLogMode);
 }
 
-export function getInitializeAssetsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-  return getLog(ctx, 'InitializeAssets', {}, onlyWithTestLogMode);
-}
-
-export function getInitializeAccountLiquiditiesLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-  return getLog(ctx, 'InitializeAccountLiquidities', {}, onlyWithTestLogMode);
-}
-
-export function getInitializePoolsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-  return getLog(ctx, 'InitializePools', {}, onlyWithTestLogMode);
-}
-
-export function getInitializeOrderBooksLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-  return getLog(ctx, 'InitializeOrderBooks', {}, onlyWithTestLogMode);
-}
-
-export function getSyncModelsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-  return getLog(ctx, 'SyncModels', {}, onlyWithTestLogMode);
-}
-
-export function getSyncPricesLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-  return getLog(ctx, 'SyncPrices', {}, onlyWithTestLogMode);
-}
-
 export function getStorageLog(entityName: string) {
   return function (ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
     return getLog(ctx, entityName, {}, onlyWithTestLogMode);
   };
 }
 
-export function getNetworkSnapshotsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-  return getLog(ctx, 'NetworkSnapshotsStorage', {}, onlyWithTestLogMode);
-}
-
-export function getPoolsStorageLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
-  return getLog(ctx, 'PoolsStorage', {}, onlyWithTestLogMode);
-}
-
 export function getUtilsLog(ctx: BlockContext, onlyWithTestLogMode: boolean = false) {
   return getLog(ctx, 'Utils', {}, onlyWithTestLogMode);
-}
-
-export function getStreamLog(ctx: BlockContext) {
-  return getLog(ctx, 'Stream');
 }
 
 export function logStartProcessingCall(extrinsic: SubstrateExtrinsic) {

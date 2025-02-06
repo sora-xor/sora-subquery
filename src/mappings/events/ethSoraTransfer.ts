@@ -1,10 +1,8 @@
 import type { SubstrateEvent } from '@subql/types';
 
-import { accountMetaStorage } from '../../utils/account';
 import { isEvent, getEventData } from '../../utils/events';
 import { createHistoryElement } from '../../utils/history';
-import { formatU128ToBalance, getAmountUSD } from '../../utils/assets';
-import { networkSnapshotsStorage } from '../../utils/network';
+import { formatU128ToBalance } from '../../utils/assets';
 import {
   getDepositedEventData,
   getTransferEventData,
@@ -33,19 +31,13 @@ export async function ethSoraTransferEventHandler(event: SubstrateEvent): Promis
     : getTransferEventData(currenciesEvent);
 
   const amount = formatU128ToBalance(assetAmount, assetId);
-  const amountUSD = await getAmountUSD(extrinsic.block, assetId, amount);
 
   const details: any = {
     requestHash: requestHash.toString(),
     assetId,
     amount,
-    amountUSD,
     to,
   };
 
-  await networkSnapshotsStorage.updateBridgeIncomingTransactionsStats(event.block);
-
   await createHistoryElement(extrinsic, details);
-
-  await accountMetaStorage.updateIncomingDeposit(event.block, to, amountUSD);
 }

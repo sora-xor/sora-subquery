@@ -1,5 +1,5 @@
 specVersion: 1.0.0
-name: sora-prod
+name: analog-bridge
 version: 1.0.0
 runner:
   node:
@@ -13,199 +13,52 @@ repository: https://github.com/sora-xor/sora-subquery
 schema:
   file: ./schema.graphql
 network:
-  chainId: '0x7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5'
-  endpoint: wss://mof2.sora.org
+  chainId: '0xd9dcf11f17bfb5ff509247fd7986c06545565740ae1d5ed65f120f72c0fc3182'
+  endpoint: wss://rpc.mainnet.analog.one
   chaintypes:
     file: ./types.json
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 8035052
+    startBlock: 1
     mapping:
       file: ./dist/index.js
       handlers:
-        - handler: initializeAssets
-          kind: substrate/BlockHandler
-        - handler: initializePools
-          kind: substrate/BlockHandler
-        - handler: initializeAccountLiquidities
-          kind: substrate/BlockHandler
-        - handler: initializeOrderBooks
-          kind: substrate/BlockHandler
-        - handler: handleAssetRegistration
-          kind: substrate/EventHandler
-          filter:
-            module: assets
-            method: AssetRegistered
-        - handler: handleSyntheticAssetEnabled
-          kind: substrate/EventHandler
-          filter:
-            module: xstPool
-            method: SyntheticAssetEnabled
-        - handler: handleBandRateUpdate
-          kind: substrate/CallHandler
-          filter:
-            module: band
-            method: relay
-        - handler: assetRegistrationHandler
-          kind: substrate/CallHandler
-          filter:
-            module: assets
-            method: register
-        - handler: assetBurnHandler
-          kind: substrate/CallHandler
-          filter:
-            module: assets
-            method: burn
-        - handler: assetMintHandler
-          kind: substrate/CallHandler
-          filter:
-            module: assets
-            method: mint
-        - handler: handleAssetTransfer
-          kind: substrate/CallHandler
-          filter:
-            module: assets
-            method: transfer
-        - handler: handleXorlessTransfer
-          kind: substrate/CallHandler
-          filter:
-            module: liquidityProxy
-            method: xorlessTransfer
-        - handler: handleSwaps
-          kind: substrate/CallHandler
-          filter:
-            module: liquidityProxy
-            method: swap
-        - handler: handleSwapTransfers
-          kind: substrate/CallHandler
-          filter:
-            module: liquidityProxy
-            method: swapTransfer
-        - handler: handleSwapTransferBatch
-          kind: substrate/CallHandler
-          filter:
-            module: liquidityProxy
-            method: swapTransferBatch
-        - handler: handleLiquidityDeposit
-          kind: substrate/CallHandler
-          filter:
-            module: poolXYK
-            method: depositLiquidity
-        - handler: handleLiquidityRemoval
-          kind: substrate/CallHandler
-          filter:
-            module: poolXYK
-            method: withdrawLiquidity
-        - handler: handlerIrohaMigration
-          kind: substrate/CallHandler
-          filter:
-            module: irohaMigration
-            method: migrate
-        - handler: batchTransactionsHandler
-          kind: substrate/CallHandler
-          filter:
-            module: utility
-            method: batchAll
         - handler: soraEthTransferHandler
           kind: substrate/CallHandler
           filter:
             module: ethBridge
             method: transferToSidechain
-        - handler: bridgeProxyOutgoingHandler
-          kind: substrate/CallHandler
+        - handler: ethSoraTransferEventHandler
+          kind: substrate/EventHandler
           filter:
-            module: bridgeProxy
-            method: burn
-        - handler: substrateBridgeIncomingHandler
-          kind: substrate/CallHandler
+            module: ethBridge
+            method: IncomingRequestFinalized
+        - handler: ethSoraTransferEventHandler
+          kind: substrate/EventHandler
           filter:
-            module: substrateBridgeInboundChannel
-            method: submit
-        - handler: tonBridgeIncomingHandler
-          kind: substrate/CallHandler
-          filter:
-            module: bridgeInboundChannel
-            method: submit
-        # rewards
-        - handler: rewardsHandler
-          kind: substrate/CallHandler
-          filter:
-            module: pswapDistribution
-            method: claimIncentive
-        - handler: rewardsHandler
-          kind: substrate/CallHandler
-          filter:
-            module: rewards
-            method: claim
-        - handler: rewardsHandler
-          kind: substrate/CallHandler
-          filter:
-            module: vestedRewards
-            method: claimRewards
-        - handler: rewardsHandler
-          kind: substrate/CallHandler
-          filter:
-            module: vestedRewards
-            method: claimCrowdloanRewards
-        # vestedRewards
-        - handler: vestedTransferHandler
-          kind: substrate/CallHandler
-          filter:
-            module: vestedRewards
-            method: vestedTransfer
-        # referrals
-        - handler: setReferralHandler
-          kind: substrate/CallHandler
-          filter:
-            module: referrals
-            method: setReferrer
-        - handler: referralReserveHandler
-          kind: substrate/CallHandler
-          filter:
-            module: referrals
-            method: reserve
-        - handler: referralReserveHandler
-          kind: substrate/CallHandler
-          filter:
-            module: referrals
-            method: unreserve
-        # demeterFarmingPlatform
-        - handler: demeterDepositHandler
-          kind: substrate/CallHandler
-          filter:
-            module: demeterFarmingPlatform
-            method: deposit
-        - handler: demeterWithdrawHandler
-          kind: substrate/CallHandler
-          filter:
-            module: demeterFarmingPlatform
-            method: withdraw
-        - handler: demeterGetRewardsHandler
-          kind: substrate/CallHandler
-          filter:
-            module: demeterFarmingPlatform
-            method: getRewards
+            module: ethBridge
+            method: IncomingRequestFinalizationFailed
         # staking
-        - handler: stakingBondCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: bond
-        - handler: stakingBondExtraCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: bondExtra
+        # - handler: stakingBondCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: bond
+        # - handler: stakingBondExtraCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: bondExtra
         # - handler: stakingCancelDeferredSlashCallHandler
         #   kind: substrate/CallHandler
         #   filter:
         #     module: staking
         #     method: cancelDeferredSlash
-        - handler: stakingChillCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: chill
+        # - handler: stakingChillCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: chill
         # - handler: stakingChillOtherCallHandler
         #   kind: substrate/CallHandler
         #   filter:
@@ -246,36 +99,36 @@ dataSources:
         #   filter:
         #     module: staking
         #     method: kick
-        - handler: stakingNominateCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: nominate
-        - handler: stakingPayoutStakersCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: payoutStakers
+        # - handler: stakingNominateCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: nominate
+        # - handler: stakingPayoutStakersCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: payoutStakers
         # - handler: stakingReapStashCallHandler
         #   kind: substrate/CallHandler
         #   filter:
         #     module: staking
         #     method: reapStash
-        - handler: stakingRebondCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: rebond
+        # - handler: stakingRebondCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: rebond
         # - handler: stakingScaleValidatorCountCallHandler
         #   kind: substrate/CallHandler
         #   filter:
         #     module: staking
         #     method: scaleValidatorCount
-        - handler: stakingSetControllerCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: setController
+        # - handler: stakingSetControllerCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: setController
         # - handler: stakingSetInvulnerablesCallHandler
         #   kind: substrate/CallHandler
         #   filter:
@@ -286,11 +139,11 @@ dataSources:
         #   filter:
         #     module: staking
         #     method: setMinCommission
-        - handler: stakingSetPayeeCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: setPayee
+        # - handler: stakingSetPayeeCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: setPayee
         # - handler: stakingSetStakingConfigsCallHandler
         #   kind: substrate/CallHandler
         #   filter:
@@ -301,279 +154,28 @@ dataSources:
         #   filter:
         #     module: staking
         #     method: setValidatorCount
-        - handler: stakingUnbondCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: unbond
+        # - handler: stakingUnbondCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: unbond
         # - handler: stakingValidateCallHandler
         #   kind: substrate/CallHandler
         #   filter:
         #     module: staking
         #     method: validate
-        - handler: stakingWithdrawUnbondedCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: staking
-            method: withdrawUnbonded
-        - handler: stakingRewardedEventHandler
-          kind: substrate/EventHandler
-          filter:
-            module: staking
-            method: Rewarded
-        - handler: stakingStakersElectedEventHandler
-          kind: substrate/EventHandler
-          filter:
-            module: staking
-            method: StakersElected
-        # governance
-        - handler: handleDemocracyVoted
-          kind: substrate/EventHandler
-          filter:
-            module: democracy
-            method: Voted
-        # order book
-        - handler: orderBookCreatedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: OrderBookCreated
-        - handler: orderBookStatusChangedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: OrderBookStatusChanged
-        - handler: limitOrderPlacedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: LimitOrderPlaced
-        - handler: limitOrderExecutedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: LimitOrderExecuted
-        - handler: limitOrderUpdatedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: LimitOrderUpdated
-        - handler: limitOrderFilledEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: LimitOrderFilled
-        - handler: limitOrderCanceledEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: LimitOrderCanceled
-        - handler: marketOrderEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: MarketOrderExecuted
-        - handler: marketOrderEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: LimitOrderConvertedToMarketOrder
-        - handler: marketOrderEvent
-          kind: substrate/EventHandler
-          filter:
-            module: orderBook
-            method: LimitOrderIsSplitIntoMarketOrderAndLimitOrder
-        - handler: orderBookPlaceLimitOrderHandler
-          kind: substrate/CallHandler
-          filter:
-            module: orderBook
-            method: placeLimitOrder
-        - handler: orderBookCancelLimitOrderHandler
-          kind: substrate/CallHandler
-          filter:
-            module: orderBook
-            method: cancelLimitOrder
-        - handler: orderBookCancelLimitOrderHandler
-          kind: substrate/CallHandler
-          filter:
-            module: orderBook
-            method: cancelLimitOrdersBatch
-        # defi-r calls
-        - handler: setSbtExpirationCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: extendedAssets
-            method: setSbtExpiration
-        - handler: regulateAssetCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: extendedAssets
-            method: regulateAsset
-        - handler: bindRegulatedAssetToSbtCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: extendedAssets
-            method: bindRegulatedAssetToSbt
-        - handler: registerRegulatedAssetCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: extendedAssets
-            method: registerRegulatedAsset
-        # kensetsu calls start
-        - handler: vaultCreateCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: kensetsu
-            method: createCdp
-        - handler: vaultDepositCollateralCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: kensetsu
-            method: depositCollateral
-        - handler: vaultDecreaseDebtCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: kensetsu
-            method: repayDebt
-        - handler: vaultIncreaseDeptCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: kensetsu
-            method: borrow
-        - handler: vaultCloseCallHandler
-          kind: substrate/CallHandler
-          filter:
-            module: kensetsu
-            method: closeCdp
-        # kensetsu events start
-        - handler: vaultCreatedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: kensetsu
-            method: CDPCreated
-        - handler: vaultCollateralDepositEvent
-          kind: substrate/EventHandler
-          filter:
-            module: kensetsu
-            method: CollateralDeposit
-        - handler: vaultDebtIncreasedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: kensetsu
-            method: DebtIncreased
-        - handler: vaultDebtPaymentEvent
-          kind: substrate/EventHandler
-          filter:
-            module: kensetsu
-            method: DebtPayment
-        - handler: vaultLiquidatedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: kensetsu
-            method: Liquidated
-        - handler: vaultClosedEvent
-          kind: substrate/EventHandler
-          filter:
-            module: kensetsu
-            method: CDPClosed
-        # kensetsu end
-        - handler: ethSoraTransferEventHandler
-          kind: substrate/EventHandler
-          filter:
-            module: ethBridge
-            method: IncomingRequestFinalized
-        - handler: ethSoraTransferEventHandler
-          kind: substrate/EventHandler
-          filter:
-            module: ethBridge
-            method: IncomingRequestFinalizationFailed
-        - handler: handleTokenBurn
-          kind: substrate/EventHandler
-          filter:
-            module: currencies
-            method: Withdrawn
-        - handler: handleTokenBurn
-          kind: substrate/EventHandler
-          filter:
-            module: tokens
-            method: Withdrawn
-        - handler: handleTokenBurn
-          kind: substrate/EventHandler
-          filter:
-            module: balances
-            method: Withdraw
-        - handler: handleTokenMint
-          kind: substrate/EventHandler
-          filter:
-            module: currencies
-            method: Deposited
-        - handler: handleTokenMint
-          kind: substrate/EventHandler
-          filter:
-            module: tokens
-            method: Deposited
-        - handler: handleTokenMint
-          kind: substrate/EventHandler
-          filter:
-            module: balances
-            method: Deposit
-        - handler: handleNetworkFee
-          kind: substrate/EventHandler
-          filter:
-            module: xorFee
-            method: FeeWithdrawn
-        - handler: referrerRewardHandler
-          kind: substrate/EventHandler
-          filter:
-            module: xorFee
-            method: ReferrerRewarded
-        - handler: handleTransferEvent
-          kind: substrate/EventHandler
-          filter:
-            module: balances
-            method: Transfer
-        - handler: handleTransferEvent
-          kind: substrate/EventHandler
-          filter:
-            module: tokens
-            method: Transfer
-        - handler: syncPoolXykPrices
-          kind: substrate/BlockHandler
-        - handler: syncStreams
-          kind: substrate/BlockHandler
-        - handler: updateNetworkStats
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 600
-        - handler: updateDailyStats
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 600
-        - handler: updateAssetsWeeklyStats
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 2400
-        - handler: syncAssets
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 50
-        - handler: syncOrderBooks
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 600
-        - handler: syncPools
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 600
-        - handler: syncAccountLiquidities
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 600
-        - handler: syncAccountMeta
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 50
-        - handler: syncAssetOwner
-          kind: substrate/BlockHandler
-          filter:
-            modulo: 50
+        # - handler: stakingWithdrawUnbondedCallHandler
+        #   kind: substrate/CallHandler
+        #   filter:
+        #     module: staking
+        #     method: withdrawUnbonded
+        # - handler: stakingRewardedEventHandler
+        #   kind: substrate/EventHandler
+        #   filter:
+        #     module: staking
+        #     method: Rewarded
+        # - handler: stakingStakersElectedEventHandler
+        #   kind: substrate/EventHandler
+        #   filter:
+        #     module: staking
+        #     method: StakersElected
